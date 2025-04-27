@@ -54,55 +54,16 @@ jobs:
             echo "gh-pages branch already exists"
           fi
 
-      # Enable GitHub Pages with GitHub token
-      - name: Enable GitHub Pages
-        env:
-          REPO_NAME: "${{ github.repository }}"
-          OWNER: "${{ github.repository_owner }}"
-          TOKEN: ${{ github.token }}
-        run: |
-          echo "Enabling GitHub Pages for $OWNER/$REPO_NAME"
-
-          # Create GitHub Pages site settings
-          echo "Attempting to create GitHub Pages site..."
-          STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
-            -H "Authorization: Bearer $TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/$OWNER/$REPO_NAME/pages" \
-            -d '{"source":{"branch":"gh-pages","path":"/"}}' || echo "000")
-
-          if [[ "$STATUS" == "201" ]]; then
-            echo "GitHub Pages site created successfully"
-          elif [[ "$STATUS" == "409" ]]; then
-            echo "GitHub Pages site already exists, proceeding with update"
-          else
-            echo "GitHub Pages creation returned status $STATUS"
-            echo "This is not critical, continuing with workflow"
-          fi
-
-          # Update GitHub Pages settings to use GitHub Actions
-          echo "Attempting to update GitHub Pages settings to use GitHub Actions..."
-          STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X PUT \
-            -H "Authorization: Bearer $TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/$OWNER/$REPO_NAME/pages" \
-            -d '{"build_type":"workflow"}' || echo "000")
-
-          if [[ "$STATUS" == "200" || "$STATUS" == "201" ]]; then
-            echo "GitHub Pages settings updated successfully"
-          else
-            echo "GitHub Pages update returned status $STATUS"
-            echo "This is not critical, continuing with workflow"
-          fi
-
-      # GitHub Pages Manual Setup Notice
+      # Skip GitHub Pages API enablement - it's causing issues
       - name: GitHub Pages Setup Notice
         run: |
-          echo "::notice::If GitHub Pages is not automatically enabled, please enable it manually:"
+          echo "::notice::GitHub Pages API enablement is skipped due to permission issues."
+          echo "::notice::Please enable GitHub Pages manually after the workflow completes:"
           echo "1. Go to your repository on GitHub"
           echo "2. Navigate to Settings > Pages"
           echo "3. Under 'Source', select 'GitHub Actions' from the dropdown"
           echo "4. Save the settings"
+          echo "::notice::This only needs to be done once."
 
       - name: Setup Node
         uses: actions/setup-node@v4

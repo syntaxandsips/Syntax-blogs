@@ -34,13 +34,21 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
+          # Store current branch name
+          CURRENT_BRANCH=$(git branch --show-current)
+          echo "Current branch: $CURRENT_BRANCH"
+
           if ! git ls-remote --heads origin gh-pages | grep gh-pages; then
             echo "Creating gh-pages branch"
             git checkout --orphan gh-pages
             git reset --hard
             git commit --allow-empty -m "Initial gh-pages commit"
             git push origin gh-pages
-            git checkout -
+
+            # Return to original branch (usually main)
+            echo "Returning to $CURRENT_BRANCH branch"
+            git checkout $CURRENT_BRANCH || git checkout main
+
             echo "Created gh-pages branch successfully"
           else
             echo "gh-pages branch already exists"

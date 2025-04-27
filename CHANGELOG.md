@@ -5,6 +5,26 @@ All notable changes to the SyntaxBlogs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.5] - 2024-07-15
+
+### Fixed
+
+- Fixed git branch handling in GitHub Actions workflow
+- Added explicit branch tracking to prevent checkout errors
+- Improved branch switching logic after gh-pages creation
+- Added fallback to main branch if original branch checkout fails
+
+## [1.8.4] - 2024-07-15
+
+### Fixed
+
+- Fixed GitHub Actions workflow syntax errors
+- Simplified GitHub Pages enablement approach
+- Removed dependency on Personal Access Token
+- Used built-in GitHub token for API calls
+- Added better error handling for API calls
+- Updated documentation with simplified setup instructions
+
 ## [1.8.3] - 2024-07-15
 
 ### Changed

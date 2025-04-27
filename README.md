@@ -138,21 +138,22 @@ The project is configured for deployment to GitHub Pages using GitHub Actions.
 
 ### Initial Setup (One-time)
 
-The workflow will attempt to automatically configure GitHub Pages for you. However, if the automatic setup fails, you'll need to manually enable GitHub Pages:
+You'll need to manually enable GitHub Pages in your repository settings:
 
 1. Go to your repository on GitHub
 2. Navigate to Settings > Pages
 3. Under "Source", select "GitHub Actions" from the dropdown
 4. Save the settings
 
-Once GitHub Pages is enabled (either automatically or manually), the site will be deployed automatically whenever changes are pushed to the main branch.
+This manual setup is required only once. After that, the site will be deployed automatically whenever changes are pushed to the main branch.
 
 ### How It Works
 
-1. When you push changes to the `main` branch, GitHub Actions automatically builds and deploys the site
-2. The workflow is defined in `.github/workflows/deploy.yml`
-3. The site is built as a static export using Next.js's static export feature
-4. The built files are deployed to GitHub Pages
+1. When you push changes to the `main` branch, GitHub Actions automatically builds the site
+2. The workflow creates a static export of your Next.js application
+3. The built files are deployed to GitHub Pages
+4. Your site will be available at `https://[username].github.io/[repository-name]/`
+5. The workflow is defined in `.github/workflows/deploy.yml`
 
 ### Manual Deployment
 

@@ -46,13 +46,12 @@ jobs:
             echo "gh-pages branch already exists"
           fi
 
-      # Enable GitHub Pages with PAT (if available)
+      # Enable GitHub Pages with GitHub token
       - name: Enable GitHub Pages
-        if: ${{ secrets.PERSONAL_ACCESS_TOKEN != '' }}
         env:
           REPO_NAME: "${{ github.repository }}"
           OWNER: "${{ github.repository_owner }}"
-          TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          TOKEN: ${{ github.token }}
         run: |
           echo "Enabling GitHub Pages for $OWNER/$REPO_NAME"
 
@@ -62,7 +61,7 @@ jobs:
             -H "Authorization: Bearer $TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/$OWNER/$REPO_NAME/pages" \
-            -d '{"source":{"branch":"gh-pages","path":"/"}}')
+            -d '{"source":{"branch":"gh-pages","path":"/"}}' || echo "000")
 
           if [[ "$STATUS" == "201" ]]; then
             echo "GitHub Pages site created successfully"
@@ -79,7 +78,7 @@ jobs:
             -H "Authorization: Bearer $TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/$OWNER/$REPO_NAME/pages" \
-            -d '{"build_type":"workflow"}')
+            -d '{"build_type":"workflow"}' || echo "000")
 
           if [[ "$STATUS" == "200" || "$STATUS" == "201" ]]; then
             echo "GitHub Pages settings updated successfully"
@@ -88,12 +87,10 @@ jobs:
             echo "This is not critical, continuing with workflow"
           fi
 
-      # Fallback message if PAT is not available
+      # GitHub Pages Manual Setup Notice
       - name: GitHub Pages Setup Notice
-        if: ${{ secrets.PERSONAL_ACCESS_TOKEN == '' }}
         run: |
-          echo "::warning::No PERSONAL_ACCESS_TOKEN found. GitHub Pages will need to be enabled manually."
-          echo "Please follow these steps:"
+          echo "::notice::If GitHub Pages is not automatically enabled, please enable it manually:"
           echo "1. Go to your repository on GitHub"
           echo "2. Navigate to Settings > Pages"
           echo "3. Under 'Source', select 'GitHub Actions' from the dropdown"

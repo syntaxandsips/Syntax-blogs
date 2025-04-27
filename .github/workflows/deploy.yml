@@ -8,7 +8,7 @@ on:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -24,6 +24,76 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Create gh-pages branch if it doesn't exist
+      - name: Create gh-pages branch if needed
+        run: |
+          # Configure Git identity
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+          if ! git ls-remote --heads origin gh-pages | grep gh-pages; then
+            echo "Creating gh-pages branch"
+            git checkout --orphan gh-pages
+            git reset --hard
+            git commit --allow-empty -m "Initial gh-pages commit"
+            git push origin gh-pages
+            git checkout -
+            echo "Created gh-pages branch successfully"
+          else
+            echo "gh-pages branch already exists"
+          fi
+
+      # Enable GitHub Pages with improved error handling
+      - name: Enable GitHub Pages
+        run: |
+          # Get repository name from GitHub context
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          OWNER="${GITHUB_REPOSITORY%/*}"
+
+          echo "Enabling GitHub Pages for $OWNER/$REPO_NAME"
+
+          # Create GitHub Pages site settings
+          echo "Attempting to create GitHub Pages site..."
+          CREATE_RESPONSE=$(curl -s -w "%{http_code}" -X POST \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/$OWNER/$REPO_NAME/pages" \
+            -d '{"source":{"branch":"gh-pages","path":"/"}}')
+
+          HTTP_STATUS=${CREATE_RESPONSE: -3}
+          RESPONSE_BODY=${CREATE_RESPONSE:0:${#CREATE_RESPONSE}-3}
+
+          if [[ "$HTTP_STATUS" == "201" ]]; then
+            echo "GitHub Pages site created successfully"
+          elif [[ "$HTTP_STATUS" == "409" ]]; then
+            echo "GitHub Pages site already exists, proceeding with update"
+          else
+            echo "GitHub Pages creation returned status $HTTP_STATUS"
+            echo "Response: $RESPONSE_BODY"
+            echo "This is not critical, continuing with workflow"
+          fi
+
+          # Update GitHub Pages settings to use GitHub Actions
+          echo "Attempting to update GitHub Pages settings to use GitHub Actions..."
+          UPDATE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/$OWNER/$REPO_NAME/pages" \
+            -d '{"build_type":"workflow"}')
+
+          HTTP_STATUS=${UPDATE_RESPONSE: -3}
+          RESPONSE_BODY=${UPDATE_RESPONSE:0:${#UPDATE_RESPONSE}-3}
+
+          if [[ "$HTTP_STATUS" == "200" || "$HTTP_STATUS" == "201" ]]; then
+            echo "GitHub Pages settings updated successfully"
+          else
+            echo "GitHub Pages update returned status $HTTP_STATUS"
+            echo "Response: $RESPONSE_BODY"
+            echo "This is not critical, continuing with workflow"
+          fi
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -33,6 +103,9 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
+        with:
+          # Try with enablement parameter
+          enablement: true
 
       - name: Install dependencies
         run: npm ci

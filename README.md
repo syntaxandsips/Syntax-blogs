@@ -134,13 +134,23 @@ syntaxblogs/
 
 ## Deployment
 
-The project is configured for automatic deployment to GitHub Pages using GitHub Actions.
+The project is configured for deployment to GitHub Pages using GitHub Actions.
+
+### Initial Setup (One-time)
+
+Before the first deployment, you need to enable GitHub Pages in your repository:
+
+1. Go to your repository on GitHub
+2. Navigate to Settings > Pages
+3. Under "Source", select "GitHub Actions" from the dropdown
+4. Save the settings
 
 ### How It Works
 
 1. When you push changes to the `main` branch, GitHub Actions automatically builds and deploys the site
 2. The workflow is defined in `.github/workflows/deploy.yml`
 3. The site is built as a static export using Next.js's static export feature
+4. The built files are deployed to GitHub Pages
 
 ### Manual Deployment
 

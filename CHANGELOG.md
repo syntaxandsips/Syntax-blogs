@@ -7,13 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.8.1] - 2024-07-15
 
-### Fixed
+### Changed
 
-- Enhanced GitHub Actions workflow to automatically enable GitHub Pages
-- Added automatic creation of gh-pages branch if it doesn't exist
-- Improved GitHub API calls for Pages configuration
-- Added proper Git identity configuration for automated commits
-- Fixed permissions to allow GitHub Pages enablement
+- Simplified GitHub Actions workflow for GitHub Pages deployment
+- Updated documentation with manual GitHub Pages setup instructions
+- Removed automatic GitHub Pages enablement due to permission constraints
 
 ## [1.8.0] - 2024-07-15
 

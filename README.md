@@ -138,12 +138,34 @@ The project is configured for deployment to GitHub Pages using GitHub Actions.
 
 ### Initial Setup (One-time)
 
-Before the first deployment, you need to enable GitHub Pages in your repository:
+#### Option 1: Automatic Setup with Personal Access Token (Recommended)
+
+For automatic GitHub Pages setup, you'll need to create a Personal Access Token (PAT):
+
+1. Go to your GitHub account settings -> Developer settings -> Personal access tokens -> Fine-grained tokens
+2. Click "Generate new token"
+3. Give it a name like "GitHub Pages Enablement"
+4. Set the expiration as needed
+5. Select the repository you want to deploy
+6. Under "Repository permissions", grant the following permissions:
+   - "Administration" - Read and write
+   - "Pages" - Read and write
+7. Click "Generate token" and copy the token
+8. Go to your repository -> Settings -> Secrets and variables -> Actions
+9. Create a new repository secret named `PERSONAL_ACCESS_TOKEN` and paste your token
+
+With this token in place, the workflow will automatically configure GitHub Pages for you.
+
+#### Option 2: Manual Setup
+
+If you prefer not to use a PAT, you can manually enable GitHub Pages after the first workflow run:
 
 1. Go to your repository on GitHub
 2. Navigate to Settings > Pages
 3. Under "Source", select "GitHub Actions" from the dropdown
 4. Save the settings
+
+The workflow will continue even if the automatic GitHub Pages enablement is skipped.
 
 ### How It Works
 

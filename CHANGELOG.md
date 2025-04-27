@@ -5,6 +5,26 @@ All notable changes to the SyntaxBlogs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.3] - 2024-07-15
+
+### Changed
+
+- Updated GitHub Pages enablement to use Personal Access Token
+- Added detailed instructions for setting up PAT in README
+- Improved error handling for GitHub Pages API calls
+- Added fallback message when PAT is not available
+- Enhanced workflow to support both automatic and manual GitHub Pages setup
+
+## [1.8.2] - 2024-07-15
+
+### Enhanced
+
+- Improved GitHub Actions workflow with robust error handling
+- Added detailed logging for GitHub Pages API operations
+- Enhanced gh-pages branch creation process
+- Implemented HTTP status code checking for API responses
+- Added fallback mechanisms for GitHub Pages enablement
+
 ## [1.8.1] - 2024-07-15
 
 ### Changed

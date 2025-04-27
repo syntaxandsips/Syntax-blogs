@@ -46,54 +46,58 @@ jobs:
             echo "gh-pages branch already exists"
           fi
 
-      # Enable GitHub Pages with improved error handling
+      # Enable GitHub Pages with PAT (if available)
       - name: Enable GitHub Pages
+        if: ${{ secrets.PERSONAL_ACCESS_TOKEN != '' }}
+        env:
+          REPO_NAME: "${{ github.repository }}"
+          OWNER: "${{ github.repository_owner }}"
+          TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          # Get repository name from GitHub context
-          REPO_NAME="${GITHUB_REPOSITORY#*/}"
-          OWNER="${GITHUB_REPOSITORY%/*}"
-
           echo "Enabling GitHub Pages for $OWNER/$REPO_NAME"
 
           # Create GitHub Pages site settings
           echo "Attempting to create GitHub Pages site..."
-          CREATE_RESPONSE=$(curl -s -w "%{http_code}" -X POST \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/$OWNER/$REPO_NAME/pages" \
             -d '{"source":{"branch":"gh-pages","path":"/"}}')
 
-          HTTP_STATUS=${CREATE_RESPONSE: -3}
-          RESPONSE_BODY=${CREATE_RESPONSE:0:${#CREATE_RESPONSE}-3}
-
-          if [[ "$HTTP_STATUS" == "201" ]]; then
+          if [[ "$STATUS" == "201" ]]; then
             echo "GitHub Pages site created successfully"
-          elif [[ "$HTTP_STATUS" == "409" ]]; then
+          elif [[ "$STATUS" == "409" ]]; then
             echo "GitHub Pages site already exists, proceeding with update"
           else
-            echo "GitHub Pages creation returned status $HTTP_STATUS"
-            echo "Response: $RESPONSE_BODY"
+            echo "GitHub Pages creation returned status $STATUS"
             echo "This is not critical, continuing with workflow"
           fi
 
           # Update GitHub Pages settings to use GitHub Actions
           echo "Attempting to update GitHub Pages settings to use GitHub Actions..."
-          UPDATE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X PUT \
+            -H "Authorization: Bearer $TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/$OWNER/$REPO_NAME/pages" \
             -d '{"build_type":"workflow"}')
 
-          HTTP_STATUS=${UPDATE_RESPONSE: -3}
-          RESPONSE_BODY=${UPDATE_RESPONSE:0:${#UPDATE_RESPONSE}-3}
-
-          if [[ "$HTTP_STATUS" == "200" || "$HTTP_STATUS" == "201" ]]; then
+          if [[ "$STATUS" == "200" || "$STATUS" == "201" ]]; then
             echo "GitHub Pages settings updated successfully"
           else
-            echo "GitHub Pages update returned status $HTTP_STATUS"
-            echo "Response: $RESPONSE_BODY"
+            echo "GitHub Pages update returned status $STATUS"
             echo "This is not critical, continuing with workflow"
           fi
+
+      # Fallback message if PAT is not available
+      - name: GitHub Pages Setup Notice
+        if: ${{ secrets.PERSONAL_ACCESS_TOKEN == '' }}
+        run: |
+          echo "::warning::No PERSONAL_ACCESS_TOKEN found. GitHub Pages will need to be enabled manually."
+          echo "Please follow these steps:"
+          echo "1. Go to your repository on GitHub"
+          echo "2. Navigate to Settings > Pages"
+          echo "3. Under 'Source', select 'GitHub Actions' from the dropdown"
+          echo "4. Save the settings"
 
       - name: Setup Node
         uses: actions/setup-node@v4

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 
 // Define coding symbols to use in the background
 const codingSymbols = [
-  "{", "}", "(", ")", "[", "]", "<", ">", ";", "=", "+", "-", "*", "/", 
+  "{", "}", "(", ")", "[", "]", "<", ">", ";", "=", "+", "-", "*", "/",
   "&&", "||", "=>", "function", "const", "let", "var", "if", "else", "for", "while",
   "return", "import", "export", "class", "interface", "type", "async", "await"
 ]
@@ -44,7 +44,7 @@ const backgroundThemes = [
 export function EnhancedFluidParticles({
   particleDensity = 150,
   particleSize = 1,
-  maxBlastRadius = 200, 
+  maxBlastRadius = 200,
   hoverDelay = 50,
   interactionDistance = 60,
 }) {
@@ -56,9 +56,9 @@ export function EnhancedFluidParticles({
   const blastRef = useRef({ active: false, x: 0, y: 0, radius: 0, maxRadius: maxBlastRadius })
   const animationRef = useRef<number>(0)
   const hoverTimerRef = useRef<NodeJS.Timeout | null>(null)
-  
+
   // Get a random theme on initial load
-  const [theme, setTheme] = useState(() => {
+  const [theme] = useState(() => {
     // Get a random theme index
     const randomIndex = Math.floor(Math.random() * backgroundThemes.length)
     return backgroundThemes[randomIndex]
@@ -97,7 +97,7 @@ export function EnhancedFluidParticles({
     update() {
       // Move symbol downward slowly
       this.y += this.velocity
-      
+
       // Reset position if it goes off screen
       if (this.y > window.innerHeight) {
         this.y = 0
@@ -451,7 +451,7 @@ export function EnhancedFluidParticles({
   useEffect(() => {
     const cleanup = init()
     return cleanup
-  }, [])
+  }, [init])
 
   return (
     <div className="">

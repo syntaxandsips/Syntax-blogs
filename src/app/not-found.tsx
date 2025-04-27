@@ -35,7 +35,7 @@ export default function NotFound() {
         </div>
 
         <h1 className="text-4xl font-bold mt-6 mb-2">Page Not Found</h1>
-        <p className="text-lg mb-8">The page you're looking for doesn't exist or has been moved.</p>
+        <p className="text-lg mb-8">The page you&apos;re looking for doesn&apos;t exist or has been moved.</p>
 
         <Link href="/" className="neo-button bg-yellow-400 py-3 px-8 text-lg hover:-translate-y-1 transition-transform">
           Return Home

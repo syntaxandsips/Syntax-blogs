@@ -5,6 +5,14 @@ All notable changes to the SyntaxBlogs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.7] - 2024-07-15
+
+### Fixed
+
+- Added `--legacy-peer-deps` flag to npm installation in GitHub Actions workflow
+- Resolved dependency conflict between `@react-spring/web@9.7.5` and `react@19.1.0`
+- Fixed build failures caused by incompatible peer dependencies
+
 ## [1.8.6] - 2024-07-15
 
 ### Security

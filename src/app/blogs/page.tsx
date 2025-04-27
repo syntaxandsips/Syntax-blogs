@@ -1,6 +1,7 @@
 import BlogsClientPage from './client-page';
 
-export const dynamic = 'force-dynamic';
+// Removed dynamic = 'force-dynamic' to support static exports
+// The client component will handle loading data from localStorage
 
 export default function BlogsPage() {
   return <BlogsClientPage />;

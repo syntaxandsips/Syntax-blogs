@@ -1,6 +1,3 @@
-import Image from 'next/image';
-import Link from 'next/link';
-
 // Who to follow data
 const profiles = [
   {

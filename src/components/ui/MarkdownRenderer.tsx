@@ -4,8 +4,7 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
+// Removed unused imports
 import CodeBlock from './CodeBlock';
 import YouTubeEmbed from './YouTubeEmbed';
 
@@ -37,7 +36,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
         components={{
-          code({ node, inline, className, children, ...props }) {
+          code({ inline, className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || '');
             const language = match ? match[1] : '';
 
@@ -58,7 +57,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
             );
           },
           // Custom component for YouTube embeds
-          div({ node, className, ...props }) {
+          div({ className, ...props }) {
             if (className === 'youtube-embed' && props['data-video-id']) {
               return <YouTubeEmbed videoId={props['data-video-id']} />;
             }

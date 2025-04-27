@@ -26,7 +26,7 @@ export function Loader() {
     }, 10000);
 
     return () => clearTimeout(safetyTimeout);
-  }, []);
+  }, [isLoading]);
 
   // Handle changes to isLoading state
   useEffect(() => {

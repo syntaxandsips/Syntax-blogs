@@ -6,8 +6,8 @@ export function FluidParticles({
   particleDensity = 100,
   particleSize = 1,
   particleColor = "#555555",
-  activeColor = "#ffffff", 
-  maxBlastRadius = 300, 
+  // activeColor removed as it's unused
+  maxBlastRadius = 300,
   hoverDelay = 100,
   interactionDistance = 10,
 }) {
@@ -316,7 +316,7 @@ export function FluidParticles({
   useEffect(() => {
     const cleanup = init()
     return cleanup
-  }, [])
+  }, [init])
 
   return (
     <div className="">

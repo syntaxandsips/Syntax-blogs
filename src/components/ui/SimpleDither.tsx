@@ -130,7 +130,7 @@ function WaveEffect({
   mouseRadius
 }) {
   const mesh = useRef(null);
-  const [mousePos, setMousePos] = useState(new THREE.Vector2(0, 0));
+  const [, setMousePos] = useState(new THREE.Vector2(0, 0));
   const { viewport, size } = useThree();
 
   const uniforms = useRef({
@@ -194,48 +194,10 @@ function WaveEffect({
   );
 }
 
-// Add some coding-related symbols that float in the background
-function CodingSymbols({ count = 50, theme }) {
-  const symbols = [
-    "{", "}", "(", ")", "[", "]", "<>", ";", "=>", "function",
-    "const", "let", "if", "else", "for", "return", "import", "export"
-  ];
-
-  const symbolsData = useRef(
-    Array.from({ length: count }, () => ({
-      position: [
-        (Math.random() - 0.5) * 10,
-        (Math.random() - 0.5) * 10,
-        -1 + Math.random() * 0.5
-      ],
-      rotation: [0, 0, Math.random() * Math.PI],
-      scale: 0.1 + Math.random() * 0.2,
-      symbol: symbols[Math.floor(Math.random() * symbols.length)],
-      opacity: 0.1 + Math.random() * 0.2
-    }))
-  );
-
-  return (
-    <>
-      {symbolsData.current.map((data, i) => (
-        <group key={i} position={data.position} rotation={data.rotation}>
-          <Text
-            color={theme === 'dark' ? "#ffffff" : "#000000"}
-            fontSize={data.scale}
-            opacity={data.opacity}
-            anchorX="center"
-            anchorY="middle"
-          >
-            {data.symbol}
-          </Text>
-        </group>
-      ))}
-    </>
-  );
-}
+// Removed unused CodingSymbols component
 
 // Simple Text component since we're not using drei
-function Text({ children, color = "white", fontSize = 0.2, opacity = 1, anchorX = "center", anchorY = "middle" }) {
+function Text({ children, color = "white", fontSize = 0.2, opacity = 1 }) {
   const mesh = useRef();
 
   useFrame(() => {
@@ -256,8 +218,7 @@ export default function SimpleDither({
   waveSpeed = 0.05,
   waveFrequency = 3,
   waveAmplitude = 0.3,
-  colorNum = 4,
-  disableAnimation = false,
+  // Removed unused parameters
   enableMouseInteraction = true,
   mouseRadius = 0.3,
   colorTheme = "ts" // 'ts' or 'tailwind'

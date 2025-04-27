@@ -11,8 +11,8 @@ interface BlurTextProps {
   direction?: 'top' | 'bottom';
   threshold?: number;
   rootMargin?: string;
-  animationFrom?: any;
-  animationTo?: any[];
+  animationFrom?: Record<string, unknown>;
+  animationTo?: Record<string, unknown>[];
   easing?: string;
   onAnimationComplete?: () => void;
 }
@@ -51,7 +51,7 @@ const BlurText = ({
 
   useEffect(() => {
     if (!ref.current) return;
-    
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -74,7 +74,7 @@ const BlurText = ({
     elements.map((_, i) => ({
       from: animationFrom || defaultFrom,
       to: inView
-        ? async (next: any) => {
+        ? async (next: (props: Record<string, unknown>) => Promise<void>) => {
           for (const step of (animationTo || defaultTo)) {
             await next(step);
           }

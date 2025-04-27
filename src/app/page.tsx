@@ -211,7 +211,7 @@ export default function Home() {
       window.removeEventListener('load', handleLoad);
       clearTimeout(safetyTimeout);
     };
-  }, [startLoading, stopLoading]); // Remove isLoaded from dependencies
+  }, [isLoaded, startLoading, stopLoading]);
 
   return (
     <main className="relative w-full min-h-screen overflow-hidden flex flex-col items-center justify-center bg-[#F5F0E1] p-4 md:p-8">

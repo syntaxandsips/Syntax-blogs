@@ -1,0 +1,846 @@
+/* Neo-brutalism styles with focused color palette */
+.neo-brutalism {
+  /* Core styling variables - more pronounced */
+  --neo-shadow-color: rgba(0, 0, 0, 1); /* Solid black shadow for harder edges */
+  --neo-border-width: 4px; /* Thicker borders */
+  --neo-shadow-offset: 8px; /* More pronounced shadow offset */
+
+  /* Base colors - stark contrast */
+  --neo-background: #F5F0E1; /* Beige/cream background to match design */
+  --neo-text: #000000; /* Black text for maximum readability */
+
+  /* Primary accent colors - limited but impactful */
+  --neo-accent: #9723C9; /* Deep Purple - primary accent */
+  --neo-secondary: #FF69B4; /* Bright Pink - secondary accent */
+  --neo-tertiary: #87CEEB; /* Sky Blue - tertiary accent */
+
+  /* Functional accent colors */
+  --neo-button: #FF69B4; /* Bright Pink for buttons */
+  --neo-link: #87CEEB; /* Sky Blue for links */
+  --neo-code: #A7DBD8; /* Pale Cyan for code blocks */
+  --neo-border: #000000; /* Black for borders */
+  --neo-highlight: #F4D738; /* Mustard Yellow for highlights */
+
+  /* Decorative element colors */
+  --neo-star-color: #FF69B4; /* Bright Pink */
+  --neo-square-color: #9723C9; /* Deep Purple */
+  --neo-circle-color: #87CEEB; /* Sky Blue */
+
+  /* Additional palette colors - use sparingly */
+  --neo-mint: #DAF5F0;
+  --neo-sage: #B5D2AD;
+  --neo-lemon: #FDFD96;
+  --neo-peach: #F8D6B3;
+  --neo-lavender: #FCDFFF;
+  --neo-periwinkle: #E3DFF2;
+  --neo-aqua: #A7DBD8;
+  --neo-lime: #90EE90; /* Lime Green */
+  --neo-mustard: #F4D738; /* Mustard Yellow */
+  --neo-coral: #FFA07A; /* Light Salmon */
+  --neo-pink: #FF69B4; /* Bright Pink */
+  --neo-purple: #9723C9; /* Deep Purple */
+  --neo-blue: #87CEEB; /* Sky Blue */
+  --neo-red: #FF6B6B; /* Bright Red-Orange */
+}
+
+/* Dark mode removed */
+
+/* Decorative elements */
+.neo-star {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF7A5C' stroke='%23000000' stroke-width='1'%3E%3Cpath d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'%3E%3C/path%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  z-index: 1;
+  transform: rotate(15deg);
+}
+
+/* Dark mode star removed */
+
+.neo-square {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: var(--neo-square-color);
+  border: 3px solid black;
+  transform: rotate(45deg);
+  z-index: 1;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.8);
+}
+
+/* Dark mode square removed */
+
+.neo-circle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--neo-circle-color);
+  border: 3px solid black;
+  z-index: 1;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.8);
+}
+
+/* Dark mode circle removed */
+
+.neo-sparkle {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4D738' stroke='%23000000' stroke-width='2'%3E%3Cpath d='M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83'%3E%3C/path%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  z-index: 1;
+}
+
+/* Dark mode sparkle removed */
+
+.neo-card {
+  background-color: white;
+  border: var(--neo-border-width) solid var(--neo-border);
+  box-shadow: var(--neo-shadow-offset) var(--neo-shadow-offset) 0 var(--neo-shadow-color);
+  transform: translateZ(0);
+  transition: transform 0.1s ease, box-shadow 0.1s ease; /* Faster transition for more immediate feedback */
+  position: relative;
+  overflow: hidden;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.neo-card:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: calc(var(--neo-shadow-offset) + 4px) calc(var(--neo-shadow-offset) + 4px) 0 var(--neo-shadow-color);
+}
+
+.neo-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  background-color: var(--neo-accent);
+  z-index: 1;
+  border-left: var(--neo-border-width) solid var(--neo-border);
+  border-bottom: var(--neo-border-width) solid var(--neo-border);
+}
+
+.neo-card.accent-secondary::before {
+  background-color: var(--neo-secondary);
+}
+
+.neo-card.accent-tertiary::before {
+  background-color: var(--neo-tertiary);
+}
+
+/* Simplified accent classes for cards - using only our core palette */
+.neo-card.accent-purple::before { background-color: var(--neo-purple); }
+.neo-card.accent-pink::before { background-color: var(--neo-pink); }
+.neo-card.accent-blue::before { background-color: var(--neo-blue); }
+.neo-card.accent-red::before { background-color: var(--neo-red); }
+.neo-card.accent-mustard::before { background-color: var(--neo-mustard); }
+.neo-card.accent-lime::before { background-color: var(--neo-lime); }
+.neo-card.accent-coral::before { background-color: var(--neo-coral); }
+
+/* Neo-brutalism button with hard edges and clear state changes */
+.neo-button {
+  background-color: var(--neo-button);
+  color: black;
+  border: var(--neo-border-width) solid var(--neo-border);
+  box-shadow: var(--neo-shadow-offset) var(--neo-shadow-offset) 0 0 var(--neo-shadow-color);
+  padding: 0.75rem 1.5rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.1s ease; /* Faster transitions */
+  position: relative;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+}
+
+.neo-button:hover {
+  transform: translate(4px, 4px);
+  box-shadow: 4px 4px 0 0 var(--neo-shadow-color);
+  background-color: white;
+}
+
+.neo-button:active {
+  transform: translate(var(--neo-shadow-offset), var(--neo-shadow-offset));
+  box-shadow: none;
+}
+
+/* Button color variants - simplified to core palette */
+.neo-button.primary {
+  background-color: var(--neo-button);
+  color: black;
+}
+
+.neo-button.secondary {
+  background-color: var(--neo-purple);
+  color: white;
+}
+
+.neo-button.tertiary {
+  background-color: var(--neo-blue);
+  color: black;
+}
+
+.neo-button.highlight {
+  background-color: var(--neo-highlight);
+  color: black;
+}
+
+/* Neo-brutalism link style with thick underline on hover */
+.neo-link {
+  position: relative;
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--neo-link);
+  transition: color 0.1s ease; /* Fast transition */
+}
+
+.neo-link::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 4px; /* Thicker underline */
+  bottom: -4px;
+  left: 0;
+  background-color: var(--neo-link);
+  transform: scaleX(0);
+  transform-origin: bottom right;
+  transition: transform 0.2s ease-out; /* Slightly faster */
+}
+
+.neo-link:hover {
+  color: var(--neo-text); /* Change text color on hover */
+}
+
+.neo-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}
+
+/* Neo-brutalism title with hard edges and strong presence */
+.neo-title {
+  position: relative;
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--neo-accent);
+  color: white;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  border: var(--neo-border-width) solid var(--neo-border);
+  box-shadow: var(--neo-shadow-offset) var(--neo-shadow-offset) 0 var(--neo-shadow-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Title variants - simplified to core palette */
+.neo-title.primary {
+  background-color: var(--neo-accent);
+  color: white;
+}
+
+.neo-title.secondary {
+  background-color: var(--neo-secondary);
+  color: black;
+}
+
+.neo-title.tertiary {
+  background-color: var(--neo-tertiary);
+  color: black;
+}
+
+.neo-title.highlight {
+  background-color: var(--neo-highlight);
+  color: black;
+}
+
+.neo-container {
+  position: relative;
+  padding: 2rem;
+  border: var(--neo-border-width) solid var(--neo-border);
+  background-color: white;
+  box-shadow: var(--neo-shadow-offset) var(--neo-shadow-offset) 0 var(--neo-shadow-color);
+  margin-bottom: 2rem;
+}
+
+/* Grid with clear structure and alignment */
+.neo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2.5rem; /* Increased gap for clearer separation */
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .neo-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* Background color classes - simplified to core palette */
+.neo-bg-primary {
+  background-color: var(--neo-accent);
+  color: white;
+}
+
+.neo-bg-secondary {
+  background-color: var(--neo-secondary);
+  color: black;
+}
+
+.neo-bg-tertiary {
+  background-color: var(--neo-tertiary);
+  color: black;
+}
+
+.neo-bg-highlight {
+  background-color: var(--neo-highlight);
+  color: black;
+}
+
+.neo-bg-light {
+  background-color: var(--neo-background);
+  color: var(--neo-text);
+}
+
+.neo-bg-white {
+  background-color: white;
+  color: var(--neo-text);
+}
+
+/* Neo-brutalism tag containers with icons */
+.neo-tag-container {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background-color: white;
+  color: black;
+  font-weight: bold;
+  font-size: 0.875rem;
+  border: 3px solid black;
+  box-shadow: 6px 6px 0 black;
+  margin-bottom: 0.75rem;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.neo-tag-container:hover {
+  transform: translate(3px, 3px);
+  box-shadow: 3px 3px 0 black;
+}
+
+/* Tag variants for categories with specific colors */
+.neo-tag-container.ai {
+  background-color: var(--neo-purple);
+  color: white;
+}
+
+.neo-tag-container.ml {
+  background-color: var(--neo-pink);
+  color: black;
+}
+
+.neo-tag-container.dl {
+  background-color: var(--neo-blue);
+  color: black;
+}
+
+.neo-tag-container.data {
+  background-color: var(--neo-lime);
+  color: black;
+}
+
+.neo-tag-container.code {
+  background-color: var(--neo-mustard);
+  color: black;
+}
+
+.neo-tag-container.tech {
+  background-color: var(--neo-coral);
+  color: black;
+}
+
+.neo-tag-container.research {
+  background-color: var(--neo-red);
+  color: white;
+}
+
+/* Crisp button with sharp interaction */
+.neo-button-crisp {
+  display: block;
+  width: 100%;
+  background-color: var(--neo-secondary);
+  color: black;
+  font-weight: bold;
+  font-size: 1.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1rem 1.5rem;
+  border: 3px solid black;
+  box-shadow: 6px 6px 0 black;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.neo-button-crisp:hover {
+  transform: translate(3px, 3px);
+  box-shadow: 3px 3px 0 black;
+}
+
+.neo-button-crisp:active {
+  transform: translate(6px, 6px);
+  box-shadow: none;
+}
+
+/* Animation for main content */
+#main-content {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* Loader overlay styling */
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  opacity: 1;
+  transition: opacity 0.5s ease-out;
+}
+
+.loader-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loader-container {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 4px solid black;
+  box-shadow: 8px 8px 0 0 #000000;
+  max-width: 28rem;
+  width: 100%;
+  transition: transform 0.5s ease-out;
+}
+
+.fade-out .loader-container {
+  transform: scale(0.95);
+}
+
+.loader-animation {
+  width: 12rem;
+  height: 12rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.loader-text {
+  text-align: center;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+/* Import fonts for better typography */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;600;700;800&display=swap');
+
+/* Grid background */
+.grid-background {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center center;
+  opacity: 0.5;
+}
+
+/* Decorative elements */
+.decorative-element {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.2;
+}
+
+/* Float animation removed for performance reasons */
+
+.decorative-circle {
+  border-radius: 50%;
+  border: 3px solid black;
+}
+
+.decorative-square {
+  border: 3px solid black;
+}
+
+.decorative-triangle {
+  width: 0 !important;
+  height: 0 !important;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 35px solid black;
+}
+
+.decorative-cross {
+  position: relative;
+}
+
+.decorative-cross:before,
+.decorative-cross:after {
+  content: '';
+  position: absolute;
+  background-color: black;
+}
+
+.decorative-cross:before {
+  width: 100%;
+  height: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.decorative-cross:after {
+  width: 3px;
+  height: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.decorative-zigzag {
+  position: relative;
+  height: 20px !important;
+}
+
+.decorative-zigzag:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 33.333%, black 33.333%, black 66.667%, transparent 66.667%),
+              linear-gradient(-45deg, transparent 33.333%, black 33.333%, black 66.667%, transparent 66.667%);
+  background-size: 20px 40px;
+  background-position: 0 0;
+}
+
+/* Title container styling */
+.title-container {
+  position: relative;
+  overflow: hidden;
+  font-family: 'Bebas Neue', sans-serif;
+}
+
+.title-container:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.1) 75%, transparent 75%, transparent);
+  background-size: 10px 10px;
+  opacity: 0.2;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Neo-brutalism title styling */
+h1.text-5xl.md\:text-7xl {
+  font-family: 'Bebas Neue', sans-serif;
+  position: relative;
+  z-index: 2;
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.3);
+  letter-spacing: 2px;
+}
+
+/* Subtitle container styling */
+.subtitle-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.subtitle-container h2 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Tag icon container */
+.tag-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  margin-right: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.7);
+  transition: all 0.2s ease;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Neo-brutalism tag with enhanced styling */
+.neo-brutalism-tag {
+  display: flex;
+  align-items: center;
+  padding: 0.85rem 1.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  border: 4px solid black;
+  box-shadow: 6px 6px 0 black;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: 0.5px;
+  min-width: 200px;
+  justify-content: flex-start;
+}
+
+/* Neo-brutalism box styles */
+.neo-brutalism-box {
+  position: relative;
+  padding: 1.5rem;
+  border: 4px solid black;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 1);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100px;
+}
+
+.neo-brutalism-box .icon-container {
+  background-color: white;
+  border-radius: 8px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(0, 0, 0, 0.8);
+  transition: all 0.2s ease;
+}
+
+.neo-brutalism-box:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 10px 10px 0 rgba(0, 0, 0, 1);
+}
+
+.neo-brutalism-box:hover .icon-container {
+  transform: scale(1.05);
+}
+
+/* Neo-brutalism button with enhanced styling */
+.neo-brutalism-button {
+  display: block;
+  width: 100%;
+  background-color: #FF69B4;
+  color: black;
+  font-weight: 700;
+  font-size: 1.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1rem 1.5rem;
+  border: 4px solid black;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 1);
+  transition: all 0.2s ease;
+  max-width: 300px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.neo-brutalism-button:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 10px 10px 0 rgba(0, 0, 0, 1);
+}
+
+.neo-brutalism-button:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0 rgba(0, 0, 0, 1);
+}
+
+/* Ensure decorative elements are properly styled */
+.decorative-element {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.6;
+  border-width: 2px;
+  border-style: solid;
+  transform: rotate(var(--rotation));
+}
+
+.decorative-circle {
+  border-radius: 50%;
+  border: 2px solid black;
+}
+
+.decorative-square {
+  border: 2px solid black;
+}
+
+.decorative-cross {
+  position: relative;
+}
+
+.decorative-cross:before,
+.decorative-cross:after {
+  content: '';
+  position: absolute;
+  background-color: currentColor;
+}
+
+.decorative-cross:before {
+  width: 100%;
+  height: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.decorative-cross:after {
+  width: 2px;
+  height: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Mobile responsiveness for neo-brutalism */
+@media (max-width: 768px) {
+  /* Adjust grid background */
+  .grid-background {
+    background-size: 30px 30px;
+  }
+
+  /* Reduce number of decorative elements */
+  .decorative-element:nth-child(n+7) {
+    display: none;
+  }
+
+  /* Adjust neo-brutalism box for mobile */
+  .neo-brutalism-box {
+    padding: 1rem;
+    min-height: 80px;
+  }
+
+  .neo-brutalism-box .icon-container {
+    width: 40px;
+    height: 40px;
+  }
+
+  .neo-brutalism-box h2 {
+    font-size: 0.9rem;
+  }
+
+  /* Adjust button styling */
+  .neo-brutalism-button {
+    width: 100%;
+    margin: 0 auto;
+    padding: 0.9rem;
+    font-size: 1.1rem;
+    border-width: 3px;
+    box-shadow: 5px 5px 0 black;
+  }
+
+  /* Adjust title and subtitle for mobile */
+  h1.text-5xl.md\:text-6xl {
+    font-size: 2.5rem;
+    line-height: 1.2;
+  }
+
+  .title-container p {
+    font-size: 0.9rem;
+  }
+
+  /* Adjust spacing for mobile */
+  .space-y-8 {
+    --tw-space-y-reverse: 0;
+    margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
+    margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
+  }
+
+  /* Adjust grid layout for mobile */
+  .grid.grid-cols-3 {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  /* Adjust title container */
+  .title-container {
+    padding: 1rem;
+  }
+}
+
+/* Make layout stack on very small screens */
+@media (max-width: 640px) {
+  /* Adjust grid background */
+  .grid-background {
+    background-size: 20px 20px;
+  }
+
+  /* Hide more decorative elements */
+  .decorative-element:nth-child(n+4) {
+    display: none;
+  }
+
+  /* Adjust neo-brutalism box for small mobile */
+  .neo-brutalism-box {
+    padding: 0.8rem;
+    min-height: 70px;
+    border-width: 3px;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 1);
+  }
+
+  .neo-brutalism-box .icon-container {
+    width: 36px;
+    height: 36px;
+    margin-right: 0.5rem;
+  }
+
+  .neo-brutalism-box h2 {
+    font-size: 0.85rem;
+  }
+
+  /* Make button smaller on very small screens */
+  .neo-brutalism-button {
+    padding: 0.8rem;
+    font-size: 1rem;
+    border-width: 3px;
+    box-shadow: 4px 4px 0 black;
+  }
+
+  /* Adjust title container */
+  .title-container {
+    padding: 0.8rem !important;
+    border-width: 3px;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 1);
+  }
+
+  /* Adjust title size */
+  h1.text-5xl.md\:text-6xl {
+    font-size: 2rem;
+  }
+
+  /* Adjust subtitle */
+  .title-container p {
+    font-size: 0.8rem;
+  }
+}

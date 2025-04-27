@@ -132,6 +132,29 @@ syntaxblogs/
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
 
+## Deployment
+
+The project is configured for automatic deployment to GitHub Pages using GitHub Actions.
+
+### How It Works
+
+1. When you push changes to the `main` branch, GitHub Actions automatically builds and deploys the site
+2. The workflow is defined in `.github/workflows/deploy.yml`
+3. The site is built as a static export using Next.js's static export feature
+
+### Manual Deployment
+
+If you want to deploy manually:
+
+1. Build the project:
+
+   ```bash
+   npm run build
+   ```
+
+2. The static site will be generated in the `out` directory
+3. You can deploy this directory to any static hosting service
+
 ## Customization
 
 ### Adding New Blog Posts

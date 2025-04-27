@@ -5,6 +5,16 @@ All notable changes to the SyntaxBlogs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2024-07-15
+
+### Added
+
+- Configured GitHub Pages deployment with GitHub Actions
+- Added static export configuration to Next.js
+- Created GitHub Actions workflow for automated deployment
+- Added .nojekyll file to prevent Jekyll processing
+- Updated documentation with deployment information
+
 ## [1.7.6] - 2024-07-14
 
 ### Added

@@ -91,12 +91,23 @@ syntaxblogs/
 
 ## Key Components
 
-- **Hero Page**: Clean landing page without navbar, featuring coding-related visuals and random background changes
+- **Landing Page**: Modern UI design with interactive sections and vibrant colors
 - **Blog Listing**: Grid layout of blog posts with metadata and interactive elements
 - **Blog Post**: Detailed article view with back navigation and content formatting
 - **Sidebar**: Recommended topics and "Where to Follow" sections
 - **Article Metadata**: Publication date, view count, and action menu
 - **Action Menu**: Share link and "Generate post" options
+
+## Landing Page Components
+
+The landing page features a modern UI design with the following components:
+
+- **NewNavbar**: Responsive navigation with desktop and mobile views
+- **HeroSection**: Eye-catching hero section with background elements and call-to-action buttons
+- **TopicsSection**: Interactive topic cards with hover effects
+- **ContentPreview**: Content cards with filter buttons and metadata
+- **NewsletterSection**: Email subscription form with decorative elements
+- **NewFooter**: Comprehensive footer with social links and site sections
 
 ## Getting Started
 

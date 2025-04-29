@@ -5,6 +5,32 @@ All notable changes to the SyntaxBlogs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.9] - 2024-07-15
+
+### Changed
+
+- Replaced the old landing page with the new modern UI design
+- Made the new landing page the default page at the root URL
+- Updated ConditionalNavbar to use the new navbar component
+- Removed the old navbar and its components
+- Simplified layout structure by removing redundant main tag
+- Improved overall site navigation and consistency
+
+## [1.8.8] - 2024-07-15
+
+### Added
+
+- Created new landing page with modern UI design at `/new-landing`
+- Implemented new components following the provided design:
+  - NewNavbar with desktop and mobile navigation
+  - HeroSection with background elements and call-to-action buttons
+  - TopicsSection with interactive topic cards
+  - ContentPreview with filter buttons and content cards
+  - NewsletterSection with email subscription form
+  - NewFooter with social links and site sections
+- Added tailwind.config.js with necessary theme extensions
+- Updated global CSS with new color variables and utility classes
+
 ## [1.8.7] - 2024-07-15
 
 ### Fixed

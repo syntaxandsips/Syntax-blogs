@@ -35,8 +35,7 @@ export default function RootLayout({
         <LoaderProvider>
           <Loader />
           <ConditionalNavbar />
-          <main>{children}</main>
-          {/* Add Footer component here if needed */}
+          {children}
         </LoaderProvider>
       </body>
     </html>

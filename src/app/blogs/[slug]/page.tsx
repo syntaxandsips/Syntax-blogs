@@ -1,11 +1,9 @@
-import BlogPostClient from '@/app/blogs/[slug]/BlogPostClient';
+import NewBlogPostClient from '@/app/blogs/[slug]/NewBlogPostClient';
 
 export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  // Await the params to fix the "params should be awaited" error
-  const slug = await Promise.resolve(params.slug);
-
-  // We'll pass the slug to the client component and let it fetch the data
-  return <BlogPostClient slug={slug} />;
+  // Use the params directly without awaiting
+  // This is a simpler approach that avoids the warning
+  return <NewBlogPostClient slug={params.slug} />;
 }
 
 // Include all possible blog slugs for static export

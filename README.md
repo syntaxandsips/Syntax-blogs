@@ -93,10 +93,12 @@ syntaxblogs/
 
 - **Landing Page**: Modern UI design with interactive sections and vibrant colors
 - **Blog Listing**: Grid layout of blog posts with metadata and interactive elements
-- **Blog Post**: Detailed article view with back navigation and content formatting
-- **Sidebar**: Recommended topics and "Where to Follow" sections
-- **Article Metadata**: Publication date, view count, and action menu
-- **Action Menu**: Share link and "Generate post" options
+- **Blog Post**: Detailed article view with neo-brutalism styling, code blocks, video embeds, and AI summarization
+- **Sidebar**: Recommended topics and "Where to Follow" sections with platform icons
+- **Article Metadata**: Publication date, view count, author information, and category tags
+- **Code Blocks**: Syntax-highlighted code with language selection and copy functionality
+- **Video Embeds**: YouTube video embeds with responsive sizing
+- **AI Summarization**: One-click AI summary generation for blog posts
 
 ## Landing Page Components
 
@@ -108,6 +110,17 @@ The landing page features a modern UI design with the following components:
 - **ContentPreview**: Content cards with filter buttons and metadata
 - **NewsletterSection**: Email subscription form with decorative elements
 - **NewFooter**: Comprehensive footer with social links and site sections
+
+## Blog Post Components
+
+The blog post page features a neo-brutalism design with the following components:
+
+- **NewBlogPostClient**: Main component that handles data fetching and layout
+- **NewCodeBlock**: Syntax-highlighted code blocks with language selection and copy functionality
+- **NewVideoEmbed**: YouTube video embeds with responsive sizing
+- **NewSummarizeButton**: AI summarization button with loading animation and summary display
+- **SocialFollowItem**: Social media platform links with icons and follow buttons
+- **NewMarkdownRenderer**: Renders markdown content with support for code blocks and video embeds
 
 ## Getting Started
 

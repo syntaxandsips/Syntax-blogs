@@ -11,10 +11,11 @@ interface SummarizeButtonProps {
 export default function SummarizeButton({ content }: SummarizeButtonProps) {
   const { startLoading, stopLoading } = useLoader();
   const [summary, setSummary] = useState<string | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSummarize = async () => {
     // Start the summarize loader animation
+    setIsLoading(true);
     startLoading('summarize');
 
     try {
@@ -31,42 +32,45 @@ export default function SummarizeButton({ content }: SummarizeButtonProps) {
       const aiSummary = `This article discusses ${simpleSummary} The content covers key concepts and practical applications in this domain.`;
 
       setSummary(aiSummary);
-      setIsOpen(true);
     } catch (error) {
       console.error('Error generating summary:', error);
     } finally {
+      setIsLoading(false);
       stopLoading();
     }
   };
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={handleSummarize}
-        className="neo-button flex items-center space-x-2 py-2 px-4"
-      >
-        <Sparkles size={16} />
-        <span>Summarize with AI</span>
-      </button>
+    <div>
+      {!summary && !isLoading && (
+        <button
+          type="button"
+          onClick={handleSummarize}
+          className="neo-button flex items-center space-x-2 py-2 px-4"
+        >
+          <Sparkles size={16} />
+          <span>Summarize with AI</span>
+        </button>
+      )}
 
-      {isOpen && summary && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="neo-container bg-white p-6 max-w-lg w-full">
-            <h3 className="text-xl font-bold mb-4">AI Summary</h3>
-            <p className="mb-6">{summary}</p>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="neo-button py-2 px-4"
-              >
-                Close
-              </button>
-            </div>
-          </div>
+      {isLoading && (
+        <div className="flex items-center gap-2 my-4">
+          <div className="h-4 w-4 bg-[#6C63FF] rounded-full animate-pulse"></div>
+          <div className="h-4 w-4 bg-[#FF5252] rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+          <div className="h-4 w-4 bg-[#FFD166] rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+          <span className="font-bold">AI is summarizing...</span>
         </div>
       )}
-    </>
+
+      {summary && (
+        <div className="my-6 p-6 border-4 border-black rounded-lg bg-white">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="text-[#6C63FF]" />
+            <h3 className="font-bold text-lg">AI Summary</h3>
+          </div>
+          <p>{summary}</p>
+        </div>
+      )}
+    </div>
   );
 }

@@ -50,6 +50,9 @@ export function Loader() {
   // Don't render if not mounted or not loading and fade out is complete
   if (!isMounted || (!isLoading && !fadeOut)) return null;
 
+  // Skip rendering for summarize type - we'll handle this in the component itself
+  if (loaderType === 'summarize') return null;
+
   // Determine which video file to use based on loader type
   let videoSrc = '';
   let loadingText = '';
@@ -58,10 +61,6 @@ export function Loader() {
     case 'page':
       videoSrc = '/assets/loding.webm';
       loadingText = 'Loading...';
-      break;
-    case 'summarize':
-      videoSrc = '/assets/loding.webm';
-      loadingText = 'Summarizing with AI...';
       break;
     case 'ai-generate':
       videoSrc = '/assets/ailoader.webm';

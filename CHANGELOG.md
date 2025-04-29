@@ -5,6 +5,45 @@ All notable changes to the SyntaxBlogs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.2] - 2024-07-16
+
+### Fixed
+
+- Fixed popup appearing when AI summarize button is clicked by modifying the Loader component
+- Fixed warning about `params.slug` in blog post page by using params directly without awaiting
+- Improved user experience by keeping all content in the same view
+
+## [1.11.1] - 2024-07-16
+
+### Changed
+
+- Modified SummarizeButton components to display AI summary directly in the page
+- Removed popup/modal from both SummarizeButton and NewSummarizeButton components
+- Improved user experience by keeping all content in the same view
+
+## [1.11.0] - 2024-07-16
+
+### Changed
+
+- Completely revamped the article read page with new neo-brutalism UI design
+- Implemented new CodeBlock component with language selection and copy functionality
+- Added new VideoEmbed component with improved styling
+- Created new SummarizeButton with loading animation and summary display
+- Enhanced article layout with better typography and spacing
+- Improved tag styling with colored backgrounds
+- Updated sidebar with "AI and ML Insights" and "Where to follow" sections
+- Added social platform icons with colored backgrounds
+- Maintained compatibility with existing data structure
+
+## [1.10.2] - 2024-07-15
+
+### Changed
+
+- Updated NewSidebar component to match the neo-brutalism design used in NewFollowSection
+- Ensured consistent UI for "AI and ML Insights" and "Where to follow" sections across all pages
+- Improved styling with proper border, shadow, and rotation effects
+- Enhanced social media platform icons with colored backgrounds
+
 ## [1.10.1] - 2024-07-15
 
 ### Changed

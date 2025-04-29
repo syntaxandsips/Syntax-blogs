@@ -40,28 +40,28 @@ export const NewFooter = () => {
           <div>
             <h3 className="font-bold text-xl mb-4">Content</h3>
             <ul className="space-y-2">
-              <FooterLink href="/blogs">Blogs</FooterLink>
-              <FooterLink href="/tutorials">Tutorials</FooterLink>
-              <FooterLink href="/podcasts">Podcasts</FooterLink>
-              <FooterLink href="/videos">Videos</FooterLink>
+              <li><FooterLink href="/blogs">Blogs</FooterLink></li>
+              <li><FooterLink href="/tutorials">Tutorials</FooterLink></li>
+              <li><FooterLink href="/podcasts">Podcasts</FooterLink></li>
+              <li><FooterLink href="/videos">Videos</FooterLink></li>
             </ul>
           </div>
           <div>
             <h3 className="font-bold text-xl mb-4">Resources</h3>
             <ul className="space-y-2">
-              <FooterLink href="/resources">Resource Library</FooterLink>
-              <FooterLink href="/newsletter">Newsletter</FooterLink>
-              <FooterLink href="/changelog">Changelogs</FooterLink>
-              <FooterLink href="/roadmap">Roadmap</FooterLink>
+              <li><FooterLink href="/resources">Resource Library</FooterLink></li>
+              <li><FooterLink href="/newsletter">Newsletter</FooterLink></li>
+              <li><FooterLink href="/changelog">Changelogs</FooterLink></li>
+              <li><FooterLink href="/roadmap">Roadmap</FooterLink></li>
             </ul>
           </div>
           <div>
             <h3 className="font-bold text-xl mb-4">Legal</h3>
             <ul className="space-y-2">
-              <FooterLink href="/privacy">Privacy Policy</FooterLink>
-              <FooterLink href="/terms">Terms of Service</FooterLink>
-              <FooterLink href="/cookies">Cookie Policy</FooterLink>
-              <FooterLink href="/disclaimer">Disclaimer</FooterLink>
+              <li><FooterLink href="/privacy">Privacy Policy</FooterLink></li>
+              <li><FooterLink href="/terms">Terms of Service</FooterLink></li>
+              <li><FooterLink href="/cookies">Cookie Policy</FooterLink></li>
+              <li><FooterLink href="/disclaimer">Disclaimer</FooterLink></li>
             </ul>
           </div>
         </div>
@@ -98,7 +98,7 @@ interface FooterLinkProps {
   children: React.ReactNode;
 }
 
-const FooterLink = ({ href, children }: FooterLinkProps) => {
+const FooterLink: React.FC<FooterLinkProps> = ({ href, children }) => {
   return (
     <li>
       <Link

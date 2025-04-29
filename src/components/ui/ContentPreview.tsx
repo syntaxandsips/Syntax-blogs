@@ -49,7 +49,10 @@ export const ContentPreview = () => {
         </div>
         <div className="mt-10 text-center">
           <Link href="/blogs">
-            <button className="group bg-black text-white px-6 py-3 text-lg font-bold rounded-md inline-flex items-center gap-2 transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(108,99,255)]">
+            <button
+              type="button"
+              className="group bg-black text-white px-6 py-3 text-lg font-bold rounded-md inline-flex items-center gap-2 transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(108,99,255)]"
+            >
               View All Content
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
@@ -68,6 +71,7 @@ interface FilterButtonProps {
 const FilterButton = ({ children, isActive }: FilterButtonProps) => {
   return (
     <button
+      type="button"
       className={`px-4 py-2 font-bold rounded-md transition ${isActive ? 'bg-black text-white' : 'bg-white border-2 border-black hover:bg-black/5'}`}
     >
       {children}
@@ -117,7 +121,10 @@ const ContentCard = ({
             {readTime}
           </div>
         </div>
-        <button className="font-bold flex items-center gap-1 text-[#6C63FF] hover:underline">
+        <button
+          type="button"
+          className="font-bold flex items-center gap-1 text-[#6C63FF] hover:underline"
+        >
           Read More <ArrowRight className="w-4 h-4" />
         </button>
       </div>

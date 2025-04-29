@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import SummarizeButton from '@/components/ui/SummarizeButton';
-import { Sidebar } from '@/components/ui/Sidebar';
+import { NewSidebar } from '@/components/ui/NewSidebar';
 
 export interface BlogPost {
   slug: string;
@@ -172,7 +172,7 @@ export default function BlogPostClient({ slug }: BlogPostClientProps) {
         </article>
 
         <aside className="lg:col-span-1">
-          <Sidebar />
+          <NewSidebar />
         </aside>
       </div>
     </div>

@@ -35,11 +35,17 @@ export const HeroSection = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
               <Link href="/blogs">
-                <button className="bg-black text-white px-6 py-3 text-lg font-bold rounded-md transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(108,99,255)]">
+                <button
+                  type="button"
+                  className="bg-black text-white px-6 py-3 text-lg font-bold rounded-md transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(108,99,255)]"
+                >
                   Read Latest Blog
                 </button>
               </Link>
-              <button className="border-4 border-black bg-white px-6 py-3 text-lg font-bold rounded-md flex items-center justify-center gap-2 transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(255,82,82)]">
+              <button
+                type="button"
+                className="border-4 border-black bg-white px-6 py-3 text-lg font-bold rounded-md flex items-center justify-center gap-2 transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(255,82,82)]"
+              >
                 Watch on YouTube <ArrowRight className="w-5 h-5" />
               </button>
             </div>

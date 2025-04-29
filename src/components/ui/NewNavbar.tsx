@@ -1,12 +1,27 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X, Coffee, Code } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export const NewNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  
+  const pathname = usePathname();
+
+  // Function to check if a path is active
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return pathname === '/';
+    }
+    return pathname.startsWith(path);
+  };
+
+  // Close mobile menu when navigating
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
   return (
     <header className="sticky top-0 z-50 bg-[#f0f0f0] border-b-4 border-black">
       <div className="container mx-auto px-4 py-3">
@@ -26,24 +41,28 @@ export const NewNavbar = () => {
           </div>
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <NavLink href="/" isActive>
+            <NavLink href="/" isActive={isActive('/')}>
               Home
             </NavLink>
-            <NavLink href="/blogs">
+            <NavLink href="/blogs" isActive={isActive('/blogs')}>
               Blogs
             </NavLink>
-            <NavLink href="/podcasts">
+            <NavLink href="/podcasts" isActive={isActive('/podcasts')}>
               Podcasts
             </NavLink>
-            <NavLink href="/changelog">
+            <NavLink href="/changelog" isActive={isActive('/changelog')}>
               Changelogs
             </NavLink>
-            <button className="bg-black text-white px-4 py-2 font-bold rounded-md transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(255,82,82)]">
+            <button
+              type="button"
+              className="bg-black text-white px-4 py-2 font-bold rounded-md transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(255,82,82)]"
+            >
               Subscribe
             </button>
           </nav>
           {/* Mobile menu button */}
           <button
+            type="button"
             className="md:hidden p-2 rounded-md bg-black text-white"
             onClick={() => setIsOpen(!isOpen)}
           >
@@ -54,19 +73,22 @@ export const NewNavbar = () => {
         {isOpen && (
           <div className="md:hidden mt-4 pb-4">
             <div className="flex flex-col space-y-4">
-              <MobileNavLink href="/" isActive>
+              <MobileNavLink href="/" isActive={isActive('/')}>
                 Home
               </MobileNavLink>
-              <MobileNavLink href="/blogs">
+              <MobileNavLink href="/blogs" isActive={isActive('/blogs')}>
                 Blogs
               </MobileNavLink>
-              <MobileNavLink href="/podcasts">
+              <MobileNavLink href="/podcasts" isActive={isActive('/podcasts')}>
                 Podcasts
               </MobileNavLink>
-              <MobileNavLink href="/changelog">
+              <MobileNavLink href="/changelog" isActive={isActive('/changelog')}>
                 Changelogs
               </MobileNavLink>
-              <button className="bg-black text-white px-4 py-2 font-bold rounded-md w-full">
+              <button
+                type="button"
+                className="bg-black text-white px-4 py-2 font-bold rounded-md w-full"
+              >
                 Subscribe
               </button>
             </div>

@@ -5,6 +5,50 @@ All notable changes to the SyntaxBlogs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.1] - 2024-07-15
+
+### Changed
+
+- Fixed active tab highlighting in the navbar to properly show the current page
+- Updated blog post page to include static params for all blog slugs to fix the "missing param" error
+- Removed unused UI components to make the app more lightweight and faster
+- Improved overall performance by cleaning up the codebase
+
+### Removed
+
+- Removed old UI components that were no longer being used:
+  - ArticleMetadata.tsx
+  - ReadArticleButton.tsx
+  - Sidebar.tsx
+  - RecommendedTopics.tsx
+  - WhereToFollow.tsx
+  - FollowButton.tsx
+  - navbar.tsx (old version)
+
+## [1.10.0] - 2024-07-15
+
+### Changed
+
+- Completely redesigned blogs page with new neo-brutalism UI
+- Added new topic filters with improved styling
+- Enhanced blog cards with better visual hierarchy
+- Improved "Where to follow" section with platform icons
+- Updated recommended topics with AI and ML focus
+- Added dropdown menu for blog post actions (share, generate)
+- Improved overall visual consistency with the landing page
+- Enhanced mobile responsiveness for better user experience
+
+## [1.9.0] - 2024-07-15
+
+### Fixed
+
+- Fixed hydration errors by adding type attributes to all buttons
+- Added type="button" to buttons in NewNavbar component
+- Added type="button" to buttons in HeroSection component
+- Added type="button" to buttons in ContentPreview component
+- Improved client/server rendering consistency
+- Resolved "Hydration failed because the server rendered HTML didn't match the client" errors
+
 ## [1.8.9] - 2024-07-15
 
 ### Changed

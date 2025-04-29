@@ -8,7 +8,19 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
   return <BlogPostClient slug={slug} />;
 }
 
-// We don't have static paths anymore since all posts are dynamic
+// Include all possible blog slugs for static export
 export async function generateStaticParams() {
-  return [];
+  // These are the default slugs that we know will exist
+  const defaultSlugs = [
+    { slug: 'how-llm-works' },
+    { slug: 'neural-network-from-scratch' },
+    { slug: 'future-quantum-computing' },
+    { slug: 'react-18-features' },
+    { slug: 'ai-ethics' },
+    { slug: 'data-science-python' }
+  ];
+
+  // In a production environment, you would fetch these from your CMS or database
+  // For now, we'll use the default slugs
+  return defaultSlugs;
 }

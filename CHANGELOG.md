@@ -5,6 +5,45 @@ All notable changes to the SyntaxBlogs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.4] - 2024-07-16
+
+### Changed
+
+- Completely redesigned README.md with modern layout and visual elements
+- Added screenshots of all major pages to the documentation
+- Enhanced project description with detailed feature explanations
+- Improved installation and deployment instructions
+- Added comprehensive code block formatting guide
+- Updated tech stack information with visual icons
+
+## [1.12.3] - 2024-07-16
+
+### Added
+
+- Created comprehensive Markdown guide for blog authors
+- Added specific guide for using code blocks with syntax highlighting
+- Documented multi-language code block functionality
+- Added examples and best practices for content creation
+
+## [1.12.2] - 2024-07-16
+
+### Fixed
+
+- Fixed blog post page error with exact slug matching by adding variants with trailing hyphens
+- Added all possible slug variations to prevent 500 errors on blog post pages
+- Ensured all URL patterns are properly handled in generateStaticParams
+- Added comprehensive slug handling for better static site generation
+
+## [1.12.1] - 2024-07-16
+
+### Fixed
+
+- Fixed blog post page error with missing static params by adding all required slugs
+- Removed old BlogPostClient component that was no longer in use
+- Fixed accessibility issues in the admin panel components
+- Added proper ARIA labels and titles to form elements
+- Improved screen reader support for color selection buttons
+
 ## [1.12.0] - 2024-07-16
 
 ### Changed

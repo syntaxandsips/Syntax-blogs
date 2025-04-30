@@ -152,16 +152,28 @@ export const PostForm = ({ post, onSave, onCancel }: PostFormProps) => {
               placeholder="Write your post content in Markdown..."
               required
             />
-            <p className="text-sm text-gray-500 mt-2">
-              Supports Markdown, code blocks, and YouTube embeds (
-              {'{youtube:VIDEO_ID}'})
-            </p>
+            <div className="text-sm text-gray-500 mt-2">
+              <p>Supports Markdown, code blocks, and YouTube embeds ({'{youtube:VIDEO_ID}'})</p>
+              <p className="mt-1">
+                <a
+                  href="/docs/admin-code-guide.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#6C63FF] hover:underline"
+                >
+                  View the code block guide
+                </a> for syntax highlighting and multi-language tabs.
+              </p>
+            </div>
           </div>
           {/* Category & Accent Color */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block font-bold mb-2 text-lg">Category</label>
               <select
+                id="category-select"
+                aria-label="Select category"
+                title="Select a category for your post"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full p-3 border-4 border-black rounded-md focus:outline-none focus:ring-2 focus:ring-[#6C63FF]"
@@ -184,11 +196,9 @@ export const PostForm = ({ post, onSave, onCancel }: PostFormProps) => {
                     key={color}
                     type="button"
                     onClick={() => setAccentColor(color)}
-                    className={`w-10 h-10 rounded-full border-4 ${accentColor === color ? 'border-black' : 'border-transparent'}`}
-                    style={{
-                      backgroundColor: color,
-                    }}
-                    title={color}
+                    className={`w-10 h-10 rounded-full border-4 ${accentColor === color ? 'border-black' : 'border-transparent'} accent-color-${color.replace('#', '')}`}
+                    aria-label={`Select ${color} as accent color`}
+                    title={`Select ${color} as accent color`}
                   />
                 ))}
               </div>
@@ -241,26 +251,36 @@ export const PostForm = ({ post, onSave, onCancel }: PostFormProps) => {
                 {status === PostStatus.SCHEDULED && (
                   <div className="ml-7 mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex items-center gap-2 border-4 border-black rounded-md overflow-hidden">
+                      <label htmlFor="publish-date" className="sr-only">Publication Date</label>
                       <div className="bg-black text-white p-2">
                         <Calendar className="h-5 w-5" />
                       </div>
                       <input
+                        id="publish-date"
                         type="date"
                         value={publishDate}
                         onChange={(e) => setPublishDate(e.target.value)}
                         className="p-2 flex-1 focus:outline-none"
                         required={status === PostStatus.SCHEDULED}
+                        aria-label="Publication date"
+                        title="Select the publication date"
+                        placeholder="Select date"
                       />
                     </div>
                     <div className="flex items-center gap-2 border-4 border-black rounded-md overflow-hidden">
+                      <label htmlFor="publish-time" className="sr-only">Publication Time</label>
                       <div className="bg-black text-white p-2">
                         <Clock className="h-5 w-5" />
                       </div>
                       <input
+                        id="publish-time"
                         type="time"
                         value={publishTime}
                         onChange={(e) => setPublishTime(e.target.value)}
                         className="p-2 flex-1 focus:outline-none"
+                        aria-label="Publication time"
+                        title="Select the publication time"
+                        placeholder="Select time"
                       />
                     </div>
                   </div>

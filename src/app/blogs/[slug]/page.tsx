@@ -18,7 +18,19 @@ export async function generateStaticParams() {
     { slug: 'future-quantum-computing' },
     { slug: 'react-18-features' },
     { slug: 'ai-ethics' },
-    { slug: 'data-science-python' }
+    { slug: 'data-science-python' },
+    // Add the problematic slugs that were causing errors
+    { slug: 'how-python-works' },
+    { slug: 'how-python-works-' },
+    { slug: 'how-lpython-works' },
+    { slug: 'how-lpython-works-' },
+    // Add common variations with trailing characters that might occur
+    { slug: 'how-llm-works-' },
+    { slug: 'neural-network-from-scratch-' },
+    { slug: 'future-quantum-computing-' },
+    { slug: 'react-18-features-' },
+    { slug: 'ai-ethics-' },
+    { slug: 'data-science-python-' }
   ];
 
   // In a production environment, you would fetch these from your CMS or database

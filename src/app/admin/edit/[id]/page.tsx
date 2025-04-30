@@ -1,9 +1,37 @@
-import EditPostClient from './EditPostClient';
+"use client";
 
-export default function EditPostPage({ params }: { params: { id: string } }) {
-  // Access the id directly from params
-  // This approach is compatible with the current version of Next.js
-  const postId = params.id;
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { AdminDashboard } from '@/components/admin/AdminDashboard';
 
-  return <EditPostClient postId={postId} />;
+export default function EditPostPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check if user is authenticated
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      router.push('/me');
+      return;
+    }
+
+    setIsAuthenticated(true);
+    setIsLoading(false);
+  }, [router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null; // Will redirect in useEffect
+  }
+
+  return <AdminDashboard />;
 }

@@ -5,12 +5,30 @@ All notable changes to the SyntaxBlogs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2024-07-16
+
+### Changed
+
+- Completely redesigned admin panel with modern UI
+- Implemented new dashboard overview with statistics
+- Added new post management interface with improved filtering
+- Enhanced post editor with better markdown support
+- Improved user experience with better navigation and layout
+- Added accent color selection for blog posts
+- Implemented better status indicators for post publishing state
+- Enhanced mobile responsiveness for admin interface
+
+## [1.11.3] - 2024-07-16
+
+### Fixed
+
+- Properly fixed warning about `params.slug` in blog post page by correctly awaiting params before accessing properties
+
 ## [1.11.2] - 2024-07-16
 
 ### Fixed
 
 - Fixed popup appearing when AI summarize button is clicked by modifying the Loader component
-- Fixed warning about `params.slug` in blog post page by using params directly without awaiting
 - Improved user experience by keeping all content in the same view
 
 ## [1.11.1] - 2024-07-16

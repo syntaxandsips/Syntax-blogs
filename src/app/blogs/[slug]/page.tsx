@@ -1,9 +1,12 @@
 import NewBlogPostClient from '@/app/blogs/[slug]/NewBlogPostClient';
 
 export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  // Use the params directly without awaiting
-  // This is a simpler approach that avoids the warning
-  return <NewBlogPostClient slug={params.slug} />;
+  // Properly await the params object before accessing its properties
+  // This follows Next.js's recommendation to avoid the warning
+  const resolvedParams = await Promise.resolve(params);
+  const slug = resolvedParams.slug;
+
+  return <NewBlogPostClient slug={slug} />;
 }
 
 // Include all possible blog slugs for static export

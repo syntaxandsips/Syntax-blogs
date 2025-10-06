@@ -1,66 +1,238 @@
-import React, { useState } from 'react'
+"use client"
+
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
+import { useRouter } from 'next/navigation'
 import { Sidebar } from './Sidebar'
 import { PostsTable } from './PostsTable'
 import { PostForm } from './PostForm'
 import { StatsSection } from './StatsSection'
-import { useLocalStorage } from '../../utils/useLocalStorage'
-import { Post, PostStatus } from '../../utils/types'
+import { createBrowserClient } from '@/lib/supabase/client'
+import {
+  AdminPost,
+  CategoryOption,
+  PostFormValues,
+  PostStatus,
+} from '@/utils/types'
 
-export const AdminDashboard = () => {
+interface AdminDashboardProps {
+  profileId: string
+  displayName: string
+  isAdmin: boolean
+}
+
+interface FeedbackState {
+  type: 'success' | 'error'
+  message: string
+}
+
+export const AdminDashboard = ({
+  profileId,
+  displayName,
+  isAdmin,
+}: AdminDashboardProps) => {
+  const router = useRouter()
+  const supabase = useMemo(() => createBrowserClient(), [])
   const [currentView, setCurrentView] = useState<string>('overview')
-  const [posts, setPosts] = useLocalStorage<Post[]>('blogPosts', [])
-  const [editingPost, setEditingPost] = useState<Post | null>(null)
+  const [posts, setPosts] = useState<AdminPost[]>([])
+  const [categories, setCategories] = useState<CategoryOption[]>([])
+  const [editingPost, setEditingPost] = useState<AdminPost | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [feedback, setFeedback] = useState<FeedbackState | null>(null)
+
+  const mapPostsFromPayload = useCallback((data: AdminPost[]) => {
+    setPosts(
+      data.map((post) => ({
+        ...post,
+        excerpt: post.excerpt ?? null,
+        accentColor: post.accentColor ?? null,
+        categoryId: post.categoryId ?? null,
+        categoryName: post.categoryName ?? null,
+        categorySlug: post.categorySlug ?? null,
+        publishedAt: post.publishedAt ?? null,
+        scheduledFor: post.scheduledFor ?? null,
+        authorId: post.authorId ?? null,
+        views: post.views ?? 0,
+      })),
+    )
+  }, [])
+
+  const fetchPosts = useCallback(async () => {
+    const response = await fetch('/api/admin/posts', {
+      method: 'GET',
+      cache: 'no-store',
+    })
+    const payload = await response.json()
+
+    if (!response.ok) {
+      throw new Error(payload.error ?? 'Unable to load posts.')
+    }
+
+    mapPostsFromPayload(payload.posts as AdminPost[])
+  }, [mapPostsFromPayload])
+
+  const loadInitialData = useCallback(async () => {
+    setIsLoading(true)
+    setFeedback(null)
+
+    try {
+      const [{ data: categoriesData, error: categoryError }] = await Promise.all([
+        supabase
+          .from('categories')
+          .select('id, name, slug')
+          .order('name'),
+        fetchPosts().catch((error) => {
+          throw error
+        }),
+      ])
+
+      if (categoryError) {
+        throw new Error(categoryError.message)
+      }
+
+      setCategories((categoriesData ?? []) as CategoryOption[])
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Unable to load dashboard data.',
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }, [fetchPosts, supabase])
+
+  useEffect(() => {
+    void loadInitialData()
+  }, [loadInitialData])
 
   const handleCreatePost = () => {
     setEditingPost(null)
     setCurrentView('post-form')
   }
 
-  const handleEditPost = (post: Post) => {
+  const handleEditPost = (post: AdminPost) => {
     setEditingPost(post)
     setCurrentView('post-form')
   }
 
-  const handleSavePost = (post: Post) => {
-    const isNew = !post.id
-    if (isNew) {
-      const newPost = {
-        ...post,
-        id: Date.now().toString(),
-        views: 0,
-        createdAt: new Date().toISOString(),
+  const handleSavePost = async (values: PostFormValues) => {
+    setIsSaving(true)
+    setFeedback(null)
+
+    try {
+      const endpoint = values.id
+        ? `/api/admin/posts/${values.id}`
+        : '/api/admin/posts'
+
+      const payload = {
+        ...values,
+        authorId: values.authorId ?? profileId,
       }
-      setPosts([...posts, newPost])
-    } else {
-      setPosts(
-        posts.map((p) =>
-          p.id === post.id
-            ? {
-                ...post,
-              }
-            : p,
-        ),
-      )
+
+      const response = await fetch(endpoint, {
+        method: values.id ? 'PATCH' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error ?? 'Unable to save the post.')
+      }
+
+      setFeedback({
+        type: 'success',
+        message: values.id ? 'Post updated successfully.' : 'Post created successfully.',
+      })
+      setCurrentView('posts')
+      setEditingPost(null)
+      await fetchPosts()
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message:
+          error instanceof Error ? error.message : 'Unable to save the post.',
+      })
+    } finally {
+      setIsSaving(false)
     }
-    setCurrentView('posts')
   }
 
-  const handleDeletePost = (id: string) => {
-    setPosts(posts.filter((post) => post.id !== id))
+  const handleDeletePost = async (id: string) => {
+    setFeedback(null)
+
+    try {
+      const response = await fetch(`/api/admin/posts/${id}`, {
+        method: 'DELETE',
+      })
+      const payload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Unable to delete the post.')
+      }
+
+      setFeedback({ type: 'success', message: 'Post deleted successfully.' })
+      await fetchPosts()
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Unable to delete the post.',
+      })
+    }
   }
 
-  const handlePublishPost = (id: string) => {
-    setPosts(
-      posts.map((post) =>
-        post.id === id
-          ? {
-              ...post,
-              status: PostStatus.PUBLISHED,
-              publishedAt: new Date().toISOString(),
-            }
-          : post,
-      ),
-    )
+  const handlePublishPost = async (id: string) => {
+    setFeedback(null)
+
+    try {
+      const response = await fetch(`/api/admin/posts/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: PostStatus.PUBLISHED,
+          publishedAt: new Date().toISOString(),
+          scheduledFor: null,
+        }),
+      })
+
+      const payload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Unable to publish the post.')
+      }
+
+      setFeedback({ type: 'success', message: 'Post published successfully.' })
+      await fetchPosts()
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Unable to publish the post.',
+      })
+    }
+  }
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push('/me')
   }
 
   const renderContent = () => {
@@ -96,8 +268,10 @@ export const AdminDashboard = () => {
         return (
           <PostForm
             post={editingPost}
+            categories={categories}
             onSave={handleSavePost}
             onCancel={() => setCurrentView('posts')}
+            isSaving={isSaving}
           />
         )
       case 'analytics':
@@ -125,15 +299,39 @@ export const AdminDashboard = () => {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa]">
+        <p className="text-lg font-semibold">Loading dashboard...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-[#f8f9fa]">
       <Sidebar
         currentView={currentView}
         onNavigate={setCurrentView}
         onCreatePost={handleCreatePost}
+        onSignOut={handleSignOut}
+        displayName={displayName}
+        isAdmin={isAdmin}
       />
       <main className="flex-1 overflow-y-auto p-8">
-        <div className="max-w-7xl mx-auto">{renderContent()}</div>
+        <div className="max-w-7xl mx-auto space-y-6">
+          {feedback && (
+            <div
+              className={`rounded-md border-2 p-4 font-semibold ${
+                feedback.type === 'success'
+                  ? 'border-green-500/30 bg-green-50 text-green-700'
+                  : 'border-red-500/30 bg-red-50 text-red-700'
+              }`}
+            >
+              {feedback.message}
+            </div>
+          )}
+          {renderContent()}
+        </div>
       </main>
     </div>
   )

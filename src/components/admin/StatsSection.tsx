@@ -1,13 +1,13 @@
 import React from 'react'
 import { Eye, Clock, BarChart2, Tags } from 'lucide-react'
-import { Post, PostStatus } from '../../utils/types'
+import { AdminPost, PostStatus } from '../../utils/types'
 
 interface StatsSectionProps {
-  posts: Post[]
+  posts: AdminPost[]
 }
 
 export const StatsSection = ({ posts }: StatsSectionProps) => {
-  const totalViews = posts.reduce((sum, post) => sum + post.views, 0)
+  const totalViews = posts.reduce((sum, post) => sum + (post.views ?? 0), 0)
   const publishedPosts = posts.filter(
     (post) => post.status === PostStatus.PUBLISHED,
   ).length
@@ -19,13 +19,11 @@ export const StatsSection = ({ posts }: StatsSectionProps) => {
   ).length
 
   // Calculate category distribution
-  const categoryCount = posts.reduce(
-    (acc, post) => {
-      acc[post.category] = (acc[post.category] || 0) + 1
-      return acc
-    },
-    {} as Record<string, number>,
-  )
+  const categoryCount = posts.reduce((acc, post) => {
+    const key = post.categoryName ?? 'Uncategorized'
+    acc[key] = (acc[key] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
   const topCategory =
     Object.entries(categoryCount).sort(([, a], [, b]) => b - a)[0]?.[0] ||
     'None'

@@ -6,11 +6,11 @@ import {
   ArrowUpRight,
   Calendar,
 } from 'lucide-react'
-import { Post, PostStatus } from '../../utils/types'
+import { AdminPost, PostStatus } from '../../utils/types'
 
 interface PostsTableProps {
-  posts: Post[]
-  onEdit: (post: Post) => void
+  posts: AdminPost[]
+  onEdit: (post: AdminPost) => void
   onDelete: (id: string) => void
   onPublish: (id: string) => void
 }
@@ -32,11 +32,6 @@ export const PostsTable = ({
     if (activeTab === 'published') return post.status === PostStatus.PUBLISHED
     return true
   })
-
-  // Only show developer posts (as per requirement)
-  const developerPosts = filteredPosts.filter(
-    (post) => !post.author || post.author === 'Developer',
-  )
 
   return (
     <div className="bg-white border-3 border-[#2A2A2A]/20 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] overflow-hidden">
@@ -78,7 +73,7 @@ export const PostsTable = ({
           />
         </div>
       </div>
-      {developerPosts.length === 0 ? (
+      {filteredPosts.length === 0 ? (
         <div className="p-12 text-center">
           <p className="text-xl font-bold">No posts found</p>
           <p className="text-gray-500 mt-2">Create a new post to get started</p>
@@ -97,72 +92,79 @@ export const PostsTable = ({
               </tr>
             </thead>
             <tbody>
-              {developerPosts.map((post) => (
-                <tr
-                  key={post.id}
-                  className="border-b border-black/10 hover:bg-gray-50"
-                >
-                  <td className="p-4">
-                    <div className="font-bold">{post.title}</div>
-                    <div className="text-sm text-gray-500 truncate max-w-[300px]">
-                      {post.excerpt || 'No excerpt provided'}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div
-                      className="inline-block px-3 py-1 font-bold text-white rounded-md"
-                      style={{
-                        backgroundColor: getCategoryColor(post.category),
-                        transform: 'rotate(-2deg)',
-                      }}
-                    >
-                      {post.category}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <StatusBadge status={post.status} />
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-1 text-sm">
-                      <Calendar className="h-4 w-4" />
-                      {formatDate(post.publishedAt || post.createdAt)}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-1">
-                      <Eye className="h-4 w-4" />
-                      {post.views}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => onEdit(post)}
-                        className="bg-[#6C63FF] text-white p-2 rounded-md hover:opacity-90"
-                        title="Edit"
+              {filteredPosts.map((post) => {
+                const displayDate =
+                  post.status === PostStatus.SCHEDULED
+                    ? formatDateValue(post.scheduledFor)
+                    : formatDateValue(post.publishedAt || post.createdAt)
+
+                return (
+                  <tr
+                    key={post.id}
+                    className="border-b border-black/10 hover:bg-gray-50"
+                  >
+                    <td className="p-4">
+                      <div className="font-bold">{post.title}</div>
+                      <div className="text-sm text-gray-500 truncate max-w-[300px]">
+                        {post.excerpt || 'No excerpt provided'}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div
+                        className="inline-block px-3 py-1 font-bold text-white rounded-md"
+                        style={{
+                          backgroundColor: getCategoryColor(post),
+                          transform: 'rotate(-2deg)',
+                        }}
                       >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                      {post.status !== PostStatus.PUBLISHED && (
+                        {post.categoryName ?? 'Uncategorized'}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <StatusBadge status={post.status} />
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-1 text-sm">
+                        <Calendar className="h-4 w-4" />
+                        {displayDate}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-1">
+                        <Eye className="h-4 w-4" />
+                        {post.views ?? 0}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => onPublish(post.id)}
-                          className="bg-[#06D6A0] text-white p-2 rounded-md hover:opacity-90"
-                          title="Publish"
+                          onClick={() => onEdit(post)}
+                          className="bg-[#6C63FF] text-white p-2 rounded-md hover:opacity-90"
+                          title="Edit"
                         >
-                          <ArrowUpRight className="h-4 w-4" />
+                          <Pencil className="h-4 w-4" />
                         </button>
-                      )}
-                      <button
-                        onClick={() => onDelete(post.id)}
-                        className="bg-[#FF5252] text-white p-2 rounded-md hover:opacity-90"
-                        title="Delete"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        {post.status !== PostStatus.PUBLISHED && (
+                          <button
+                            onClick={() => onPublish(post.id)}
+                            className="bg-[#06D6A0] text-white p-2 rounded-md hover:opacity-90"
+                            title="Publish"
+                          >
+                            <ArrowUpRight className="h-4 w-4" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => onDelete(post.id)}
+                          className="bg-[#FF5252] text-white p-2 rounded-md hover:opacity-90"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -217,19 +219,26 @@ const StatusBadge = ({ status }: { status: PostStatus }) => {
   )
 }
 
-function getCategoryColor(category: string): string {
-  const colorMap: Record<string, string> = {
-    AI: '#FF5252',
-    DEEP_LEARNING: '#6C63FF',
-    MACHINE_LEARNING: '#06D6A0',
-    WEB_DEV: '#118AB2',
-    DATABASES: '#FFD166',
-    DEVOPS: '#073B4C',
+function getCategoryColor(post: AdminPost): string {
+  if (post.accentColor) {
+    return post.accentColor
   }
-  return colorMap[category] || '#6C63FF'
+
+  const colorMap: Record<string, string> = {
+    'machine-learning': '#06D6A0',
+    'reinforcement-learning': '#FFD166',
+    'data-science': '#118AB2',
+    'quantum-computing': '#6C63FF',
+  }
+
+  if (post.categorySlug && colorMap[post.categorySlug]) {
+    return colorMap[post.categorySlug]
+  }
+
+  return '#6C63FF'
 }
 
-function formatDate(dateString?: string): string {
+function formatDateValue(dateString?: string | null): string {
   if (!dateString) return 'N/A'
   const date = new Date(dateString)
   return date.toLocaleDateString('en-US', {

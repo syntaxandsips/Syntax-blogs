@@ -457,3 +457,67 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [React Spring](https://react-spring.dev/) - Animation library
 - [Lucide React](https://lucide.dev/) - Beautiful & consistent icons
 - Design inspiration from neo-brutalism trend
+
+## 🧰 Environment Setup
+
+To run the platform locally you will need a Supabase project, the CLI, and a configured `.env.local` file.
+
+1. **Install dependencies**
+   ```bash
+   npm install
+   ```
+2. **Create a `.env.local` file** with the following values (replace the placeholders with the credentials from your Supabase project):
+   ```dotenv
+   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+   ```
+3. **Apply the database schema**
+   ```bash
+   supabase db push
+   ```
+4. **Seed an admin account** (optional helper for local QA)
+   ```bash
+   npm run seed:test-user
+   ```
+
+### Newsletter Edge Function
+
+The production newsletter flow is powered by a Supabase edge function.
+
+```bash
+supabase functions deploy newsletter-subscribe --project-ref <your-project-ref>
+supabase functions set-env --project-ref <your-project-ref> --env-file .env.local
+```
+
+Finally, expose the function publicly via the Supabase dashboard or CLI and ensure that the site environment variables match your deployment.
+
+## 🧪 Testing & QA
+
+The project ships with Playwright and API-level tests. The auth tests require a running application instance.
+
+```bash
+# Static checks
+npm run lint
+
+# API contract tests (no browser required)
+npm run test
+
+# Full E2E suite (requires a running dev server and credentials)
+PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 \
+PLAYWRIGHT_E2E_EMAIL=admin@example.com \
+PLAYWRIGHT_E2E_PASSWORD=super-secret \
+npm run test:headed
+```
+
+The authentication suite is skipped automatically unless the `PLAYWRIGHT_TEST_BASE_URL` variable is present. Supply `PLAYWRIGHT_E2E_EMAIL` and `PLAYWRIGHT_E2E_PASSWORD` to exercise the happy-path login test.
+
+## 🚀 Deployment Checklist
+
+- ✅ Supabase migrations applied (`supabase db push`)
+- ✅ Edge function `newsletter-subscribe` deployed
+- ✅ Environment variables configured for the target platform
+- ✅ `npm run build` completes without warnings
+- ✅ `npm run test` passes (and the optional auth suite if credentials are available)
+
+With these steps complete the Syntax and Sips application is production ready and can be deployed to Vercel, Netlify, or any Next.js compatible host.

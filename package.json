@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
     "seed:test-user": "tsx scripts/create-test-user.ts"
   },
   "dependencies": {
@@ -38,6 +41,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.56.0",
     "@tailwindcss/postcss": "^4.1.4",
     "@types/node": "^20.19.19",
     "@types/react": "^19",
@@ -48,6 +52,7 @@
     "eslint-config-next": "15.3.1",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.1.4",
+    "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typescript": "^5"
   }

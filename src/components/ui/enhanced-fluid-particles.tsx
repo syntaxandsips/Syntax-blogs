@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 // Define coding symbols to use in the background
 const codingSymbols = [
@@ -50,12 +50,10 @@ export function EnhancedFluidParticles({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const contextRef = useRef<CanvasRenderingContext2D | null>(null)
-  const particlesRef = useRef<Particle[]>([])
-  const symbolsRef = useRef<CodeSymbol[]>([])
   const mouseRef = useRef({ x: 0, y: 0, prevX: 0, prevY: 0 })
   const blastRef = useRef({ active: false, x: 0, y: 0, radius: 0, maxRadius: maxBlastRadius })
-  const animationRef = useRef<number>(0)
-  const hoverTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const animationRef = useRef<number | null>(null)
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Get a random theme on initial load
   const [theme] = useState(() => {
@@ -64,394 +62,363 @@ export function EnhancedFluidParticles({
     return backgroundThemes[randomIndex]
   })
 
-  // Code symbol class for text elements
-  class CodeSymbol {
-    x: number
-    y: number
-    symbol: string
-    size: number
-    opacity: number
-    color: string
-    velocity: number
+  const CodeSymbolClass = useMemo(() => {
+    return class CodeSymbol {
+      x: number
+      y: number
+      symbol: string
+      size: number
+      opacity: number
+      color: string
+      velocity: number
 
-    constructor(x: number, y: number) {
-      this.x = x
-      this.y = y
-      this.symbol = codingSymbols[Math.floor(Math.random() * codingSymbols.length)]
-      this.size = Math.random() * 10 + 8 // Font size between 8-18px
-      this.opacity = Math.random() * 0.3 + 0.1 // Low opacity between 0.1-0.4
-      this.color = theme.particleColor
-      this.velocity = Math.random() * 0.2 + 0.1 // Slow downward movement
-    }
-
-    draw() {
-      if (!contextRef.current) return
-
-      contextRef.current.font = `${this.size}px monospace`
-      contextRef.current.fillStyle = this.color
-      contextRef.current.globalAlpha = this.opacity
-      contextRef.current.fillText(this.symbol, this.x, this.y)
-      contextRef.current.globalAlpha = 1
-    }
-
-    update() {
-      // Move symbol downward slowly
-      this.y += this.velocity
-
-      // Reset position if it goes off screen
-      if (this.y > window.innerHeight) {
-        this.y = 0
-        this.x = Math.random() * window.innerWidth
+      constructor(x: number, y: number) {
+        this.x = x
+        this.y = y
         this.symbol = codingSymbols[Math.floor(Math.random() * codingSymbols.length)]
+        this.size = Math.random() * 10 + 8
+        this.opacity = Math.random() * 0.3 + 0.1
+        this.color = theme.particleColor
+        this.velocity = Math.random() * 0.2 + 0.1
       }
 
-      // Handle blast effect
-      if (blastRef.current.active) {
-        const blastDx = this.x - blastRef.current.x
-        const blastDy = this.y - blastRef.current.y
-        const blastDistance = Math.sqrt(blastDx * blastDx + blastDy * blastDy)
+      draw() {
+        if (!contextRef.current) return
 
-        if (blastDistance < blastRef.current.radius) {
-          // Temporarily increase opacity based on blast
-          const blastEffect = (blastRef.current.radius - blastDistance) / blastRef.current.radius
-          this.opacity = Math.min(0.8, this.opacity + blastEffect * 0.5)
+        contextRef.current.font = `${this.size}px monospace`
+        contextRef.current.fillStyle = this.color
+        contextRef.current.globalAlpha = this.opacity
+        contextRef.current.fillText(this.symbol, this.x, this.y)
+        contextRef.current.globalAlpha = 1
+      }
+
+      update() {
+        this.y += this.velocity
+
+        if (this.y > window.innerHeight) {
+          this.y = 0
+          this.x = Math.random() * window.innerWidth
+          this.symbol = codingSymbols[Math.floor(Math.random() * codingSymbols.length)]
         }
-      } else {
-        // Gradually return to normal opacity
-        if (this.opacity > 0.4) {
+
+        if (blastRef.current.active) {
+          const blastDx = this.x - blastRef.current.x
+          const blastDy = this.y - blastRef.current.y
+          const blastDistance = Math.sqrt(blastDx * blastDx + blastDy * blastDy)
+
+          if (blastDistance < blastRef.current.radius) {
+            const blastEffect = (blastRef.current.radius - blastDistance) / blastRef.current.radius
+            this.opacity = Math.min(0.8, this.opacity + blastEffect * 0.5)
+          }
+        } else if (this.opacity > 0.4) {
           this.opacity -= 0.01
         }
+
+        this.draw()
       }
-
-      this.draw()
     }
-  }
+  }, [theme])
 
-  // Particle class with velocity for more fluid movement
-  class Particle {
-    x: number
-    y: number
-    size: number
-    baseX: number
-    baseY: number
-    density: number
-    color: string
-    vx: number
-    vy: number
-    friction: number
+  const ParticleClass = useMemo(() => {
+    return class Particle {
+      x: number
+      y: number
+      size: number
+      baseX: number
+      baseY: number
+      density: number
+      color: string
+      vx: number
+      vy: number
+      friction: number
 
-    constructor(x: number, y: number) {
-      this.x = x
-      this.y = y
-      this.baseX = x
-      this.baseY = y
-      this.size = Math.random() * particleSize + 0.5
-      this.density = Math.random() * 3 + 1
-      this.color = theme.particleColor
-      this.vx = 0
-      this.vy = 0
-      this.friction = 0.92 - 0.01 * this.density // Slightly higher friction for smoother movement
-    }
-
-    draw() {
-      if (!contextRef.current) return
-
-      contextRef.current.fillStyle = this.color
-      contextRef.current.beginPath()
-      contextRef.current.arc(this.x, this.y, this.size, 0, Math.PI * 2)
-      contextRef.current.closePath()
-      contextRef.current.fill()
-    }
-
-    update() {
-      if (!contextRef.current) return
-
-      // Apply velocity with friction
-      this.x += this.vx
-      this.y += this.vy
-      this.vx *= this.friction
-      this.vy *= this.friction
-
-      // Calculate distance between mouse and particle
-      const dx = mouseRef.current.x - this.x
-      const dy = mouseRef.current.y - this.y
-      const distance = Math.sqrt(dx * dx + dy * dy)
-
-      // Only calculate force if within interaction distance
-      if (distance < interactionDistance) {
-        const forceDirectionX = dx / distance
-        const forceDirectionY = dy / distance
-        const force = (interactionDistance - distance) / interactionDistance
-
-        this.x -= forceDirectionX * force * this.density * 0.3 // Reduced force for subtler effect
-        this.y -= forceDirectionY * force * this.density * 0.3
-        this.color = theme.activeColor
-      } else {
-        // If particle is far from mouse, return to original position with easing
-        if (this.x !== this.baseX) {
-          const dx = this.x - this.baseX
-          this.x -= dx / 30 // Slower return for smoother effect
-        }
-        if (this.y !== this.baseY) {
-          const dy = this.y - this.baseY
-          this.y -= dy / 30
-        }
+      constructor(x: number, y: number) {
+        this.x = x
+        this.y = y
+        this.baseX = x
+        this.baseY = y
+        this.size = Math.random() * particleSize + 0.5
+        this.density = Math.random() * 3 + 1
         this.color = theme.particleColor
+        this.vx = 0
+        this.vy = 0
+        this.friction = 0.92 - 0.01 * this.density
       }
 
-      // Handle blast effect
-      if (blastRef.current.active) {
-        const blastDx = this.x - blastRef.current.x
-        const blastDy = this.y - blastRef.current.y
-        const blastDistance = Math.sqrt(blastDx * blastDx + blastDy * blastDy)
+      draw() {
+        if (!contextRef.current) return
 
-        if (blastDistance < blastRef.current.radius) {
-          // Calculate normalized direction vector
-          const blastForceX = blastDx / (blastDistance || 1) // Avoid division by zero
-          const blastForceY = blastDy / (blastDistance || 1)
+        contextRef.current.fillStyle = this.color
+        contextRef.current.beginPath()
+        contextRef.current.arc(this.x, this.y, this.size, 0, Math.PI * 2)
+        contextRef.current.closePath()
+        contextRef.current.fill()
+      }
 
-          // Calculate force based on distance from blast center
-          const blastForce = (blastRef.current.radius - blastDistance) / blastRef.current.radius
+      update() {
+        if (!contextRef.current) return
 
-          // Apply force as velocity with smoother acceleration
-          this.vx += blastForceX * blastForce * 8 // Reduced force for subtler effect
-          this.vy += blastForceY * blastForce * 8
+        this.x += this.vx
+        this.y += this.vy
+        this.vx *= this.friction
+        this.vy *= this.friction
 
-          // Change color based on blast with smoother transition
-          const intensity = Math.min(255, Math.floor(255 - blastDistance))
-          this.color = theme.blastColor(intensity)
+        const dx = mouseRef.current.x - this.x
+        const dy = mouseRef.current.y - this.y
+        const distance = Math.sqrt(dx * dx + dy * dy)
+
+        if (distance < interactionDistance) {
+          const forceDirectionX = dx / (distance || 1)
+          const forceDirectionY = dy / (distance || 1)
+          const force = (interactionDistance - distance) / interactionDistance
+
+          this.x -= forceDirectionX * force * this.density * 0.3
+          this.y -= forceDirectionY * force * this.density * 0.3
+          this.color = theme.activeColor
+        } else {
+          if (this.x !== this.baseX) {
+            const deltaX = this.x - this.baseX
+            this.x -= deltaX / 30
+          }
+          if (this.y !== this.baseY) {
+            const deltaY = this.y - this.baseY
+            this.y -= deltaY / 30
+          }
+          this.color = theme.particleColor
         }
+
+        if (blastRef.current.active) {
+          const blastDx = this.x - blastRef.current.x
+          const blastDy = this.y - blastRef.current.y
+          const blastDistance = Math.sqrt(blastDx * blastDx + blastDy * blastDy)
+
+          if (blastDistance < blastRef.current.radius) {
+            const blastForceX = blastDx / (blastDistance || 1)
+            const blastForceY = blastDy / (blastDistance || 1)
+            const blastForce = (blastRef.current.radius - blastDistance) / blastRef.current.radius
+
+            this.vx += blastForceX * blastForce * 8
+            this.vy += blastForceY * blastForce * 8
+
+            const intensity = Math.min(255, Math.floor(255 - blastDistance))
+            this.color = theme.blastColor(intensity)
+          }
+        }
+
+        this.draw()
       }
-
-      this.draw()
     }
-  }
+  }, [interactionDistance, particleSize, theme])
 
-  // Initialize canvas and particles
-  const init = () => {
+  type ParticleInstance = InstanceType<typeof ParticleClass>
+  type CodeSymbolInstance = InstanceType<typeof CodeSymbolClass>
+
+  const particlesRef = useRef<ParticleInstance[]>([])
+  const symbolsRef = useRef<CodeSymbolInstance[]>([])
+
+  useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas) {
+      return
+    }
+
+    blastRef.current.maxRadius = maxBlastRadius
 
     contextRef.current = canvas.getContext("2d", { alpha: true })
 
-    // Enable alpha blending for smoother rendering
     if (contextRef.current) {
       contextRef.current.globalCompositeOperation = "lighter"
     }
 
-    // Set canvas to full width/height with device pixel ratio for sharper rendering
+    const passiveOptions: AddEventListenerOptions = { passive: true }
+    const moveThrottle = 10
+    let lastMoveTime = 0
+
+    const easeOutQuad = (t: number) => t * (2 - t)
+
+    const triggerBlast = (x: number, y: number) => {
+      blastRef.current = {
+        active: true,
+        x,
+        y,
+        radius: 0,
+        maxRadius: maxBlastRadius,
+      }
+
+      const startTime = performance.now()
+      const duration = 400
+
+      const expandBlast = (timestamp: number) => {
+        const elapsed = timestamp - startTime
+        const progress = Math.min(elapsed / duration, 1)
+        const easedProgress = easeOutQuad(progress)
+
+        blastRef.current.radius = easedProgress * blastRef.current.maxRadius
+
+        if (progress < 1) {
+          requestAnimationFrame(expandBlast)
+        } else {
+          setTimeout(() => {
+            blastRef.current.active = false
+          }, 200)
+        }
+      }
+
+      requestAnimationFrame(expandBlast)
+
+      if (hoverTimerRef.current) {
+        clearTimeout(hoverTimerRef.current)
+        hoverTimerRef.current = null
+      }
+    }
+
+    const initParticles = () => {
+      particlesRef.current = []
+      const width = window.innerWidth
+      const height = window.innerHeight
+      const particleCount = Math.floor((width * height) / particleDensity)
+
+      for (let i = 0; i < particleCount; i++) {
+        const x = Math.random() * width
+        const y = Math.random() * height
+        particlesRef.current.push(new ParticleClass(x, y))
+      }
+    }
+
+    const initCodeSymbols = () => {
+      symbolsRef.current = []
+      const width = window.innerWidth
+      const height = window.innerHeight
+      const symbolCount = Math.floor((width * height) / (particleDensity * 5))
+
+      for (let i = 0; i < symbolCount; i++) {
+        const x = Math.random() * width
+        const y = Math.random() * height
+        symbolsRef.current.push(new CodeSymbolClass(x, y))
+      }
+    }
+
     const handleResize = () => {
       const pixelRatio = window.devicePixelRatio || 1
+      const ctx = contextRef.current
+
       canvas.width = window.innerWidth * pixelRatio
       canvas.height = window.innerHeight * pixelRatio
       canvas.style.width = `${window.innerWidth}px`
       canvas.style.height = `${window.innerHeight}px`
 
-      if (contextRef.current) {
-        contextRef.current.scale(pixelRatio, pixelRatio)
+      if (ctx) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0)
+        ctx.scale(pixelRatio, pixelRatio)
       }
 
       initParticles()
       initCodeSymbols()
     }
 
-    window.addEventListener("resize", handleResize)
-    handleResize()
-
-    // Track mouse position and detect hover with throttling for performance
-    let lastMoveTime = 0
-    const moveThrottle = 10 // ms
-
-    window.addEventListener("mousemove", (e) => {
+    const handleMouseMove = (event: MouseEvent) => {
       const now = performance.now()
       if (now - lastMoveTime < moveThrottle) return
       lastMoveTime = now
 
       const prevX = mouseRef.current.x
       const prevY = mouseRef.current.y
-      mouseRef.current = { x: e.x, y: e.y, prevX, prevY }
+      mouseRef.current = { x: event.clientX, y: event.clientY, prevX, prevY }
 
-      // Calculate mouse movement distance
-      const dx = mouseRef.current.x - mouseRef.current.prevX
-      const dy = mouseRef.current.y - mouseRef.current.prevY
-      const distance = Math.sqrt(dx * dx + dy * dy)
+      const deltaX = mouseRef.current.x - mouseRef.current.prevX
+      const deltaY = mouseRef.current.y - mouseRef.current.prevY
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
 
-      // If mouse is moving very little, start hover timer
       if (distance < 5) {
-        if (hoverTimerRef.current === null) {
+        if (!hoverTimerRef.current) {
           hoverTimerRef.current = setTimeout(() => {
-            triggerBlast(e.x, e.y)
+            triggerBlast(event.clientX, event.clientY)
           }, hoverDelay)
         }
-      } else {
-        // If mouse moves significantly, clear hover timer
-        if (hoverTimerRef.current) {
-          clearTimeout(hoverTimerRef.current)
-          hoverTimerRef.current = null
-        }
+      } else if (hoverTimerRef.current) {
+        clearTimeout(hoverTimerRef.current)
+        hoverTimerRef.current = null
       }
-    })
+    }
 
-    // Handle touch for mobile
-    window.addEventListener("touchmove", (e) => {
-      if (e.touches[0]) {
-        const prevX = mouseRef.current.x
-        const prevY = mouseRef.current.y
-        mouseRef.current = {
-          x: e.touches[0].clientX,
-          y: e.touches[0].clientY,
-          prevX,
-          prevY,
-        }
+    const handleTouchMove = (event: TouchEvent) => {
+      if (!event.touches[0]) return
+      const prevX = mouseRef.current.x
+      const prevY = mouseRef.current.y
+      mouseRef.current = {
+        x: event.touches[0].clientX,
+        y: event.touches[0].clientY,
+        prevX,
+        prevY,
       }
-    })
+    }
 
-    // Handle touch start for blast effect on mobile
-    window.addEventListener("touchstart", (e) => {
-      if (e.touches[0]) {
-        const x = e.touches[0].clientX
-        const y = e.touches[0].clientY
+    const handleTouchStart = (event: TouchEvent) => {
+      if (!event.touches[0]) return
+      const { clientX, clientY } = event.touches[0]
 
-        // Start hover timer for touch
-        hoverTimerRef.current = setTimeout(() => {
-          triggerBlast(x, y)
-        }, hoverDelay)
+      if (hoverTimerRef.current) {
+        clearTimeout(hoverTimerRef.current)
       }
-    })
 
-    // Handle touch end to clear hover timer
-    window.addEventListener("touchend", () => {
+      hoverTimerRef.current = setTimeout(() => {
+        triggerBlast(clientX, clientY)
+      }, hoverDelay)
+    }
+
+    const handleTouchEnd = () => {
       if (hoverTimerRef.current) {
         clearTimeout(hoverTimerRef.current)
         hoverTimerRef.current = null
       }
-    })
+    }
 
-    // Handle click for immediate blast
-    window.addEventListener("click", (e) => {
-      triggerBlast(e.x, e.y)
-    })
+    const handleClick = (event: MouseEvent) => {
+      triggerBlast(event.clientX, event.clientY)
+    }
 
-    // Start animation
-    animate()
+    const animate = () => {
+      const ctx = contextRef.current
+      if (!ctx) return
+
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
+      ctx.fillStyle = theme.backgroundColor
+      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight)
+
+      symbolsRef.current.forEach((symbol) => symbol.update())
+      particlesRef.current.forEach((particle) => particle.update())
+
+      animationRef.current = requestAnimationFrame(animate)
+    }
+
+    window.addEventListener("resize", handleResize)
+    window.addEventListener("mousemove", handleMouseMove)
+    window.addEventListener("touchmove", handleTouchMove, passiveOptions)
+    window.addEventListener("touchstart", handleTouchStart, passiveOptions)
+    window.addEventListener("touchend", handleTouchEnd)
+    window.addEventListener("click", handleClick)
+
+    handleResize()
+    animationRef.current = requestAnimationFrame(animate)
 
     return () => {
       window.removeEventListener("resize", handleResize)
-      window.removeEventListener("mousemove", () => {})
-      window.removeEventListener("touchmove", () => {})
-      window.removeEventListener("touchstart", () => {})
-      window.removeEventListener("touchend", () => {})
-      window.removeEventListener("click", () => {})
-      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current)
-      cancelAnimationFrame(animationRef.current)
-    }
-  }
+      window.removeEventListener("mousemove", handleMouseMove)
+      window.removeEventListener("touchmove", handleTouchMove, passiveOptions)
+      window.removeEventListener("touchstart", handleTouchStart, passiveOptions)
+      window.removeEventListener("touchend", handleTouchEnd)
+      window.removeEventListener("click", handleClick)
 
-  // Trigger blast effect
-  const triggerBlast = (x: number, y: number) => {
-    blastRef.current = {
-      active: true,
-      x,
-      y,
-      radius: 0,
-      maxRadius: maxBlastRadius,
-    }
+      if (hoverTimerRef.current) {
+        clearTimeout(hoverTimerRef.current)
+        hoverTimerRef.current = null
+      }
 
-    // Animate the blast radius with smoother expansion
-    const startTime = performance.now()
-    const duration = 400 // ms for full expansion (slightly longer for smoother effect)
-
-    const expandBlast = (timestamp: number) => {
-      const elapsed = timestamp - startTime
-      const progress = Math.min(elapsed / duration, 1)
-
-      // Use easing function for smoother expansion
-      const easedProgress = easeOutQuad(progress)
-      blastRef.current.radius = easedProgress * blastRef.current.maxRadius
-
-      if (progress < 1) {
-        requestAnimationFrame(expandBlast)
-      } else {
-        // Reset blast after reaching max radius
-        setTimeout(() => {
-          blastRef.current.active = false
-        }, 200)
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
       }
     }
-
-    requestAnimationFrame(expandBlast)
-
-    // Clear hover timer
-    if (hoverTimerRef.current) {
-      clearTimeout(hoverTimerRef.current)
-      hoverTimerRef.current = null
-    }
-  }
-
-  // Easing function for smoother animations
-  const easeOutQuad = (t: number) => t * (2 - t)
-
-  // Create particles in a grid with higher density
-  const initParticles = () => {
-    particlesRef.current = []
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    // Increase particle density (lower divisor = more particles)
-    const particleCount = Math.floor((window.innerWidth * window.innerHeight) / particleDensity)
-
-    for (let i = 0; i < particleCount; i++) {
-      const x = Math.random() * window.innerWidth
-      const y = Math.random() * window.innerHeight
-      particlesRef.current.push(new Particle(x, y))
-    }
-  }
-
-  // Create code symbols
-  const initCodeSymbols = () => {
-    symbolsRef.current = []
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    // Add fewer code symbols than particles
-    const symbolCount = Math.floor((window.innerWidth * window.innerHeight) / (particleDensity * 5))
-
-    for (let i = 0; i < symbolCount; i++) {
-      const x = Math.random() * window.innerWidth
-      const y = Math.random() * window.innerHeight
-      symbolsRef.current.push(new CodeSymbol(x, y))
-    }
-  }
-
-  // Animation loop with timing optimization
-  const animate = () => {
-    const canvas = canvasRef.current
-    const ctx = contextRef.current
-    if (!canvas || !ctx) return
-
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
-
-    // Draw background with theme color
-    ctx.fillStyle = theme.backgroundColor
-    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight)
-
-    // Update and draw code symbols
-    symbolsRef.current.forEach((symbol) => {
-      symbol.update()
-    })
-
-    // Update and draw particles
-    particlesRef.current.forEach((particle) => {
-      particle.update()
-    })
-
-    animationRef.current = requestAnimationFrame(animate)
-  }
-
-  useEffect(() => {
-    const cleanup = init()
-    return cleanup
-  }, [init])
+  }, [CodeSymbolClass, ParticleClass, hoverDelay, interactionDistance, maxBlastRadius, particleDensity, particleSize, theme])
 
   return (
     <div className="">

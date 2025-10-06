@@ -129,7 +129,9 @@ export default function LoginPage() {
               id="email"
               name="email"
               type="email"
+              autoComplete="email"
               required
+              suppressHydrationWarning
               className="w-full px-3 py-2 border border-black focus:outline-none focus:ring-2 focus:ring-purple-500"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -144,7 +146,9 @@ export default function LoginPage() {
               id="password"
               name="password"
               type="password"
+              autoComplete="current-password"
               required
+              suppressHydrationWarning
               className="w-full px-3 py-2 border border-black focus:outline-none focus:ring-2 focus:ring-purple-500"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

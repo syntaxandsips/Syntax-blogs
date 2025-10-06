@@ -1,7 +1,6 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { NewNavbar } from './NewNavbar';
 import { NewFooter } from './NewFooter';
 
 interface PageShellProps {
@@ -13,7 +12,6 @@ interface PageShellProps {
 export function PageShell({ hero, children, backgroundClassName = 'bg-[#f0f0f0]' }: PageShellProps) {
   return (
     <div className={cn('min-h-screen flex flex-col text-black', backgroundClassName)}>
-      <NewNavbar />
       {hero}
       <main className="flex-1 container mx-auto px-4 py-16 space-y-16">{children}</main>
       <NewFooter />

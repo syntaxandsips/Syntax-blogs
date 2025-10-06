@@ -1,6 +1,20 @@
-import { Metadata } from 'next';
-import { ShieldCheck, UserCheck, Database } from 'lucide-react';
-import { PageShell, PageHero, ContentSection } from '@/components/ui/PageLayout';
+import type { Metadata } from 'next';
+import { ContentPageLayout, ContentSection } from '@/components/ui/ContentPageLayout';
+
+const privacyPrinciples = [
+  {
+    title: 'Security first',
+    description: 'Encryption in transit and at rest, role-based access controls, and regular audits keep your projects protected.',
+  },
+  {
+    title: 'Choice by default',
+    description: 'Clear settings let you decide what to share, how long we keep it, and which messages you receive.',
+  },
+  {
+    title: 'Purpose-driven data',
+    description: 'We only store the information required to deliver Syntax & Sips and continuously purge stale records.',
+  },
+];
 
 const privacySections = [
   {
@@ -32,6 +46,21 @@ const privacySections = [
   },
 ];
 
+const requestOptions = [
+  {
+    title: 'Access & portability',
+    description: 'Generate a copy of your data or request exports in interoperable formats right from account settings.',
+  },
+  {
+    title: 'Correction & deletion',
+    description: 'Update profile fields anytime, or ask us to delete content when you are ready to move on.',
+  },
+  {
+    title: 'Objection & restriction',
+    description: 'If you need us to pause certain processing activities, our privacy team responds within 72 hours.',
+  },
+];
+
 export const metadata: Metadata = {
   title: 'Privacy Policy | Syntax & Sips',
   description: 'Understand how Syntax & Sips collects, uses, and protects your data across our platform and services.',
@@ -39,56 +68,39 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <PageShell
-      hero={
-        <PageHero
-          eyebrow="Privacy"
-          title="We respect your craft and your privacy"
-          description="Transparency is part of our culture. This policy explains what we collect, why we collect it, and how you stay in control."
-        />
-      }
+    <ContentPageLayout
+      badge={<span>Legal</span>}
+      title="Privacy policy"
+      description="Transparency is part of our culture. This policy explains what we collect, why we collect it, and how you stay in control."
     >
       <ContentSection
-        eyebrow="Our principles"
-        title="We built Syntax & Sips with privacy at the center"
-        description="We only collect what we need, we secure what we store, and we never sell your data."
-        tone="peach"
-        align="center"
+        eyebrow={<span role="img" aria-label="shield">🛡️</span>}
+        title="Our privacy principles"
+        description="We designed Syntax & Sips to respect your work and your data from day one."
+        fullWidth
       >
         <div className="grid gap-6 md:grid-cols-3">
-          <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-black bg-white/70 p-6 text-center">
-            <ShieldCheck className="h-10 w-10 text-[#6C63FF]" aria-hidden="true" />
-            <h3 className="text-lg font-black">Security-first</h3>
-            <p className="text-sm text-black/70">
-              Encryption in transit and at rest, strict access controls, and continuous monitoring keep your work protected.
-            </p>
-          </div>
-          <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-black bg-white/70 p-6 text-center">
-            <UserCheck className="h-10 w-10 text-[#FF5252]" aria-hidden="true" />
-            <h3 className="text-lg font-black">You stay in control</h3>
-            <p className="text-sm text-black/70">
-              We provide clear settings so you choose what to share, how long we keep it, and how we contact you.
-            </p>
-          </div>
-          <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-black bg-white/70 p-6 text-center">
-            <Database className="h-10 w-10 text-[#4CAF50]" aria-hidden="true" />
-            <h3 className="text-lg font-black">Purposeful data</h3>
-            <p className="text-sm text-black/70">
-              We only store the information required to deliver your experience and we regularly purge stale records.
-            </p>
-          </div>
+          {privacyPrinciples.map((principle) => (
+            <div key={principle.title} className="border-4 border-black bg-white p-6 shadow-[6px_6px_0_0_#000]">
+              <h3 className="text-lg font-black">{principle.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-700">{principle.description}</p>
+            </div>
+          ))}
         </div>
       </ContentSection>
 
       {privacySections.map((section) => (
-        <ContentSection key={section.title} title={section.title} description={section.description}>
-          <ul className="space-y-3">
+        <ContentSection
+          key={section.title}
+          eyebrow={<span role="img" aria-label="folder">🗂️</span>}
+          title={section.title}
+          description={section.description}
+        >
+          <ul className="space-y-3 text-sm leading-relaxed text-gray-700">
             {section.bullets.map((item) => (
-              <li
-                key={item}
-                className="rounded-2xl border-2 border-dashed border-black/30 bg-white/70 px-4 py-3 text-sm text-black/80"
-              >
-                {item}
+              <li key={item} className="flex gap-3 rounded-3xl border-2 border-dashed border-black/30 bg-white px-4 py-3">
+                <span aria-hidden className="font-bold text-[#ef476f]">•</span>
+                <span>{item}</span>
               </li>
             ))}
           </ul>
@@ -96,18 +108,33 @@ export default function PrivacyPage() {
       ))}
 
       <ContentSection
-        eyebrow="Questions"
-        title="Need more details?"
-        description="Reach out and we will walk you through our privacy practices or update this policy based on your feedback."
-        align="center"
+        eyebrow={<span role="img" aria-label="controls">🎛️</span>}
+        title="Requesting changes"
+        description="Tell us how you want your information handled and we will make it happen."
+        fullWidth
       >
-        <div className="flex flex-col gap-3 rounded-2xl border-2 border-black bg-white/70 p-6 text-center md:flex-row md:items-center md:justify-between md:text-left">
-          <p className="text-sm text-black/70">
-            Email privacy@syntaxandsips.com or contact us from your account dashboard. We respond to every request within 72 hours.
-          </p>
-          <p className="text-sm font-semibold text-black">Last updated: March 1, 2025</p>
+        <div className="grid gap-4 md:grid-cols-3">
+          {requestOptions.map((option) => (
+            <div key={option.title} className="rounded-3xl border-4 border-black bg-[#f5f1ff] px-5 py-4 shadow-[5px_5px_0_0_#000]">
+              <h3 className="text-base font-extrabold uppercase tracking-[0.18em] text-black/80">{option.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-700">{option.description}</p>
+            </div>
+          ))}
         </div>
       </ContentSection>
-    </PageShell>
+
+      <ContentSection
+        eyebrow={<span role="img" aria-label="envelope">✉️</span>}
+        title="Need more details?"
+        description="Reach out and we will walk you through our privacy practices or update this policy based on your feedback."
+      >
+        <div className="space-y-4">
+          <p className="text-sm leading-relaxed text-gray-700">
+            Email <a className="font-semibold underline" href="mailto:privacy@syntaxandsips.com">privacy@syntaxandsips.com</a> or contact us from your account dashboard. We respond to every request within 72 hours.
+          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-black/60">Last updated: March 1, 2025</p>
+        </div>
+      </ContentSection>
+    </ContentPageLayout>
   );
 }

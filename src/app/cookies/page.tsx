@@ -1,26 +1,49 @@
-import { Metadata } from 'next';
-import { Cookie, ServerCog, Settings2 } from 'lucide-react';
-import { PageShell, PageHero, ContentSection } from '@/components/ui/PageLayout';
+import type { Metadata } from 'next';
+import { ContentPageLayout, ContentSection } from '@/components/ui/ContentPageLayout';
+
+const cookieHighlights = [
+  {
+    title: 'Stay signed in',
+    description: 'Essential cookies keep sessions secure without requiring you to log in every time.',
+  },
+  {
+    title: 'Improve performance',
+    description: 'Anonymous analytics tell us what to optimize without tracking individual behavior.',
+  },
+  {
+    title: 'Remember preferences',
+    description: 'Accessibility settings, themes, and shortcuts follow you across devices.',
+  },
+];
 
 const cookieCategories = [
   {
-    title: 'Essential cookies',
-    description: 'Required to keep you signed in, remember your preferences, and protect your account.',
+    title: 'Essential',
+    items: [
+      'Authentication tokens that keep you signed in and secure. Without them the product cannot function.',
+      'Fraud prevention cookies that monitor suspicious activity to protect accounts.',
+    ],
   },
   {
-    title: 'Analytics cookies',
-    description: 'Help us understand how the platform is used so we can improve navigation and performance.',
+    title: 'Analytics',
+    items: [
+      'Session metrics that help us understand feature adoption and navigation flows.',
+      'Aggregate performance data so we can troubleshoot latency or errors.',
+    ],
   },
   {
-    title: 'Preference cookies',
-    description: 'Store your theme, language, and accessibility settings for a consistent experience.',
+    title: 'Preferences',
+    items: [
+      'Theme, language, and accessibility options that personalize the interface for you.',
+      'Workspace layout settings that keep dashboards consistent across visits.',
+    ],
   },
 ];
 
 const managementSteps = [
-  'Open the cookie banner or account settings to review your preferences.',
-  'Toggle categories on or off. Essential cookies cannot be disabled because the product will not function without them.',
-  'Save your changes. Preferences apply across devices when you are signed in.',
+  'Open the cookie banner or visit Settings → Privacy to review available categories.',
+  'Toggle analytics or preference cookies anytime. Essential cookies remain active to keep the product secure.',
+  'Save your changes. Updates sync across browsers when you are signed in.',
 ];
 
 export const metadata: Metadata = {
@@ -30,88 +53,77 @@ export const metadata: Metadata = {
 
 export default function CookiesPage() {
   return (
-    <PageShell
-      hero={
-        <PageHero
-          eyebrow="Cookies"
-          title="Cookies keep Syntax & Sips running smoothly"
-          description="We use a small set of cookies to provide essential functionality and improve how the platform performs."
-        />
-      }
+    <ContentPageLayout
+      badge={<span>Legal</span>}
+      title="Cookie policy"
+      description="We use a small set of cookies to provide essential functionality and improve how the platform performs."
     >
       <ContentSection
-        eyebrow="At a glance"
+        eyebrow={<span role="img" aria-label="cookie">🍪</span>}
         title="Why we use cookies"
         description="Cookies help us deliver secure sessions, remember your settings, and make better decisions with anonymized insights."
-        tone="peach"
-        align="center"
+        fullWidth
       >
         <div className="grid gap-6 md:grid-cols-3">
-          <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-black bg-white/70 p-6 text-center">
-            <Cookie className="h-10 w-10 text-[#FF5252]" aria-hidden="true" />
-            <h3 className="text-lg font-black">Stay signed in</h3>
-            <p className="text-sm text-black/70">We keep sessions secure without requiring you to log in every time.</p>
-          </div>
-          <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-black bg-white/70 p-6 text-center">
-            <ServerCog className="h-10 w-10 text-[#6C63FF]" aria-hidden="true" />
-            <h3 className="text-lg font-black">Performance insights</h3>
-            <p className="text-sm text-black/70">Anonymous analytics help us understand what to improve next.</p>
-          </div>
-          <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-black bg-white/70 p-6 text-center">
-            <Settings2 className="h-10 w-10 text-[#4CAF50]" aria-hidden="true" />
-            <h3 className="text-lg font-black">Personalization</h3>
-            <p className="text-sm text-black/70">Your theme, shortcuts, and reading preferences follow you everywhere.</p>
-          </div>
-        </div>
-      </ContentSection>
-
-      <ContentSection
-        eyebrow="Categories"
-        title="Types of cookies we set"
-        description="Each category is purpose-driven and limited to what is necessary to provide value."
-      >
-        <div className="grid gap-4 md:grid-cols-3">
-          {cookieCategories.map((cookie) => (
-            <article
-              key={cookie.title}
-              className="flex h-full flex-col gap-3 rounded-2xl border-2 border-black bg-white/80 p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.08)]"
-            >
-              <h3 className="text-lg font-black">{cookie.title}</h3>
-              <p className="text-sm text-black/70 leading-relaxed">{cookie.description}</p>
-            </article>
+          {cookieHighlights.map((highlight) => (
+            <div key={highlight.title} className="border-4 border-black bg-white p-6 shadow-[6px_6px_0_0_#000]">
+              <h3 className="text-lg font-black">{highlight.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-700">{highlight.description}</p>
+            </div>
           ))}
         </div>
       </ContentSection>
 
       <ContentSection
-        eyebrow="Manage your preferences"
-        title="How to update or revoke consent"
-        description="You can adjust optional cookies at any time—your choices are respected immediately."
-        tone="lavender"
+        eyebrow={<span role="img" aria-label="folders">🗂️</span>}
+        title="Types of cookies we set"
+        description="Each category is purpose-driven and limited to what is necessary to provide value."
       >
-        <ol className="space-y-3">
+        <div className="grid gap-6 md:grid-cols-3">
+          {cookieCategories.map((category) => (
+            <div key={category.title} className="rounded-3xl border-4 border-black bg-[#f5f1ff] px-5 py-4 shadow-[5px_5px_0_0_#000]">
+              <h3 className="text-base font-extrabold uppercase tracking-[0.18em] text-black/80">{category.title}</h3>
+              <ul className="mt-3 space-y-2 text-sm leading-relaxed text-gray-700">
+                {category.items.map((item) => (
+                  <li key={item} className="flex gap-2">
+                    <span aria-hidden className="text-[#ef476f]">•</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </ContentSection>
+
+      <ContentSection
+        eyebrow={<span role="img" aria-label="gear">⚙️</span>}
+        title="Manage your preferences"
+        description="You can adjust optional cookies at any time—your choices are respected immediately."
+        fullWidth
+      >
+        <ol className="space-y-3 text-sm leading-relaxed text-gray-700">
           {managementSteps.map((step, index) => (
-            <li
-              key={step}
-              className="rounded-2xl border-2 border-dashed border-black/30 bg-white/70 px-4 py-3 text-sm text-black/80"
-            >
-              <span className="font-semibold text-black">{index + 1}.</span> {step}
+            <li key={step} className="flex gap-3 rounded-3xl border-2 border-dashed border-black/30 bg-white px-4 py-3">
+              <span className="font-semibold text-black">{index + 1}.</span>
+              <span>{step}</span>
             </li>
           ))}
         </ol>
       </ContentSection>
 
       <ContentSection
-        eyebrow="Questions"
+        eyebrow={<span role="img" aria-label="information">ℹ️</span>}
         title="Need more information?"
         description="If you have questions about cookies or tracking technologies, our support team can help."
-        align="center"
       >
-        <div className="flex flex-col gap-3 rounded-2xl border-2 border-black bg-white/70 p-6 text-center md:flex-row md:items-center md:justify-between md:text-left">
-          <p className="text-sm text-black/70">Email privacy@syntaxandsips.com or adjust your settings anytime in the app.</p>
-          <p className="text-sm font-semibold text-black">Last updated: March 1, 2025</p>
+        <div className="space-y-4">
+          <p className="text-sm leading-relaxed text-gray-700">
+            Email <a className="font-semibold underline" href="mailto:privacy@syntaxandsips.com">privacy@syntaxandsips.com</a> or adjust your settings anytime in the app.
+          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-black/60">Last updated: March 1, 2025</p>
         </div>
       </ContentSection>
-    </PageShell>
+    </ContentPageLayout>
   );
 }

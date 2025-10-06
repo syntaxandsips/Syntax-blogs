@@ -1,6 +1,20 @@
-import { Metadata } from 'next';
-import { FileSignature, Handshake, Scale } from 'lucide-react';
-import { PageShell, PageHero, ContentSection } from '@/components/ui/PageLayout';
+import type { Metadata } from 'next';
+import { ContentPageLayout, ContentSection } from '@/components/ui/ContentPageLayout';
+
+const commitments = [
+  {
+    title: 'Fairness',
+    description: 'We enforce policies consistently and review feedback before rolling out changes.',
+  },
+  {
+    title: 'Partnership',
+    description: 'You get advance notice about pricing, feature, and policy updates—no surprises.',
+  },
+  {
+    title: 'Clarity',
+    description: 'Plain language terms, transparent billing, and accessible documentation across the product.',
+  },
+];
 
 const termsSections = [
   {
@@ -32,6 +46,17 @@ const termsSections = [
   },
 ];
 
+const supportChannels = [
+  {
+    title: 'Billing support',
+    description: 'Email billing@syntaxandsips.com if you need help understanding charges or managing invoices.',
+  },
+  {
+    title: 'Legal questions',
+    description: 'Reach our legal team at legal@syntaxandsips.com to clarify clauses or request signed agreements.',
+  },
+];
+
 export const metadata: Metadata = {
   title: 'Terms of Service | Syntax & Sips',
   description: 'Review the legal terms that govern your use of Syntax & Sips products and services.',
@@ -39,56 +64,39 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <PageShell
-      hero={
-        <PageHero
-          eyebrow="Terms"
-          title="The agreement between you and Syntax & Sips"
-          description="We aim for clarity in how we operate. These terms are designed to protect both you and our community."
-        />
-      }
+    <ContentPageLayout
+      badge={<span>Legal</span>}
+      title="Terms of service"
+      description="We aim for clarity in how we operate. These terms are designed to protect both you and our community."
     >
       <ContentSection
-        eyebrow="Our commitments"
-        title="What you can expect from us"
-        description="We strive to keep the platform reliable, secure, and inclusive."
-        tone="lavender"
-        align="center"
+        eyebrow={<span role="img" aria-label="scale">⚖️</span>}
+        title="Our commitments"
+        description="You deserve a dependable partner. These promises guide how we run Syntax & Sips."
+        fullWidth
       >
         <div className="grid gap-6 md:grid-cols-3">
-          <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-black bg-white/70 p-6 text-center">
-            <Scale className="h-10 w-10 text-[#6C63FF]" aria-hidden="true" />
-            <h3 className="text-lg font-black">Fairness</h3>
-            <p className="text-sm text-black/70">
-              We enforce our policies consistently and evaluate changes with transparency.
-            </p>
-          </div>
-          <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-black bg-white/70 p-6 text-center">
-            <Handshake className="h-10 w-10 text-[#FF5252]" aria-hidden="true" />
-            <h3 className="text-lg font-black">Partnership</h3>
-            <p className="text-sm text-black/70">
-              We will communicate changes ahead of time and seek feedback before major updates.
-            </p>
-          </div>
-          <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-black bg-white/70 p-6 text-center">
-            <FileSignature className="h-10 w-10 text-[#4CAF50]" aria-hidden="true" />
-            <h3 className="text-lg font-black">Clarity</h3>
-            <p className="text-sm text-black/70">
-              Our documentation, pricing, and policies are written in plain language—no jargon.
-            </p>
-          </div>
+          {commitments.map((commitment) => (
+            <div key={commitment.title} className="border-4 border-black bg-white p-6 shadow-[6px_6px_0_0_#000]">
+              <h3 className="text-lg font-black">{commitment.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-700">{commitment.description}</p>
+            </div>
+          ))}
         </div>
       </ContentSection>
 
       {termsSections.map((section) => (
-        <ContentSection key={section.title} title={section.title} description={section.description}>
-          <ul className="space-y-3">
+        <ContentSection
+          key={section.title}
+          eyebrow={<span role="img" aria-label="document">📝</span>}
+          title={section.title}
+          description={section.description}
+        >
+          <ul className="space-y-3 text-sm leading-relaxed text-gray-700">
             {section.bullets.map((item) => (
-              <li
-                key={item}
-                className="rounded-2xl border-2 border-dashed border-black/30 bg-white/70 px-4 py-3 text-sm text-black/80"
-              >
-                {item}
+              <li key={item} className="flex gap-3 rounded-3xl border-2 border-dashed border-black/30 bg-white px-4 py-3">
+                <span aria-hidden className="font-bold text-[#06d6a0]">•</span>
+                <span>{item}</span>
               </li>
             ))}
           </ul>
@@ -96,18 +104,20 @@ export default function TermsPage() {
       ))}
 
       <ContentSection
-        eyebrow="Need to talk?"
-        title="We are here to help"
+        eyebrow={<span role="img" aria-label="handshake">🤝</span>}
+        title="Need to talk?"
         description="Questions about legal terms or billing? Reach out to our support team."
-        align="center"
       >
-        <div className="flex flex-col gap-3 rounded-2xl border-2 border-black bg-white/70 p-6 text-center md:flex-row md:items-center md:justify-between md:text-left">
-          <p className="text-sm text-black/70">
-            Contact legal@syntaxandsips.com or start a conversation from the in-app support widget.
-          </p>
-          <p className="text-sm font-semibold text-black">Effective date: March 1, 2025</p>
+        <div className="space-y-4">
+          {supportChannels.map((channel) => (
+            <div key={channel.title} className="rounded-3xl border-4 border-black bg-[#ffe8e8] px-5 py-4 shadow-[5px_5px_0_0_#000]">
+              <h3 className="text-base font-extrabold uppercase tracking-[0.18em] text-black/80">{channel.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-700">{channel.description}</p>
+            </div>
+          ))}
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-black/60">Effective date: March 1, 2025</p>
         </div>
       </ContentSection>
-    </PageShell>
+    </ContentPageLayout>
   );
 }

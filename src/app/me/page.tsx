@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { useRouter, useSearchParams } from 'next/navigation';
 import '@/styles/neo-brutalism.css';
 import { createBrowserClient } from '@/lib/supabase/client';
@@ -15,6 +16,23 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const syncAuthState = useCallback(
+    async (event: AuthChangeEvent, session: Session | null) => {
+      try {
+        await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ event, session }),
+        });
+      } catch (syncError) {
+        console.error('Failed to sync auth session', syncError);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     const unauthorized = searchParams.get('error');
@@ -33,6 +51,8 @@ export default function LoginPage() {
         return;
       }
 
+      await syncAuthState('SIGNED_IN', session);
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('is_admin')
@@ -41,7 +61,6 @@ export default function LoginPage() {
 
       if (profile?.is_admin) {
         router.replace('/admin');
-        router.refresh();
       } else {
         setError('Your account is not authorized for admin access.');
         await supabase.auth.signOut();
@@ -49,7 +68,19 @@ export default function LoginPage() {
     };
 
     void checkSession();
-  }, [router, supabase]);
+  }, [router, supabase, syncAuthState]);
+
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      void syncAuthState(event, session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase, syncAuthState]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,9 +129,12 @@ export default function LoginPage() {
       return;
     }
 
+    if (data.session) {
+      await syncAuthState('SIGNED_IN', data.session);
+    }
+
     setInfo('Login successful! Redirecting to the dashboard...');
     router.replace('/admin');
-    router.refresh();
   };
 
   return (

@@ -4,20 +4,28 @@ import React from 'react';
 import Link from 'next/link';
 import { Youtube, Twitter, Instagram, BookOpen, Music, MessageSquare } from 'lucide-react';
 
-export function NewFollowSection() {
+interface NewFollowSectionProps {
+  topics: string[];
+}
+
+export function NewFollowSection({ topics }: NewFollowSectionProps) {
+  const displayedTopics = topics.slice(0, 7);
+
   return (
     <div className="space-y-8">
       <div className="bg-white border-4 border-black p-6 rounded-lg transform rotate-1 shadow-[8px_8px_0px_0px_rgba(0,0,0)]">
         <h3 className="text-xl font-black mb-4">Recommended topics</h3>
-        <div className="flex flex-wrap gap-2">
-          <TopicTag>Artificial Intelligence</TopicTag>
-          <TopicTag>Machine Learning</TopicTag>
-          <TopicTag>Deep Learning</TopicTag>
-          <TopicTag>Neural Networks</TopicTag>
-          <TopicTag>Data Science</TopicTag>
-          <TopicTag>Reinforcement Learning</TopicTag>
-          <TopicTag>Computer Vision</TopicTag>
-        </div>
+        {displayedTopics.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {displayedTopics.map((topic) => (
+              <TopicTag key={topic}>{topic}</TopicTag>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-600">
+            Published posts will automatically populate recommended topics.
+          </p>
+        )}
         <Link href="/topics" className="mt-4 inline-block text-sm font-bold text-[#6C63FF] hover:underline">
           See more topics
         </Link>

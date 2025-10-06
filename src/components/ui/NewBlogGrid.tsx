@@ -5,20 +5,21 @@ interface BlogPost {
   slug: string;
   title: string;
   excerpt: string;
-  category: string;
-  date?: string;
-  views?: number;
+  categorySlug: string;
+  categoryLabel: string;
+  dateLabel: string;
+  views: number;
+  accentColor: string | null;
 }
 
 interface BlogGridProps {
-  category: string | null;
+  categorySlug: string | null;
   blogs: BlogPost[];
 }
 
-export function NewBlogGrid({ category, blogs }: BlogGridProps) {
-  // Filter blogs by category if a category is selected
-  const filteredBlogs = category
-    ? blogs.filter((blog) => blog.category.toUpperCase() === category.toUpperCase())
+export function NewBlogGrid({ categorySlug, blogs }: BlogGridProps) {
+  const filteredBlogs = categorySlug
+    ? blogs.filter((blog) => blog.categorySlug === categorySlug)
     : blogs;
 
   return (
@@ -28,9 +29,10 @@ export function NewBlogGrid({ category, blogs }: BlogGridProps) {
           <NewBlogCard
             key={blog.slug}
             title={blog.title}
-            category={blog.category}
-            date={blog.date || 'No date'}
-            views={blog.views || 0}
+            categoryLabel={blog.categoryLabel}
+            accentColor={blog.accentColor}
+            date={blog.dateLabel}
+            views={blog.views}
             excerpt={blog.excerpt}
             slug={blog.slug}
           />

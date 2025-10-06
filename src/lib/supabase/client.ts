@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient as createSupabaseBrowserClient } from '@supabase/ssr'
 
-type ClientOptions = Parameters<typeof createClient>[2]
+type ClientOptions = Parameters<typeof createSupabaseBrowserClient>[2]
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -21,4 +21,4 @@ const defaultOptions: ClientOptions = {
 }
 
 export const createBrowserClient = () =>
-  createClient(supabaseUrl, supabaseAnonKey, defaultOptions)
+  createSupabaseBrowserClient(supabaseUrl, supabaseAnonKey, defaultOptions)

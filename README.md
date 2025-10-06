@@ -257,7 +257,18 @@ The admin panel includes:
    - Keep the `SUPABASE_SERVICE_ROLE_KEY` on the server. Never expose it to the client—use it only inside server actions, route handlers, or scripts.
    - For local development parity, install the [Supabase CLI](https://supabase.com/docs/guides/cli) and run `supabase start` to launch a local Postgres instance that matches production.
 
-4. **Run the development server:**
+4. **Apply the database schema:**
+
+   The Supabase project expects the schema stored in [`supabase/migrations/0001_create_blog_schema.sql`](supabase/migrations/0001_create_blog_schema.sql).
+   You can run it through the Supabase SQL editor or by using the Supabase CLI:
+
+   ```bash
+   supabase db push --file supabase/migrations/0001_create_blog_schema.sql
+   ```
+
+   This migration defines the `post_status` enum, blog tables, helper triggers, the `increment_post_views` RPC, and the baseline Row Level Security policies used by the application.
+
+5. **Run the development server:**
 
    ```bash
    npm run dev
@@ -265,7 +276,7 @@ The admin panel includes:
    yarn dev
    ```
 
-5. **Open your browser:**
+6. **Open your browser:**
    Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
 
 ## 🌐 Deployment
@@ -346,6 +357,23 @@ values (
 ```
 
 Use the Supabase dashboard or CLI to seed categories and generate author records that reference Supabase Auth users. View counters and timestamps are managed automatically by the application and database triggers.
+
+### Migrating legacy JSON or MongoDB data
+
+If you're migrating from the old localStorage/MongoDB seed, export your existing posts to JSON and run the TypeScript helper in [`scripts/migrate-posts.ts`](scripts/migrate-posts.ts):
+
+```bash
+SUPABASE_SERVICE_ROLE_KEY=... NEXT_PUBLIC_SUPABASE_URL=... npx ts-node scripts/migrate-posts.ts path/to/export.json
+```
+
+The script will:
+
+- Upsert categories referenced by the legacy records.
+- Normalise status strings (`draft`, `scheduled`, `published`) to the Postgres enum.
+- Convert timestamps to ISO format and preserve existing UUIDs when possible.
+- Upsert posts and tags, linking them through the `post_tags` junction table.
+
+Inspect the Supabase dashboard after the run to verify all rows imported correctly.
 
 ### Code Block Formatting
 

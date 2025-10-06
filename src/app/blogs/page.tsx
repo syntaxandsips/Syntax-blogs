@@ -1,8 +1,9 @@
-import BlogsClientPage from './client-page';
+import { NewBlogsPage } from '@/components/ui/NewBlogsPage';
+import { getPublishedPosts } from '@/lib/posts';
 
-// Removed dynamic = 'force-dynamic' to support static exports
-// The client component will handle loading data from localStorage
+export const revalidate = 60;
 
-export default function BlogsPage() {
-  return <BlogsClientPage />;
+export default async function BlogsPage() {
+  const posts = await getPublishedPosts();
+  return <NewBlogsPage posts={posts} />;
 }

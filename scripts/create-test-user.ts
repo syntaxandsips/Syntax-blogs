@@ -1,4 +1,5 @@
 import * as dotenv from 'dotenv';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
@@ -7,9 +8,30 @@ import { createClient } from '@supabase/supabase-js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables from .env.local
-const envPath = path.resolve(__dirname, '../../.env.local');
-dotenv.config({ path: envPath });
+// Load environment variables from .env.local (or fall back to .env)
+const projectRoot = path.resolve(__dirname, '..');
+const envFiles = ['.env.local', '.env'];
+
+let envLoaded = false;
+let envLoadedFrom: string | null = null;
+for (const envFile of envFiles) {
+  const envPath = path.join(projectRoot, envFile);
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    envLoaded = true;
+    envLoadedFrom = envPath;
+    break;
+  }
+}
+
+if (!envLoaded) {
+  dotenv.config();
+  console.warn(
+    'No .env.local or .env file found in the project root. Falling back to system environment variables.'
+  );
+} else if (envLoadedFrom) {
+  console.log(`Loaded environment variables from ${path.relative(projectRoot, envLoadedFrom)}`);
+}
 
 const TEST_USER_EMAIL = 'test.admin@syntaxblogs.dev';
 const TEST_USER_PASSWORD = 'TestAdmin123!';

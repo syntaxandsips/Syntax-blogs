@@ -31,6 +31,17 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
     return Array.from(categoryMap.values()).sort((a, b) => a.label.localeCompare(b.label));
   }, [posts]);
 
+  const dateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC',
+      }),
+    []
+  );
+
   const allBlogs = useMemo(
     () =>
       posts.map((post) => {
@@ -44,17 +55,14 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
           categorySlug: slug,
           categoryLabel: label,
           accentColor: post.accentColor ?? null,
-          dateLabel: post.publishedAt
-            ? new Date(post.publishedAt).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })
-            : 'Unscheduled',
+          dateLabel:
+            post.publishedAt && !Number.isNaN(new Date(post.publishedAt).getTime())
+              ? dateFormatter.format(new Date(post.publishedAt))
+              : 'Unscheduled',
           views: post.views ?? 0,
         };
       }),
-    [posts]
+    [dateFormatter, posts]
   );
 
   const recommendedTopics = useMemo(

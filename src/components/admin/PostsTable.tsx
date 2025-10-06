@@ -5,21 +5,27 @@ import {
   Eye,
   ArrowUpRight,
   Calendar,
+  Loader2,
+  RotateCcw,
 } from 'lucide-react'
 import { AdminPost, PostStatus } from '../../utils/types'
 
 interface PostsTableProps {
   posts: AdminPost[]
+  isLoading: boolean
   onEdit: (post: AdminPost) => void
   onDelete: (id: string) => void
   onPublish: (id: string) => void
+  onRefresh?: () => void
 }
 
 export const PostsTable = ({
   posts,
+  isLoading,
   onEdit,
   onDelete,
   onPublish,
+  onRefresh,
 }: PostsTableProps) => {
   const [activeTab, setActiveTab] = useState<
     'all' | 'draft' | 'scheduled' | 'published'
@@ -43,6 +49,17 @@ export const PostsTable = ({
               View and manage all your blog content
             </p>
           </div>
+          {onRefresh && (
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={isLoading}
+              className="inline-flex items-center gap-2 bg-black text-white px-3 py-2 rounded-md font-semibold shadow-[3px_3px_0px_0px_rgba(0,0,0,0.2)] disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <RotateCcw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+          )}
         </div>
       </div>
       <div className="p-6 border-b-4 border-black">
@@ -73,7 +90,12 @@ export const PostsTable = ({
           />
         </div>
       </div>
-      {filteredPosts.length === 0 ? (
+      {isLoading ? (
+        <div className="p-12 text-center flex flex-col items-center gap-3 text-lg font-semibold text-gray-600">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          Loading posts...
+        </div>
+      ) : filteredPosts.length === 0 ? (
         <div className="p-12 text-center">
           <p className="text-xl font-bold">No posts found</p>
           <p className="text-gray-500 mt-2">Create a new post to get started</p>

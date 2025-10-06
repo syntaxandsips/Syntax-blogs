@@ -47,6 +47,7 @@ export const AdminDashboard = ({
   const [categories, setCategories] = useState<CategoryOption[]>([])
   const [editingPost, setEditingPost] = useState<AdminPost | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshingPosts, setIsRefreshingPosts] = useState(false)
   const [isPostSaving, setIsPostSaving] = useState(false)
   const [feedback, setFeedback] = useState<FeedbackState | null>(null)
   const [users, setUsers] = useState<AdminUserSummary[]>([])
@@ -73,17 +74,23 @@ export const AdminDashboard = ({
   }, [])
 
   const fetchPosts = useCallback(async () => {
-    const response = await fetch('/api/admin/posts', {
-      method: 'GET',
-      cache: 'no-store',
-    })
-    const payload = await response.json()
+    setIsRefreshingPosts(true)
 
-    if (!response.ok) {
-      throw new Error(payload.error ?? 'Unable to load posts.')
+    try {
+      const response = await fetch('/api/admin/posts', {
+        method: 'GET',
+        cache: 'no-store',
+      })
+      const payload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Unable to load posts.')
+      }
+
+      mapPostsFromPayload(payload.posts as AdminPost[])
+    } finally {
+      setIsRefreshingPosts(false)
     }
-
-    mapPostsFromPayload(payload.posts as AdminPost[])
   }, [mapPostsFromPayload])
 
   const loadInitialData = useCallback(async () => {
@@ -122,6 +129,22 @@ export const AdminDashboard = ({
   useEffect(() => {
     void loadInitialData()
   }, [loadInitialData])
+
+  const handleRefreshPosts = useCallback(async () => {
+    setFeedback(null)
+
+    try {
+      await fetchPosts()
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Unable to refresh posts.',
+      })
+    }
+  }, [fetchPosts])
 
   const handleCreatePost = () => {
     setEditingPost(null)
@@ -391,9 +414,11 @@ export const AdminDashboard = ({
             </h1>
             <PostsTable
               posts={posts}
+              isLoading={isRefreshingPosts}
               onEdit={handleEditPost}
               onDelete={handleDeletePost}
               onPublish={handlePublishPost}
+              onRefresh={handleRefreshPosts}
             />
           </>
         )

@@ -30,7 +30,7 @@ export const HeroSection = () => {
             </h1>
             <p className="text-xl md:text-2xl mb-10 max-w-2xl">
               From coding tutorials to tech reviews, gaming sessions to casual
-              chit-chat — we brew content that's both educational and
+              chit-chat — we brew content that&apos;s both educational and
               entertaining.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
@@ -51,11 +51,14 @@ export const HeroSection = () => {
             </div>
           </div>
           <div className="relative mx-auto max-w-3xl">
-            <div className="aspect-video bg-black rounded-lg border-4 border-black overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0)]">
-              <img
+            <div className="relative aspect-video bg-black rounded-lg border-4 border-black overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0)]">
+              <Image
                 src="https://images.unsplash.com/photo-1522542550221-31fd19575a2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
                 alt="Coding setup with coffee"
-                className="w-full h-full object-cover"
+                fill
+                priority
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 50vw"
               />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="bg-black bg-opacity-50 p-4 rounded-full">

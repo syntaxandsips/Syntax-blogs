@@ -196,24 +196,6 @@ function WaveEffect({
 
 // Removed unused CodingSymbols component
 
-// Simple Text component since we're not using drei
-function Text({ children, color = "white", fontSize = 0.2, opacity = 1 }) {
-  const mesh = useRef();
-
-  useFrame(() => {
-    if (mesh.current) {
-      mesh.current.rotation.y += 0.002;
-    }
-  });
-
-  return (
-    <mesh ref={mesh}>
-      <planeGeometry args={[fontSize * String(children).length, fontSize]} />
-      <meshBasicMaterial color={color} transparent opacity={opacity} />
-    </mesh>
-  );
-}
-
 export default function SimpleDither({
   waveSpeed = 0.05,
   waveFrequency = 3,

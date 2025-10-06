@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { ArrowRight, Clock, Calendar } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 
 export const ContentPreview = () => {
@@ -99,7 +100,13 @@ const ContentCard = ({
   return (
     <article className="bg-white border-4 border-black rounded-lg overflow-hidden transform transition-all hover:shadow-[8px_8px_0px_0px_rgba(0,0,0)] hover:-translate-y-1">
       <div className="relative h-48 overflow-hidden">
-        <img src={image} alt={title} className="w-full h-full object-cover" />
+        <Image
+          src={image}
+          alt={title}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        />
         <div
           className="absolute top-4 left-4 px-3 py-1 text-sm font-bold text-white rounded-md"
           style={{

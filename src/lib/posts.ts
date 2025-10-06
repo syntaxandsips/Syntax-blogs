@@ -32,7 +32,7 @@ interface PostDetailRecord extends PostListRecord {
   content: string
   seo_title: string | null
   seo_description: string | null
-  author: AuthorRecord | null
+  author_id: string | null
   post_tags: TagRecord[] | null
 }
 
@@ -78,13 +78,13 @@ const mapListPost = (record: PostListRecord): BlogListPost => ({
   views: record.views ?? 0,
 })
 
-const mapDetailPost = (record: PostDetailRecord): BlogPostDetail => ({
+const mapDetailPost = (record: PostDetailRecord, author: AuthorRecord | null): BlogPostDetail => ({
   ...mapListPost(record),
   content: record.content,
   author: {
-    id: record.author?.id ?? null,
-    displayName: record.author?.display_name ?? null,
-    avatarUrl: record.author?.avatar_url ?? null,
+    id: author?.id ?? record.author_id ?? null,
+    displayName: author?.display_name ?? null,
+    avatarUrl: author?.avatar_url ?? null,
   },
   tags:
     (record.post_tags ?? [])
@@ -130,8 +130,8 @@ export const getPublishedPostBySlug = cache(async (slug: string) => {
         published_at,
         seo_title,
         seo_description,
+        author_id,
         categories:categories(id, name, slug),
-        author:profiles!posts_author_id_fkey(id, display_name, avatar_url),
         post_tags:post_tags(tags(id, name, slug))
       `,
     )
@@ -143,7 +143,29 @@ export const getPublishedPostBySlug = cache(async (slug: string) => {
     throw new Error(`Unable to load post ${slug}: ${error.message}`)
   }
 
-  return data ? mapDetailPost(data as PostDetailRecord) : null
+  if (!data) {
+    return null
+  }
+
+  const record = data as PostDetailRecord
+
+  let author: AuthorRecord | null = null
+
+  if (record.author_id) {
+    const { data: authorData, error: authorError } = await supabase
+      .from('profiles')
+      .select('id, display_name, avatar_url')
+      .eq('id', record.author_id)
+      .maybeSingle()
+
+    if (authorError) {
+      throw new Error(`Unable to load author for post ${slug}: ${authorError.message}`)
+    }
+
+    author = (authorData as AuthorRecord | null) ?? null
+  }
+
+  return mapDetailPost(record, author)
 })
 
 export const getPublishedSlugs = cache(async () => {

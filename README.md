@@ -243,7 +243,32 @@ The admin panel includes:
    yarn install
    ```
 
-3. **Run the development server:**
+3. **Configure Supabase:**
+
+   Create a `.env.local` file in the project root and add your Supabase environment variables:
+
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   ```
+
+   - The `NEXT_PUBLIC_*` keys are safe for the browser and are required for both the reader UI and Supabase Auth flows.
+   - Keep the `SUPABASE_SERVICE_ROLE_KEY` on the server. Never expose it to the client—use it only inside server actions, route handlers, or scripts.
+   - For local development parity, install the [Supabase CLI](https://supabase.com/docs/guides/cli) and run `supabase start` to launch a local Postgres instance that matches production.
+
+4. **Apply the database schema:**
+
+   The Supabase project expects the schema stored in [`supabase/migrations/0001_create_blog_schema.sql`](supabase/migrations/0001_create_blog_schema.sql).
+   You can run it through the Supabase SQL editor or by using the Supabase CLI:
+
+   ```bash
+   supabase db push --file supabase/migrations/0001_create_blog_schema.sql
+   ```
+
+   This migration defines the `post_status` enum, blog tables, helper triggers, the `increment_post_views` RPC, and the baseline Row Level Security policies used by the application.
+
+5. **Run the development server:**
 
    ```bash
    npm run dev
@@ -251,7 +276,7 @@ The admin panel includes:
    yarn dev
    ```
 
-4. **Open your browser:**
+6. **Open your browser:**
    Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
 
 ## 🌐 Deployment
@@ -300,24 +325,55 @@ For manual deployment:
 
 ### Adding New Blog Posts
 
-Create new blog posts through the admin panel or by adding entries to localStorage with the following structure:
+Create new blog posts through the admin panel or by inserting rows into the Supabase `posts` table. The column mapping mirrors the `Post` interface used in the application:
 
-```javascript
-{
-  id: "unique-id",
-  title: "Post Title",
-  slug: "post-slug",
-  excerpt: "Brief excerpt of the post content...",
-  content: "Full markdown content with code blocks and embeds...",
-  category: "CATEGORY_NAME",
-  accentColor: "#6C63FF",
-  status: "published",
-  views: 123,
-  createdAt: "2023-07-15T12:00:00Z",
-  publishedAt: "2023-07-16T10:00:00Z",
-  author: "Developer"
-}
+```sql
+insert into posts (
+  title,
+  slug,
+  excerpt,
+  content,
+  accent_color,
+  status,
+  views,
+  published_at,
+  scheduled_for,
+  author_id,
+  category_id
+)
+values (
+  'Post Title',
+  'post-slug',
+  'Brief excerpt of the post content...',
+  'Full markdown content with code blocks and embeds...',
+  '#6C63FF',
+  'published',
+  123,
+  '2023-07-16T10:00:00Z',
+  null,
+  '00000000-0000-0000-0000-000000000000',
+  null
+);
 ```
+
+Use the Supabase dashboard or CLI to seed categories and generate author records that reference Supabase Auth users. View counters and timestamps are managed automatically by the application and database triggers.
+
+### Migrating legacy JSON or MongoDB data
+
+If you're migrating from the old localStorage/MongoDB seed, export your existing posts to JSON and run the TypeScript helper in [`scripts/migrate-posts.ts`](scripts/migrate-posts.ts):
+
+```bash
+SUPABASE_SERVICE_ROLE_KEY=... NEXT_PUBLIC_SUPABASE_URL=... npx ts-node scripts/migrate-posts.ts path/to/export.json
+```
+
+The script will:
+
+- Upsert categories referenced by the legacy records.
+- Normalise status strings (`draft`, `scheduled`, `published`) to the Postgres enum.
+- Convert timestamps to ISO format and preserve existing UUIDs when possible.
+- Upsert posts and tags, linking them through the `post_tags` junction table.
+
+Inspect the Supabase dashboard after the run to verify all rows imported correctly.
 
 ### Code Block Formatting
 

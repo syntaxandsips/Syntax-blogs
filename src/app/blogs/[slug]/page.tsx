@@ -1,39 +1,45 @@
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import NewBlogPostClient from '@/app/blogs/[slug]/NewBlogPostClient';
+import { getPublishedPostBySlug, getPublishedSlugs } from '@/lib/posts';
 
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  // Properly await the params object before accessing its properties
-  // This follows Next.js's recommendation to avoid the warning
-  const resolvedParams = await Promise.resolve(params);
-  const slug = resolvedParams.slug;
-
-  return <NewBlogPostClient slug={slug} />;
+interface BlogPostPageProps {
+  params: { slug: string };
 }
 
-// Include all possible blog slugs for static export
 export async function generateStaticParams() {
-  // These are the default slugs that we know will exist
-  const defaultSlugs = [
-    { slug: 'how-llm-works' },
-    { slug: 'neural-network-from-scratch' },
-    { slug: 'future-quantum-computing' },
-    { slug: 'react-18-features' },
-    { slug: 'ai-ethics' },
-    { slug: 'data-science-python' },
-    // Add the problematic slugs that were causing errors
-    { slug: 'how-python-works' },
-    { slug: 'how-python-works-' },
-    { slug: 'how-lpython-works' },
-    { slug: 'how-lpython-works-' },
-    // Add common variations with trailing characters that might occur
-    { slug: 'how-llm-works-' },
-    { slug: 'neural-network-from-scratch-' },
-    { slug: 'future-quantum-computing-' },
-    { slug: 'react-18-features-' },
-    { slug: 'ai-ethics-' },
-    { slug: 'data-science-python-' }
-  ];
+  const slugs = await getPublishedSlugs();
+  return slugs.map((slug) => ({ slug }));
+}
 
-  // In a production environment, you would fetch these from your CMS or database
-  // For now, we'll use the default slugs
-  return defaultSlugs;
+export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+  const post = await getPublishedPostBySlug(params.slug);
+
+  if (!post) {
+    return {
+      title: 'Blog post not found',
+    };
+  }
+
+  return {
+    title: post.seoTitle ?? post.title,
+    description: post.seoDescription ?? post.excerpt ?? undefined,
+    openGraph: {
+      title: post.seoTitle ?? post.title,
+      description: post.seoDescription ?? post.excerpt ?? undefined,
+      type: 'article',
+      url: `https://syntaxandsips.com/blogs/${post.slug}`,
+      publishedTime: post.publishedAt ?? undefined,
+    },
+  };
+}
+
+export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const post = await getPublishedPostBySlug(params.slug);
+
+  if (!post) {
+    notFound();
+  }
+
+  return <NewBlogPostClient post={post} />;
 }

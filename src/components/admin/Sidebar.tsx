@@ -7,26 +7,27 @@ import {
   Settings,
   LogOut,
   BarChart,
+  ShieldCheck,
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 
 interface SidebarProps {
   currentView: string
   onNavigate: (view: string) => void
   onCreatePost: () => void
+  onSignOut: () => Promise<void> | void
+  displayName: string
+  isAdmin: boolean
 }
 
 export const Sidebar = ({
   currentView,
   onNavigate,
   onCreatePost,
+  onSignOut,
+  displayName,
+  isAdmin,
 }: SidebarProps) => {
-  const router = useRouter()
-
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken')
-    router.push('/me')
-  }
+  const roleLabel = isAdmin ? 'Administrator' : 'Author'
 
   return (
     <div className="w-[280px] bg-[#2A2A2A] text-white border-r-4 border-[#FF5252]/50 h-full flex flex-col">
@@ -43,6 +44,12 @@ export const Sidebar = ({
             Dashboard
           </span>
         </h1>
+        <div className="mt-4 text-sm text-white/70 space-y-1">
+          <p className="font-semibold text-white">{displayName}</p>
+          <p className="flex items-center gap-1 uppercase tracking-wide">
+            <ShieldCheck className="h-4 w-4" /> {roleLabel}
+          </p>
+        </div>
       </div>
       <div className="p-6 flex-1">
         <nav className="space-y-2">
@@ -81,8 +88,10 @@ export const Sidebar = ({
         </div>
       </div>
       <div className="p-6 border-t border-white/10">
-        <button 
-          onClick={handleLogout}
+        <button
+          onClick={() => {
+            void onSignOut()
+          }}
           className="flex items-center gap-2 text-lg font-bold text-white/80 hover:text-red-500 transition-colors"
         >
           <LogOut className="h-5 w-5" />

@@ -1,37 +1,37 @@
-"use client";
+import { redirect } from 'next/navigation'
+import { AdminDashboard } from '@/components/admin/AdminDashboard'
+import { createServerComponentClient } from '@/lib/supabase/server-client'
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { AdminDashboard } from '@/components/admin/AdminDashboard';
+export default async function AdminPage() {
+  const supabase = createServerComponentClient()
 
-export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      router.push('/me');
-      return;
-    }
-
-    setIsAuthenticated(true);
-    setIsLoading(false);
-  }, [router]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
-      </div>
-    );
+  if (!user) {
+    redirect('/me')
   }
 
-  if (!isAuthenticated) {
-    return null; // Will redirect in useEffect
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('id, display_name, is_admin')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (error) {
+    throw new Error(`Unable to load profile: ${error.message}`)
   }
 
-  return <AdminDashboard />;
+  if (!profile || !profile.is_admin) {
+    redirect('/me?error=not_authorized')
+  }
+
+  return (
+    <AdminDashboard
+      profileId={profile.id}
+      displayName={profile.display_name ?? user.email ?? 'Admin'}
+      isAdmin={profile.is_admin}
+    />
+  )
 }

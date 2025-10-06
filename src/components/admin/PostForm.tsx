@@ -1,23 +1,37 @@
 import React, { useEffect, useState } from 'react'
-import { Calendar, Clock } from 'lucide-react'
-import { Post, PostStatus } from '../../utils/types'
+import { Calendar, Clock, Loader2 } from 'lucide-react'
+import {
+  AdminPost,
+  CategoryOption,
+  PostFormValues,
+  PostStatus,
+} from '../../utils/types'
 
 interface PostFormProps {
-  post: Post | null
-  onSave: (post: Post) => void
+  post: AdminPost | null
+  categories: CategoryOption[]
+  onSave: (values: PostFormValues) => Promise<void> | void
   onCancel: () => void
+  isSaving: boolean
 }
 
-export const PostForm = ({ post, onSave, onCancel }: PostFormProps) => {
+export const PostForm = ({
+  post,
+  categories,
+  onSave,
+  onCancel,
+  isSaving,
+}: PostFormProps) => {
   const [title, setTitle] = useState('')
   const [slug, setSlug] = useState('')
   const [excerpt, setExcerpt] = useState('')
   const [content, setContent] = useState('')
-  const [category, setCategory] = useState('AI')
+  const [categoryId, setCategoryId] = useState<string>('')
   const [accentColor, setAccentColor] = useState('#6C63FF')
   const [status, setStatus] = useState<PostStatus>(PostStatus.DRAFT)
   const [publishDate, setPublishDate] = useState('')
   const [publishTime, setPublishTime] = useState('')
+  const [formError, setFormError] = useState<string | null>(null)
 
   useEffect(() => {
     if (post) {
@@ -25,16 +39,30 @@ export const PostForm = ({ post, onSave, onCancel }: PostFormProps) => {
       setSlug(post.slug)
       setExcerpt(post.excerpt || '')
       setContent(post.content)
-      setCategory(post.category)
+      setCategoryId(post.categoryId || '')
       setAccentColor(post.accentColor || '#6C63FF')
       setStatus(post.status)
-      if (post.publishedAt) {
+      if (post.status === PostStatus.SCHEDULED && post.scheduledFor) {
+        const date = new Date(post.scheduledFor)
+        setPublishDate(date.toISOString().split('T')[0])
+        setPublishTime(date.toTimeString().split(' ')[0].slice(0, 5))
+      } else if (post.publishedAt) {
         const date = new Date(post.publishedAt)
         setPublishDate(date.toISOString().split('T')[0])
         setPublishTime(date.toTimeString().split(' ')[0].slice(0, 5))
       }
+    } else {
+      setTitle('')
+      setSlug('')
+      setExcerpt('')
+      setContent('')
+      setCategoryId(categories[0]?.id ?? '')
+      setAccentColor('#6C63FF')
+      setStatus(PostStatus.DRAFT)
+      setPublishDate('')
+      setPublishTime('')
     }
-  }, [post])
+  }, [post, categories])
 
   const generateSlug = (text: string) => {
     return text
@@ -51,40 +79,50 @@ export const PostForm = ({ post, onSave, onCancel }: PostFormProps) => {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    let publishedAt = post?.publishedAt
-    if (status === PostStatus.SCHEDULED && publishDate) {
-      const dateTime = `${publishDate}T${publishTime || '00:00'}`
-      publishedAt = new Date(dateTime).toISOString()
-    } else if (status === PostStatus.PUBLISHED) {
-      publishedAt = new Date().toISOString()
+    setFormError(null)
+
+    const trimmedTitle = title.trim()
+    const trimmedSlug = slug.trim()
+    const trimmedContent = content.trim()
+
+    if (!trimmedTitle || !trimmedSlug || !trimmedContent) {
+      setFormError('Title, slug, and content are required.')
+      return
     }
 
-    onSave({
-      id: post?.id || '',
-      title,
-      slug,
-      excerpt,
-      content,
-      category,
+    let publishedAt: string | null = post?.publishedAt ?? null
+    let scheduledFor: string | null = post?.scheduledFor ?? null
+
+    if (status === PostStatus.SCHEDULED && publishDate) {
+      const dateTime = `${publishDate}T${publishTime || '00:00'}`
+      scheduledFor = new Date(dateTime).toISOString()
+      publishedAt = null
+    } else if (status === PostStatus.PUBLISHED) {
+      publishedAt = post?.publishedAt ?? new Date().toISOString()
+      scheduledFor = null
+    } else {
+      publishedAt = null
+      scheduledFor = null
+    }
+
+    const values: PostFormValues = {
+      id: post?.id,
+      title: trimmedTitle,
+      slug: trimmedSlug,
+      excerpt: excerpt.trim() || null,
+      content: trimmedContent,
+      categoryId: categoryId || null,
       accentColor,
       status,
-      views: post?.views || 0,
-      createdAt: post?.createdAt || new Date().toISOString(),
       publishedAt,
-      author: 'Developer',
-    })
-  }
+      scheduledFor,
+      authorId: post?.authorId ?? undefined,
+    }
 
-  const categories = [
-    'AI',
-    'DEEP_LEARNING',
-    'MACHINE_LEARNING',
-    'WEB_DEV',
-    'DATABASES',
-    'DEVOPS',
-  ]
+    await onSave(values)
+  }
 
   const accentColors = [
     '#6C63FF',
@@ -170,21 +208,28 @@ export const PostForm = ({ post, onSave, onCancel }: PostFormProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block font-bold mb-2 text-lg">Category</label>
-              <select
-                id="category-select"
-                aria-label="Select category"
-                title="Select a category for your post"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-3 border-4 border-black rounded-md focus:outline-none focus:ring-2 focus:ring-[#6C63FF]"
-                required
-              >
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat.replace('_', ' ')}
-                  </option>
-                ))}
-              </select>
+              {categories.length === 0 ? (
+                <div className="p-3 border-4 border-dashed border-black rounded-md text-sm text-gray-500">
+                  No categories available. Create categories in Supabase to
+                  enable selection.
+                </div>
+              ) : (
+                <select
+                  id="category-select"
+                  aria-label="Select category"
+                  title="Select a category for your post"
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="w-full p-3 border-4 border-black rounded-md focus:outline-none focus:ring-2 focus:ring-[#6C63FF]"
+                >
+                  <option value="">Uncategorized</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
             <div>
               <label className="block font-bold mb-2 text-lg">
@@ -289,20 +334,36 @@ export const PostForm = ({ post, onSave, onCancel }: PostFormProps) => {
             </div>
           </div>
         </div>
-        <div className="mt-8 flex gap-4 justify-end">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-6 py-3 font-bold border-4 border-black rounded-md hover:bg-gray-100"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-6 py-3 font-bold bg-black text-white rounded-md transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(108,99,255)]"
-          >
-            {post ? 'Update Post' : 'Create Post'}
-          </button>
+        <div className="mt-8 space-y-4">
+          {formError && (
+            <div className="rounded-md border-2 border-red-500/30 bg-red-50 text-red-700 p-3 font-semibold">
+              {formError}
+            </div>
+          )}
+          <div className="flex gap-4 justify-end">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-6 py-3 font-bold border-4 border-black rounded-md hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="px-6 py-3 font-bold bg-black text-white rounded-md transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(108,99,255)] disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isSaving ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Saving...
+                </span>
+              ) : post ? (
+                'Update Post'
+              ) : (
+                'Create Post'
+              )}
+            </button>
+          </div>
         </div>
       </form>
     </div>

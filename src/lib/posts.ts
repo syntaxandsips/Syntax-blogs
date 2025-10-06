@@ -32,7 +32,7 @@ interface PostDetailRecord extends PostListRecord {
   content: string
   seo_title: string | null
   seo_description: string | null
-  authors: AuthorRecord | null
+  author: AuthorRecord | null
   post_tags: TagRecord[] | null
 }
 
@@ -82,9 +82,9 @@ const mapDetailPost = (record: PostDetailRecord): BlogPostDetail => ({
   ...mapListPost(record),
   content: record.content,
   author: {
-    id: record.authors?.id ?? null,
-    displayName: record.authors?.display_name ?? null,
-    avatarUrl: record.authors?.avatar_url ?? null,
+    id: record.author?.id ?? null,
+    displayName: record.author?.display_name ?? null,
+    avatarUrl: record.author?.avatar_url ?? null,
   },
   tags:
     (record.post_tags ?? [])
@@ -131,7 +131,7 @@ export const getPublishedPostBySlug = cache(async (slug: string) => {
         seo_title,
         seo_description,
         categories:categories(id, name, slug),
-        authors:authors(id, display_name, avatar_url),
+        author:profiles!posts_author_id_fkey(id, display_name, avatar_url),
         post_tags:post_tags(tags(id, name, slug))
       `,
     )

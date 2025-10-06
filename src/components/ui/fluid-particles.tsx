@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef } from "react"
+import { useCallback, useEffect, useMemo, useRef } from "react"
 
 interface MousePosition {
   x: number
@@ -125,27 +125,15 @@ export function FluidParticles({
   const mouseRef = useRef<MousePosition>({ x: 0, y: 0, prevX: 0, prevY: 0 })
   const blastRef = useRef<BlastState>({ active: false, x: 0, y: 0, radius: 0, maxRadius: maxBlastRadius })
   const animationRef = useRef<number | null>(null)
+  const blastAnimationRef = useRef<number | null>(null)
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) {
-      return
-    }
+  const passiveOptions = useMemo<AddEventListenerOptions>(() => ({ passive: true }), [])
 
-    blastRef.current.maxRadius = maxBlastRadius
+  const easeOutQuad = useCallback((t: number) => t * (2 - t), [])
 
-    contextRef.current = canvas.getContext("2d", { alpha: true })
-
-    if (contextRef.current) {
-      contextRef.current.globalCompositeOperation = "lighter"
-    }
-
-    const passiveOptions: AddEventListenerOptions = { passive: true }
-
-    const easeOutQuad = (t: number) => t * (2 - t)
-
-    const triggerBlast = (x: number, y: number) => {
+  const triggerBlast = useCallback(
+    (x: number, y: number) => {
       blastRef.current = {
         active: true,
         x,
@@ -165,7 +153,7 @@ export function FluidParticles({
         blastRef.current.radius = easedProgress * blastRef.current.maxRadius
 
         if (progress < 1) {
-          requestAnimationFrame(expandBlast)
+          blastAnimationRef.current = requestAnimationFrame(expandBlast)
         } else {
           setTimeout(() => {
             blastRef.current.active = false
@@ -173,15 +161,18 @@ export function FluidParticles({
         }
       }
 
-      requestAnimationFrame(expandBlast)
+      blastAnimationRef.current = requestAnimationFrame(expandBlast)
 
       if (hoverTimerRef.current) {
         clearTimeout(hoverTimerRef.current)
         hoverTimerRef.current = null
       }
-    }
+    },
+    [easeOutQuad, maxBlastRadius],
+  )
 
-    const initParticles = () => {
+  const initParticles = useCallback(
+    () => {
       particlesRef.current = []
       const width = window.innerWidth
       const height = window.innerHeight
@@ -192,32 +183,38 @@ export function FluidParticles({
         const y = Math.random() * height
         particlesRef.current.push(new ParticleClass(x, y))
       }
+    },
+    [ParticleClass, particleDensity],
+  )
+
+  const handleResize = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const pixelRatio = window.devicePixelRatio || 1
+    const ctx = contextRef.current
+
+    canvas.width = window.innerWidth * pixelRatio
+    canvas.height = window.innerHeight * pixelRatio
+    canvas.style.width = `${window.innerWidth}px`
+    canvas.style.height = `${window.innerHeight}px`
+
+    if (ctx) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.scale(pixelRatio, pixelRatio)
     }
 
-    const handleResize = () => {
-      const pixelRatio = window.devicePixelRatio || 1
-      const ctx = contextRef.current
+    initParticles()
+  }, [initParticles])
 
-      canvas.width = window.innerWidth * pixelRatio
-      canvas.height = window.innerHeight * pixelRatio
-      canvas.style.width = `${window.innerWidth}px`
-      canvas.style.height = `${window.innerHeight}px`
+  const moveThrottle = 10
+  const lastMoveTimeRef = useRef(0)
 
-      if (ctx) {
-        ctx.setTransform(1, 0, 0, 1, 0, 0)
-        ctx.scale(pixelRatio, pixelRatio)
-      }
-
-      initParticles()
-    }
-
-    const moveThrottle = 10
-    let lastMoveTime = 0
-
-    const handleMouseMove = (event: MouseEvent) => {
+  const handleMouseMove = useCallback(
+    (event: MouseEvent) => {
       const now = performance.now()
-      if (now - lastMoveTime < moveThrottle) return
-      lastMoveTime = now
+      if (now - lastMoveTimeRef.current < moveThrottle) return
+      lastMoveTimeRef.current = now
 
       const prevX = mouseRef.current.x
       const prevY = mouseRef.current.y
@@ -237,21 +234,24 @@ export function FluidParticles({
         clearTimeout(hoverTimerRef.current)
         hoverTimerRef.current = null
       }
-    }
+    },
+    [hoverDelay, triggerBlast],
+  )
 
-    const handleTouchMove = (event: TouchEvent) => {
-      if (!event.touches[0]) return
-      const prevX = mouseRef.current.x
-      const prevY = mouseRef.current.y
-      mouseRef.current = {
-        x: event.touches[0].clientX,
-        y: event.touches[0].clientY,
-        prevX,
-        prevY,
-      }
+  const handleTouchMove = useCallback((event: TouchEvent) => {
+    if (!event.touches[0]) return
+    const prevX = mouseRef.current.x
+    const prevY = mouseRef.current.y
+    mouseRef.current = {
+      x: event.touches[0].clientX,
+      y: event.touches[0].clientY,
+      prevX,
+      prevY,
     }
+  }, [])
 
-    const handleTouchStart = (event: TouchEvent) => {
+  const handleTouchStart = useCallback(
+    (event: TouchEvent) => {
       if (!event.touches[0]) return
       const { clientX, clientY } = event.touches[0]
 
@@ -261,26 +261,45 @@ export function FluidParticles({
       hoverTimerRef.current = setTimeout(() => {
         triggerBlast(clientX, clientY)
       }, hoverDelay)
-    }
+    },
+    [hoverDelay, triggerBlast],
+  )
 
-    const handleTouchEnd = () => {
-      if (hoverTimerRef.current) {
-        clearTimeout(hoverTimerRef.current)
-        hoverTimerRef.current = null
-      }
+  const handleTouchEnd = useCallback(() => {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current)
+      hoverTimerRef.current = null
     }
+  }, [])
 
-    const handleClick = (event: MouseEvent) => {
+  const handleClick = useCallback(
+    (event: MouseEvent) => {
       triggerBlast(event.clientX, event.clientY)
+    },
+    [triggerBlast],
+  )
+
+  const animate = useCallback(() => {
+    const ctx = contextRef.current
+    if (!ctx) return
+
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
+    particlesRef.current.forEach((particle) => particle.update())
+    animationRef.current = requestAnimationFrame(animate)
+  }, [])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) {
+      return
     }
 
-    const animate = () => {
-      const ctx = contextRef.current
-      if (!ctx) return
+    blastRef.current.maxRadius = maxBlastRadius
 
-      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
-      particlesRef.current.forEach((particle) => particle.update())
-      animationRef.current = requestAnimationFrame(animate)
+    contextRef.current = canvas.getContext("2d", { alpha: true })
+
+    if (contextRef.current) {
+      contextRef.current.globalCompositeOperation = "lighter"
     }
 
     window.addEventListener("resize", handleResize)
@@ -309,8 +328,22 @@ export function FluidParticles({
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current)
       }
+
+      if (blastAnimationRef.current) {
+        cancelAnimationFrame(blastAnimationRef.current)
+      }
     }
-  }, [ParticleClass, hoverDelay, interactionDistance, maxBlastRadius, particleColor, particleDensity, particleSize])
+  }, [
+    animate,
+    handleClick,
+    handleMouseMove,
+    handleResize,
+    handleTouchEnd,
+    handleTouchMove,
+    handleTouchStart,
+    maxBlastRadius,
+    passiveOptions,
+  ])
 
   return (
     <div>

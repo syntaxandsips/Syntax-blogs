@@ -79,7 +79,7 @@ serve(async (req) => {
         metadata,
       },
       {
-        onConflict: "email",
+        onConflict: "newsletter_subscribers_email_idx",
         ignoreDuplicates: false,
       },
     )

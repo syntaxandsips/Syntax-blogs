@@ -46,7 +46,7 @@ const createCookieAdapter = (): CookieMethodsServerDeprecated => {
 }
 
 export const createServerClient = () =>
-  createSupabaseServerClient(supabaseUrl, supabaseServiceKey, {
+  createSupabaseServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: createCookieAdapter(),
   })
 

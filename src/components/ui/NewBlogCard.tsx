@@ -6,16 +6,35 @@ import { MoreHorizontal, Calendar, Clock } from 'lucide-react';
 
 interface BlogCardProps {
   title: string;
-  category: string;
+  categoryLabel: string;
+  accentColor?: string | null;
   date: string;
   views: number;
   excerpt: string;
   slug: string;
 }
 
+const colorPalette = ['#6C63FF', '#FF5252', '#06D6A0', '#FFD166', '#118AB2'];
+
+const getFallbackColor = (label: string) => {
+  if (!label) {
+    return colorPalette[0];
+  }
+
+  const normalized = label.toLowerCase();
+  let hash = 0;
+
+  for (let index = 0; index < normalized.length; index += 1) {
+    hash = (hash + normalized.charCodeAt(index)) % colorPalette.length;
+  }
+
+  return colorPalette[hash];
+};
+
 export function NewBlogCard({
   title,
-  category,
+  categoryLabel,
+  accentColor,
   date,
   views,
   excerpt,
@@ -33,7 +52,7 @@ export function NewBlogCard({
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-    }
+    };
   }, []);
 
   const handleShare = () => {
@@ -58,24 +77,7 @@ export function NewBlogCard({
     setMenuOpen(false);
   };
 
-  const getCategoryColor = (cat: string) => {
-    const colors: {
-      [key: string]: string
-    } = {
-      'REINFORCEMENT LEARNING': '#FF5252',
-      'MACHINE LEARNING': '#6C63FF',
-      'QUANTUM COMPUTING': '#FFD166',
-      'CODING': '#06D6A0',
-      'AI ETHICS': '#FF5252',
-      'DATA SCIENCE': '#6C63FF',
-      'ARTIFICIAL INTELLIGENCE': '#FF5252',
-      'DEEP LEARNING': '#6C63FF',
-    };
-    
-    // Normalize the category by replacing underscores with spaces and converting to uppercase
-    const normalizedCategory = cat.replace(/_/g, ' ').toUpperCase();
-    return colors[normalizedCategory] || '#6C63FF';
-  };
+  const badgeColor = accentColor ?? getFallbackColor(categoryLabel);
 
   return (
     <article className="bg-white border-4 border-black rounded-lg overflow-hidden transform transition-all hover:shadow-[8px_8px_0px_0px_rgba(0,0,0)] hover:-translate-y-1">
@@ -84,10 +86,10 @@ export function NewBlogCard({
           <span
             className="px-3 py-1 text-white font-bold rounded-md transform -rotate-2"
             style={{
-              backgroundColor: getCategoryColor(category),
+              backgroundColor: badgeColor,
             }}
           >
-            {category.replace(/_/g, ' ')}
+            {categoryLabel}
           </span>
           <div className="relative" ref={menuRef}>
             <button

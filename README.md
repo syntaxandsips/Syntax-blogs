@@ -21,7 +21,7 @@
 - **🖱️ Interactive Elements**: Hover effects, dropdown menus, and animated components
 - **📝 Blog Management**: Easy-to-use blog post creation and management system
 - **🔗 Social Media Integration**: "Where to Follow" section with links to social platforms
-- **🏷️ Recommended Topics**: Curated topic suggestions for readers
+- **🏷️ Recommended Topics**: Dynamic suggestions generated from live Supabase categories
 - **💻 Code Highlighting**: Syntax highlighting with language selection tabs
 - **🎬 Video Embeds**: YouTube video integration
 - **🤖 AI Summarization**: One-click AI summary generation for blog posts
@@ -58,7 +58,7 @@
 
 - **🔄 Framework**: Next.js 15.3.1 with App Router
 - **🎭 Styling**: Tailwind CSS with custom neo-brutalism theme
-- **✨ Animations**: React Spring for text effects and transitions
+- **✨ Animations**: Framer Motion for text effects and transitions
 - **🔣 Icons**: Lucide React for modern iconography
 - **🔤 Typography**: Custom sans-serif fonts for optimal readability
 - **📦 State Management**: React hooks and context for state management
@@ -259,16 +259,33 @@ The admin panel includes:
 
 4. **Apply the database schema:**
 
-   The Supabase project expects the schema stored in [`supabase/migrations/0001_create_blog_schema.sql`](supabase/migrations/0001_create_blog_schema.sql).
-   You can run it through the Supabase SQL editor or by using the Supabase CLI:
+   Apply the entire Supabase schema using the CLI so that every migration in [`supabase/migrations`](supabase/migrations) is executed in order:
+
+   ```bash
+   supabase db reset --force
+   ```
+
+   If you prefer to review each migration individually, run them sequentially instead:
 
    ```bash
    supabase db push --file supabase/migrations/0001_create_blog_schema.sql
+   supabase db push --file supabase/migrations/0002_hardening_existing_schema.sql
+   supabase db push --file supabase/migrations/0003_manage_profile_hierarchy.sql
    ```
 
-   This migration defines the `post_status` enum, blog tables, helper triggers, the `increment_post_views` RPC, and the baseline Row Level Security policies used by the application.
+   These migrations define the `post_status` enum, core blog tables, helper triggers, RPCs, and the Row Level Security policies the application expects.
 
-5. **Run the development server:**
+5. **Seed the test admin user (local/dev):**
+
+   After the schema is in place, create a ready-to-use admin account with:
+
+   ```bash
+   npm run seed:test-user
+   ```
+
+   The script provisions (or refreshes) the `test.admin@syntaxblogs.dev` user with the password `TestAdmin123!` and ensures the associated profile has admin privileges.
+
+6. **Run the development server:**
 
    ```bash
    npm run dev
@@ -276,8 +293,20 @@ The admin panel includes:
    yarn dev
    ```
 
-6. **Open your browser:**
+7. **Open your browser:**
    Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
+
+## 🔐 Test Credentials
+
+The project ships with a reproducible admin account for local verification. Run `npm run seed:test-user` whenever you need to
+refresh the credentials.
+
+| Role  | Email                        | Password       | Notes                                      |
+|-------|------------------------------|----------------|--------------------------------------------|
+| Admin | `test.admin@syntaxblogs.dev` | `TestAdmin123!` | Created via the seeding script; has full access |
+
+> **Security tip:** Never promote this test account in production environments. Instead, create real users from the Supabase
+> dashboard or rotate the credentials immediately after testing.
 
 ## 🌐 Deployment
 

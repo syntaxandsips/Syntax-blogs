@@ -196,6 +196,16 @@ If your code blocks aren't rendering correctly:
 3. **Preview your post** - After saving, check how it looks on the actual blog page.
 4. **Special characters** - If your code contains triple backticks, you may need to escape them.
 
+## Admin Test Account
+
+Need a quick way to verify the editor with real data? Seed the bundled admin account and sign in using:
+
+- Run `npm run seed:test-user` after applying the database migrations.
+- Email: `test.admin@syntaxblogs.dev`
+- Password: `TestAdmin123!`
+
+The script is idempotent and can be re-run to reset the password if needed. Remember to disable or delete this account before pushing to production.
+
 ## Need More Help?
 
 For more detailed information about Markdown formatting, check out the [full Markdown guide](../docs/markdown-guide.md).

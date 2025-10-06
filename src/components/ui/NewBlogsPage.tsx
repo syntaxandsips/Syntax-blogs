@@ -12,24 +12,43 @@ interface NewBlogsPageProps {
 }
 
 export function NewBlogsPage({ posts }: NewBlogsPageProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(null);
+
+  const derivedCategories = useMemo(() => {
+    const categoryMap = new Map<string, { slug: string; label: string }>();
+
+    posts.forEach((post) => {
+      const slug = post.category?.slug ?? 'uncategorized';
+      const label = post.category?.name ?? 'Uncategorized';
+      if (!categoryMap.has(slug)) {
+        categoryMap.set(slug, {
+          slug,
+          label,
+        });
+      }
+    });
+
+    return Array.from(categoryMap.values()).sort((a, b) => a.label.localeCompare(b.label));
+  }, [posts]);
+
   const allBlogs = useMemo(
     () =>
       posts.map((post) => {
-        const categoryIdentifier = (post.category?.slug ?? post.category?.name ?? 'uncategorized')
-          .replace(/[-\s]+/g, '_')
-          .toUpperCase();
+        const slug = post.category?.slug ?? 'uncategorized';
+        const label = post.category?.name ?? 'Uncategorized';
 
         return {
           slug: post.slug,
           title: post.title,
           excerpt: post.excerpt ?? '',
-          category: categoryIdentifier,
-          date: post.publishedAt
+          categorySlug: slug,
+          categoryLabel: label,
+          accentColor: post.accentColor ?? null,
+          dateLabel: post.publishedAt
             ? new Date(post.publishedAt).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
-                year: 'numeric'
+                year: 'numeric',
               })
             : 'Unscheduled',
           views: post.views ?? 0,
@@ -38,8 +57,13 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
     [posts]
   );
 
-  const handleCategorySelect = (category: string | null) => {
-    setSelectedCategory(category);
+  const recommendedTopics = useMemo(
+    () => derivedCategories.map((category) => category.label),
+    [derivedCategories],
+  );
+
+  const handleCategorySelect = (categorySlug: string | null) => {
+    setSelectedCategorySlug(categorySlug);
   };
 
   return (
@@ -48,13 +72,14 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
       <div className="flex flex-col lg:flex-row gap-8 mt-8">
         <div className="w-full lg:w-8/12">
           <NewTopicFilters
-            selectedCategory={selectedCategory}
+            categories={derivedCategories}
+            selectedCategory={selectedCategorySlug}
             onSelectCategory={handleCategorySelect}
           />
-          <NewBlogGrid category={selectedCategory} blogs={allBlogs} />
+          <NewBlogGrid categorySlug={selectedCategorySlug} blogs={allBlogs} />
         </div>
         <div className="w-full lg:w-4/12">
-          <NewFollowSection />
+          <NewFollowSection topics={recommendedTopics} />
         </div>
       </div>
     </div>

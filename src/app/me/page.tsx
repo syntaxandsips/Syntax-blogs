@@ -63,7 +63,11 @@ export default function LoginPage() {
     });
 
     if (signInError) {
-      setError(signInError.message);
+      const normalizedMessage = signInError.message.toLowerCase();
+      const friendlyMessage = normalizedMessage.includes('invalid login')
+        ? 'Invalid login credentials. If you are using the bundled admin account, run `npm run seed:test-user` to (re)create it and confirm the profile is flagged as admin in Supabase.'
+        : signInError.message;
+      setError(friendlyMessage);
       setIsLoading(false);
       return;
     }
@@ -162,6 +166,11 @@ export default function LoginPage() {
           <p>
             Use your Supabase email and password. Only accounts marked as admin in
             the <code>profiles</code> table can access this dashboard.
+          </p>
+          <p className="mt-2">
+            Need a test account? Run <code>npm run seed:test-user</code> after applying
+            the migrations to generate <code>test.admin@syntaxblogs.dev</code> with the
+            default password.
           </p>
         </div>
       </div>

@@ -1,13 +1,14 @@
 import React from 'react'
 import {
+  BarChart,
   Coffee,
   Code,
-  LayoutDashboard,
   FileText,
-  Settings,
+  LayoutDashboard,
   LogOut,
-  BarChart,
+  Settings,
   ShieldCheck,
+  Users,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -65,6 +66,14 @@ export const Sidebar = ({
             isActive={currentView === 'posts'}
             onClick={() => onNavigate('posts')}
           />
+          {isAdmin && (
+            <SidebarLink
+              icon={<Users />}
+              label="Users"
+              isActive={currentView === 'users'}
+              onClick={() => onNavigate('users')}
+            />
+          )}
           <SidebarLink
             icon={<BarChart />}
             label="Analytics"

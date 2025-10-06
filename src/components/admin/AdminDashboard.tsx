@@ -11,12 +11,17 @@ import { Sidebar } from './Sidebar'
 import { PostsTable } from './PostsTable'
 import { PostForm } from './PostForm'
 import { StatsSection } from './StatsSection'
+import { UserManagement } from './UserManagement'
 import { createBrowserClient } from '@/lib/supabase/client'
 import {
   AdminPost,
+  AdminRole,
+  AdminUserSummary,
+  CreateAdminUserPayload,
   CategoryOption,
   PostFormValues,
   PostStatus,
+  UpdateAdminUserPayload,
 } from '@/utils/types'
 
 interface AdminDashboardProps {
@@ -42,8 +47,13 @@ export const AdminDashboard = ({
   const [categories, setCategories] = useState<CategoryOption[]>([])
   const [editingPost, setEditingPost] = useState<AdminPost | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
+  const [isPostSaving, setIsPostSaving] = useState(false)
   const [feedback, setFeedback] = useState<FeedbackState | null>(null)
+  const [users, setUsers] = useState<AdminUserSummary[]>([])
+  const [roles, setRoles] = useState<AdminRole[]>([])
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false)
+  const [hasLoadedUsers, setHasLoadedUsers] = useState(false)
+  const [isUserMutationInFlight, setIsUserMutationInFlight] = useState(false)
 
   const mapPostsFromPayload = useCallback((data: AdminPost[]) => {
     setPosts(
@@ -124,7 +134,7 @@ export const AdminDashboard = ({
   }
 
   const handleSavePost = async (values: PostFormValues) => {
-    setIsSaving(true)
+    setIsPostSaving(true)
     setFeedback(null)
 
     try {
@@ -165,7 +175,7 @@ export const AdminDashboard = ({
           error instanceof Error ? error.message : 'Unable to save the post.',
       })
     } finally {
-      setIsSaving(false)
+      setIsPostSaving(false)
     }
   }
 
@@ -235,6 +245,129 @@ export const AdminDashboard = ({
     router.push('/me')
   }
 
+  const fetchUsers = useCallback(async () => {
+    setIsLoadingUsers(true)
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'GET',
+        cache: 'no-store',
+      })
+
+      const payload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Unable to load users.')
+      }
+
+      setUsers((payload.users ?? []) as AdminUserSummary[])
+      setRoles((payload.roles ?? []) as AdminRole[])
+      setHasLoadedUsers(true)
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message:
+          error instanceof Error ? error.message : 'Unable to load users.',
+      })
+    } finally {
+      setIsLoadingUsers(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (currentView === 'users' && !hasLoadedUsers && !isLoadingUsers) {
+      void fetchUsers()
+    }
+  }, [currentView, fetchUsers, hasLoadedUsers, isLoadingUsers])
+
+  const handleCreateUser = async (values: CreateAdminUserPayload) => {
+    setIsUserMutationInFlight(true)
+    setFeedback(null)
+
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      })
+
+      const payload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Unable to create user.')
+      }
+
+      const createdUser = payload.user as AdminUserSummary
+
+      setUsers((prev) => {
+        const filtered = prev.filter((user) => user.profileId !== createdUser.profileId)
+        return [createdUser, ...filtered]
+      })
+
+      setFeedback({
+        type: 'success',
+        message: 'User created successfully.',
+      })
+      return true
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message:
+          error instanceof Error ? error.message : 'Unable to create user.',
+      })
+      return false
+    } finally {
+      setIsUserMutationInFlight(false)
+    }
+  }
+
+  const handleUpdateUser = async (
+    profileId: string,
+    values: UpdateAdminUserPayload,
+  ) => {
+    setIsUserMutationInFlight(true)
+    setFeedback(null)
+
+    try {
+      const response = await fetch(`/api/admin/users/${profileId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      })
+
+      const payload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Unable to update user.')
+      }
+
+      const updatedUser = payload.user as AdminUserSummary
+
+      setUsers((prev) => {
+        const others = prev.filter((user) => user.profileId !== updatedUser.profileId)
+        return [updatedUser, ...others]
+      })
+
+      setFeedback({
+        type: 'success',
+        message: 'User updated successfully.',
+      })
+      return true
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message:
+          error instanceof Error ? error.message : 'Unable to update user.',
+      })
+      return false
+    } finally {
+      setIsUserMutationInFlight(false)
+    }
+  }
+
   const renderContent = () => {
     switch (currentView) {
       case 'overview':
@@ -271,7 +404,19 @@ export const AdminDashboard = ({
             categories={categories}
             onSave={handleSavePost}
             onCancel={() => setCurrentView('posts')}
-            isSaving={isSaving}
+            isSaving={isPostSaving}
+          />
+        )
+      case 'users':
+        return (
+          <UserManagement
+            users={users}
+            roles={roles}
+            isLoading={isLoadingUsers}
+            isSaving={isUserMutationInFlight}
+            onRefresh={fetchUsers}
+            onCreateUser={handleCreateUser}
+            onUpdateUser={handleUpdateUser}
           />
         )
       case 'analytics':

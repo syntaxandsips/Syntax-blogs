@@ -1,5 +1,5 @@
 import { cache } from 'react'
-import { createServerComponentClient } from '@/lib/supabase/server-client'
+import { createServiceRoleClient } from '@/lib/supabase/server-client'
 
 interface CategoryRecord {
   id: string | null
@@ -95,7 +95,7 @@ const mapDetailPost = (record: PostDetailRecord): BlogPostDetail => ({
 })
 
 export const getPublishedPosts = cache(async () => {
-  const supabase = createServerComponentClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from('posts')
@@ -114,7 +114,7 @@ export const getPublishedPosts = cache(async () => {
 })
 
 export const getPublishedPostBySlug = cache(async (slug: string) => {
-  const supabase = createServerComponentClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from('posts')
@@ -147,7 +147,7 @@ export const getPublishedPostBySlug = cache(async (slug: string) => {
 })
 
 export const getPublishedSlugs = cache(async () => {
-  const supabase = createServerComponentClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from('posts')

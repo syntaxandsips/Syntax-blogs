@@ -1,8 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import {
   createServerClient as createSupabaseServerClient,
-  type CookieMethodsServerDeprecated,
-  type CookieOptions,
+  type CookieMethodsServer,
 } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
@@ -24,28 +23,42 @@ if (!supabaseServiceKey) {
   throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable.')
 }
 
-const createCookieAdapter = (): CookieMethodsServerDeprecated => ({
-  async get(name: string) {
-    const cookieStore = await cookies()
+const createCookieAdapter = (): CookieMethodsServer => {
+  const cookieStorePromise = cookies()
 
-    return cookieStore.get(name)?.value
-  },
-  async set(name: string, value: string, options?: CookieOptions) {
-    const cookieStore = await cookies()
+  return {
+    async getAll() {
+      const cookieStore = await cookieStorePromise
 
-    cookieStore.set({
-      name,
-      value,
-      ...(options ?? {}),
-    })
-  },
-  async remove(name: string, options?: CookieOptions) {
-    const cookieStore = await cookies()
+      return cookieStore.getAll().map(({ name, value }) => ({ name, value }))
+    },
+    async setAll(cookiesToSet) {
+      const cookieStore = await cookieStorePromise
 
-    cookieStore.delete(name)
-    void options
-  },
-})
+      for (const { name, value, options } of cookiesToSet) {
+        if (!value) {
+          if (options?.maxAge === 0) {
+            cookieStore.set({
+              name,
+              value,
+              ...options,
+            })
+          } else {
+            cookieStore.delete(name)
+          }
+
+          continue
+        }
+
+        cookieStore.set({
+          name,
+          value,
+          ...(options ?? {}),
+        })
+      }
+    },
+  }
+}
 
 export const createServerClient = () =>
   createSupabaseServerClient(supabaseUrl, supabaseAnonKey, {

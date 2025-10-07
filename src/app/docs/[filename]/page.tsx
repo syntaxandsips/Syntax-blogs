@@ -17,8 +17,12 @@ export function generateStaticParams() {
   ];
 }
 
-export default async function DocPage({ params }: { params: { filename: string } }) {
-  const { filename } = params;
+export default async function DocPage({
+  params,
+}: {
+  params: Promise<{ filename: string }>;
+}) {
+  const { filename } = await params;
   
   try {
     // Construct the file path
@@ -72,7 +76,7 @@ function markdownToHtml(markdown: string): string {
     .replace(/^\s*-\s+(.*$)/gm, '<li>$1</li>');
   
   // Wrap lists
-  html = html.replace(/<li>.*?<\/li>(\n<li>.*?<\/li>)+/gs, (match) => {
+  html = html.replace(/<li>[\s\S]*?<\/li>(\n<li>[\s\S]*?<\/li>)+/g, (match) => {
     if (match.includes('1.')) {
       return `<ol class="list-decimal pl-6 my-4">${match}</ol>`;
     }
@@ -101,12 +105,24 @@ function markdownToHtml(markdown: string): string {
   // Convert tables
   const tableRegex = /\|(.+)\|\n\|(?:[-:]+\|)+\n((?:\|.+\|\n)+)/g;
   html = html.replace(tableRegex, (match, headers, rows) => {
-    const headerCells = headers.split('|').filter(cell => cell.trim() !== '').map(cell => `<th class="border px-4 py-2">${cell.trim()}</th>`).join('');
-    
-    const rowsHtml = rows.split('\n').filter(row => row.trim() !== '').map(row => {
-      const cells = row.split('|').filter(cell => cell.trim() !== '').map(cell => `<td class="border px-4 py-2">${cell.trim()}</td>`).join('');
-      return `<tr>${cells}</tr>`;
-    }).join('');
+    const headerCells = headers
+      .split('|')
+      .filter((cell: string) => cell.trim() !== '')
+      .map((cell: string) => `<th class="border px-4 py-2">${cell.trim()}</th>`)
+      .join('');
+
+    const rowsHtml = rows
+      .split('\n')
+      .filter((row: string) => row.trim() !== '')
+      .map((row: string) => {
+        const cells = row
+          .split('|')
+          .filter((cell: string) => cell.trim() !== '')
+          .map((cell: string) => `<td class="border px-4 py-2">${cell.trim()}</td>`)
+          .join('');
+        return `<tr>${cells}</tr>`;
+      })
+      .join('');
     
     return `<div class="overflow-x-auto my-4">
       <table class="min-w-full border-collapse border border-gray-300">

@@ -9,7 +9,7 @@ import {
   fetchProfileById,
   ensureRoleAssignments,
   buildUserSummary,
-} from '../route'
+} from '../shared'
 
 const getAdminProfile = async (): Promise<
   | { response: NextResponse }
@@ -76,14 +76,14 @@ const sanitizeRoleSlugs = (value: unknown): string[] => {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const result = await getAdminProfile()
   if ('response' in result) {
     return result.response
   }
 
-  const profileId = params.id
+  const { id: profileId } = await params
   if (!profileId) {
     return NextResponse.json({ error: 'Profile id is required.' }, { status: 400 })
   }

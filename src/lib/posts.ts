@@ -97,20 +97,25 @@ const mapDetailPost = (record: PostDetailRecord, author: AuthorRecord | null): B
 export const getPublishedPosts = cache(async () => {
   const supabase = createServiceRoleClient()
 
-  const { data, error } = await supabase
-    .from('posts')
-    .select(
-      `id, title, slug, excerpt, accent_color, views, published_at, categories:categories(id, name, slug)`,
-    )
-    .eq('status', 'published')
-    .order('published_at', { ascending: false })
+  try {
+    const { data, error } = await supabase
+      .from('posts')
+      .select(
+        `id, title, slug, excerpt, accent_color, views, published_at, categories:categories(id, name, slug)`,
+      )
+      .eq('status', 'published')
+      .order('published_at', { ascending: false })
 
-  if (error) {
-    throw new Error(`Unable to load published posts: ${error.message}`)
+    if (error) {
+      throw error
+    }
+
+    const rows = (data ?? []) as unknown as PostListRecord[]
+    return rows.map(mapListPost)
+  } catch (error) {
+    console.error('Unable to load published posts:', error)
+    return []
   }
-
-  const rows = (data ?? []) as PostListRecord[]
-  return rows.map(mapListPost)
 })
 
 export const getPublishedPostBySlug = cache(async (slug: string) => {
@@ -147,7 +152,7 @@ export const getPublishedPostBySlug = cache(async (slug: string) => {
     return null
   }
 
-  const record = data as PostDetailRecord
+  const record = data as unknown as PostDetailRecord
 
   let author: AuthorRecord | null = null
 
@@ -171,14 +176,19 @@ export const getPublishedPostBySlug = cache(async (slug: string) => {
 export const getPublishedSlugs = cache(async () => {
   const supabase = createServiceRoleClient()
 
-  const { data, error } = await supabase
-    .from('posts')
-    .select('slug')
-    .eq('status', 'published')
+  try {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('slug')
+      .eq('status', 'published')
 
-  if (error) {
-    throw new Error(`Unable to load slugs: ${error.message}`)
+    if (error) {
+      throw error
+    }
+
+    return (data ?? []).map((row) => row.slug)
+  } catch (error) {
+    console.error('Unable to load slugs:', error)
+    return []
   }
-
-  return (data ?? []).map((row) => row.slug)
 })

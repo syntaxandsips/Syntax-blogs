@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/server-client';
 
-interface RouteParams {
-  params: { slug: string };
-}
-
 export const dynamic = 'force-dynamic';
 
-export async function POST(_request: Request, { params }: RouteParams) {
+export async function POST(
+  _request: Request,
+  { params }: { params: Promise<{ slug: string }> },
+) {
+  const { slug } = await params;
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase.rpc('increment_post_views', {
-    post_slug: params.slug,
+    post_slug: slug,
   });
 
   if (error) {

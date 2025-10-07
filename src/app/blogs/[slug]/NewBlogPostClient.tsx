@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, Eye } from 'lucide-react';
+import { ArrowLeft, Calendar, Eye, Twitter, Linkedin, Github } from 'lucide-react';
 import { NewMarkdownRenderer } from '@/components/ui/NewMarkdownRenderer';
 import { NewSummarizeButton } from '@/components/ui/NewSummarizeButton';
 import { SocialFollowItem } from '@/components/ui/SocialFollowItem';
@@ -123,9 +123,21 @@ export default function NewBlogPostClient({ post }: BlogPostClientProps) {
             <div className="border-4 border-black bg-white p-6 rounded-lg">
               <h3 className="text-xl font-bold mb-4">Follow Syntax &amp; Sips</h3>
               <div className="space-y-4">
-                <SocialFollowItem platform="Twitter" handle="@syntaxandsips" />
-                <SocialFollowItem platform="LinkedIn" handle="/company/syntaxandsips" />
-                <SocialFollowItem platform="GitHub" handle="syntaxandsips" />
+                <SocialFollowItem
+                  platform="Twitter"
+                  handle="@syntaxandsips"
+                  icon={<Twitter className="h-6 w-6 text-[#1DA1F2]" />}
+                />
+                <SocialFollowItem
+                  platform="LinkedIn"
+                  handle="/company/syntaxandsips"
+                  icon={<Linkedin className="h-6 w-6 text-[#0A66C2]" />}
+                />
+                <SocialFollowItem
+                  platform="GitHub"
+                  handle="syntaxandsips"
+                  icon={<Github className="h-6 w-6 text-black" />}
+                />
               </div>
             </div>
           </div>

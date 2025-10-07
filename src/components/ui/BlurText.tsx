@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, type TargetAndTransition } from 'framer-motion';
+
+type UseInViewOptions = Parameters<typeof useInView>[1];
+type UseInViewMargin = UseInViewOptions extends { margin?: infer M }
+  ? M
+  : never;
 
 interface BlurTextProps {
   text?: string;
@@ -10,9 +15,9 @@ interface BlurTextProps {
   animateBy?: 'words' | 'letters';
   direction?: 'top' | 'bottom';
   threshold?: number;
-  rootMargin?: string;
-  animationFrom?: Record<string, unknown>;
-  animationTo?: Record<string, unknown>[];
+  rootMargin?: UseInViewMargin;
+  animationFrom?: TargetAndTransition;
+  animationTo?: TargetAndTransition[];
   easing?: string;
   onAnimationComplete?: () => void;
 }
@@ -36,7 +41,7 @@ const BlurText = ({
   animateBy = 'words',
   direction = 'top',
   threshold = 0.1,
-  rootMargin = '0px',
+  rootMargin = '0px' as UseInViewMargin,
   animationFrom,
   animationTo,
   easing = 'easeOutCubic',
@@ -46,9 +51,13 @@ const BlurText = ({
   const containerRef = useRef<HTMLParagraphElement>(null);
   const hasCompletedRef = useRef(false);
   const completedCountRef = useRef(0);
-  const isInView = useInView(containerRef, { amount: threshold, margin: rootMargin, once: true });
+  const isInView = useInView(containerRef, {
+    amount: threshold,
+    margin: rootMargin,
+    once: true,
+  });
 
-  const defaultFrom = useMemo(
+  const defaultFrom = useMemo<TargetAndTransition>(
     () =>
       direction === 'top'
         ? { filter: 'blur(10px)', opacity: 0, transform: 'translate3d(0,-50px,0)' }
@@ -56,7 +65,7 @@ const BlurText = ({
     [direction],
   );
 
-  const defaultTo = useMemo(
+  const defaultTo = useMemo<TargetAndTransition[]>(
     () => [
       {
         filter: 'blur(5px)',
@@ -68,8 +77,14 @@ const BlurText = ({
     [direction],
   );
 
-  const fromState = useMemo(() => animationFrom ?? defaultFrom, [animationFrom, defaultFrom]);
-  const animationFrames = useMemo(() => [fromState, ...(animationTo ?? defaultTo)], [animationTo, defaultTo, fromState]);
+  const fromState = useMemo<TargetAndTransition>(
+    () => animationFrom ?? defaultFrom,
+    [animationFrom, defaultFrom],
+  );
+  const animationFrames = useMemo<TargetAndTransition[]>(
+    () => [fromState, ...(animationTo ?? defaultTo)],
+    [animationTo, defaultTo, fromState],
+  );
 
   const keyframes = useMemo(() => {
     const keys = new Set<string>();
@@ -91,7 +106,7 @@ const BlurText = ({
       });
     });
 
-    return resolved;
+    return resolved as unknown as TargetAndTransition;
   }, [animationFrames]);
 
   useEffect(() => {

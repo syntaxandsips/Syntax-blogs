@@ -41,11 +41,11 @@ export const PostsTable = ({
 
   return (
     <div className="bg-white border-3 border-[#2A2A2A]/20 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] overflow-hidden">
-      <div className="p-6 border-b border-[#2A2A2A]/10">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-[#2A2A2A]">Manage Posts</h2>
-            <p className="text-sm text-gray-500">
+      <div className="border-b border-[#2A2A2A]/10 p-4 sm:p-6">
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <h2 className="text-xl font-bold text-[#2A2A2A] sm:text-2xl">Manage Posts</h2>
+            <p className="text-sm text-gray-500 sm:text-base">
               View and manage all your blog content
             </p>
           </div>
@@ -62,8 +62,8 @@ export const PostsTable = ({
           )}
         </div>
       </div>
-      <div className="p-6 border-b-4 border-black">
-        <div className="flex gap-2 overflow-x-auto pb-2 [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+      <div className="border-b-4 border-black p-4 sm:p-6">
+        <div className="flex gap-2 overflow-x-auto pb-2 sm:gap-3 [-ms-overflow-style:'none'] [scrollbar-width:'none']">
           <FilterTab
             label="ALL POSTS"
             isActive={activeTab === 'all'}
@@ -102,7 +102,7 @@ export const PostsTable = ({
         </div>
       ) : (
         <>
-          <div className="space-y-4 p-6 md:hidden">
+          <div className="space-y-4 p-4 sm:p-6 md:hidden">
             {filteredPosts.map((post) => {
               const displayDate =
                 post.status === PostStatus.SCHEDULED

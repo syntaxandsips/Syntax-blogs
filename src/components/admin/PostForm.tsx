@@ -299,405 +299,409 @@ export const PostForm = ({
   return (
     <>
       <div className="bg-white border-4 border-black rounded-md shadow-[8px_8px_0px_0px_rgba(0,0,0)] overflow-hidden">
-        <div className="p-6 border-b-4 border-black">
-          <h2 className="text-3xl font-black">
-            <span className="bg-[#FF5252] text-white px-3 py-1 inline-block transform rotate-1">
+        <div className="border-b-4 border-black p-4 sm:p-6">
+          <h2 className="text-2xl font-black sm:text-3xl">
+            <span className="inline-block rotate-1 bg-[#FF5252] px-3 py-1 text-white">
               {post ? 'Edit Post' : 'Create Post'}
             </span>
-        </h2>
-      </div>
-      <form onSubmit={handleSubmit} className="p-6">
-        <div className="space-y-6">
-          {/* Title Field */}
-          <div>
-            <label className="block font-bold mb-2 text-lg">Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={handleTitleChange}
-              className="w-full p-3 border-4 border-black rounded-md focus:outline-none focus:ring-2 focus:ring-[#6C63FF]"
-              placeholder="Enter post title"
-              required
-            />
-          </div>
-          {/* Slug Field */}
-          <div>
-            <label className="block font-bold mb-2 text-lg">Slug</label>
-            <input
-              type="text"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              className="w-full p-3 border-4 border-black rounded-md focus:outline-none focus:ring-2 focus:ring-[#6C63FF]"
-              placeholder="post-url-slug"
-              required
-            />
-          </div>
-          {/* Excerpt Field */}
-          <div>
-            <label className="block font-bold mb-2 text-lg">Excerpt</label>
-            <textarea
-              value={excerpt}
-              onChange={(e) => setExcerpt(e.target.value)}
-              className="w-full p-3 border-4 border-black rounded-md focus:outline-none focus:ring-2 focus:ring-[#6C63FF] min-h-[80px]"
-              placeholder="Brief summary of the post"
-            />
-          </div>
-          {/* Content Field */}
-          <div>
-            <label className="block font-bold mb-2 text-lg">
-              Content (Markdown)
-            </label>
-            <MarkdownEditor
-              value={content}
-              onChange={setContent}
-              placeholder="Write your post content in Markdown..."
-              onRequestMedia={handleRequestMedia}
-            />
-            <div className="text-sm text-gray-600 mt-3 space-y-1">
-              <p>
-                Use the toolbar to add headings, quotes, code snippets, and multimedia embeds.
-              </p>
-              <p>
-                Supports YouTube shortcodes ({'{youtube:VIDEO_ID}'}) and our enhanced code block
-                renderer.
-              </p>
-              <p>
-                <a
-                  href="/docs/admin-code-guide.md"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-[#6C63FF] hover:underline"
-                >
-                  View the code block guide
-                </a>{' '}
-                for syntax highlighting and multi-language tabs.
-              </p>
-            </div>
-          </div>
-          {/* Category & Accent Color */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          </h2>
+        </div>
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6">
+          <div className="space-y-6">
+            {/* Title Field */}
             <div>
-              <label className="block font-bold mb-2 text-lg">Category</label>
-              {categories.length === 0 ? (
-                <div className="p-3 border-4 border-dashed border-black rounded-md text-sm text-gray-500">
-                  No categories available. Create categories in Supabase to
-                  enable selection.
-                </div>
-              ) : (
-                <select
-                  id="category-select"
-                  aria-label="Select category"
-                  title="Select a category for your post"
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full p-3 border-4 border-black rounded-md focus:outline-none focus:ring-2 focus:ring-[#6C63FF]"
-                >
-                  <option value="">Uncategorized</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              )}
+              <label className="mb-2 block text-base font-bold sm:text-lg">Title</label>
+              <input
+                type="text"
+                value={title}
+                onChange={handleTitleChange}
+                className="w-full rounded-md border-4 border-black p-3 focus:outline-none focus:ring-2 focus:ring-[#6C63FF]"
+                placeholder="Enter post title"
+                required
+              />
             </div>
+            {/* Slug Field */}
             <div>
-              <label className="block font-bold mb-2 text-lg">Tags</label>
-              {tags.length === 0 ? (
-                <div className="p-3 border-4 border-dashed border-black rounded-md text-sm text-gray-500">
-                  No tags available. Add tags from the Taxonomy manager to unlock topical
-                  filtering.
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((tag) => {
-                    const isSelected = selectedTagIds.includes(tag.id)
-                    return (
-                      <button
-                        key={tag.id}
-                        type="button"
-                        onClick={() => handleToggleTag(tag.id)}
-                        className={`rounded-full border-2 px-3 py-1 text-sm font-semibold transition ${
-                          isSelected
-                            ? 'border-[#6C63FF] bg-[#6C63FF] text-white shadow-sm'
-                            : 'border-black/20 bg-white text-[#2A2A2A] hover:border-[#6C63FF] hover:text-[#6C63FF]'
-                        }`}
-                      >
-                        #{tag.name}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-              <p className="mt-2 text-xs uppercase tracking-wide text-gray-500">
-                Tags help readers discover related posts.
-              </p>
+              <label className="mb-2 block text-base font-bold sm:text-lg">Slug</label>
+              <input
+                type="text"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                className="w-full rounded-md border-4 border-black p-3 focus:outline-none focus:ring-2 focus:ring-[#6C63FF]"
+                placeholder="post-url-slug"
+                required
+              />
             </div>
-          </div>
-
-          <div>
-            <label className="block font-bold mb-2 text-lg">Accent Color</label>
-            <p className="text-xs text-gray-500 mb-3">{categoryAccent.description}</p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {categoryAccent.options.map((option) => {
-                const isActive = option.value === accentColor
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setAccentColor(option.value)}
-                    className={`flex items-center justify-between rounded-md border-3 px-3 py-2 text-sm font-semibold transition ${
-                      isActive
-                        ? 'border-black bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)]'
-                        : 'border-black/20 bg-white text-[#2A2A2A] hover:border-black/60'
-                    }`}
-                    aria-pressed={isActive}
+            {/* Excerpt Field */}
+            <div>
+              <label className="mb-2 block text-base font-bold sm:text-lg">Excerpt</label>
+              <textarea
+                value={excerpt}
+                onChange={(e) => setExcerpt(e.target.value)}
+                className="min-h-[80px] w-full rounded-md border-4 border-black p-3 focus:outline-none focus:ring-2 focus:ring-[#6C63FF]"
+                placeholder="Brief summary of the post"
+              />
+            </div>
+            {/* Content Field */}
+            <div>
+              <label className="mb-2 block text-base font-bold sm:text-lg">
+                Content (Markdown)
+              </label>
+              <MarkdownEditor
+                value={content}
+                onChange={setContent}
+                placeholder="Write your post content in Markdown..."
+                onRequestMedia={handleRequestMedia}
+              />
+              <div className="mt-3 space-y-1 text-sm text-gray-600">
+                <p>
+                  Use the toolbar to add headings, quotes, code snippets, and multimedia embeds.
+                </p>
+                <p>
+                  Supports YouTube shortcodes ({'{youtube:VIDEO_ID}'}) and our enhanced code block
+                  renderer.
+                </p>
+                <p>
+                  <a
+                    href="/docs/admin-code-guide.md"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-[#6C63FF] hover:underline"
                   >
-                    <span>{option.label}</span>
-                    <span
-                      className="h-6 w-6 rounded-full border border-black/20"
-                      style={{ backgroundColor: option.value }}
-                    />
-                  </button>
-                )
-              })}
+                    View the code block guide
+                  </a>{' '}
+                  for syntax highlighting and multi-language tabs.
+                </p>
+              </div>
             </div>
-          </div>
+            {/* Category & Accent Color */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+              <div>
+                <label className="mb-2 block text-base font-bold sm:text-lg">Category</label>
+                {categories.length === 0 ? (
+                  <div className="rounded-md border-4 border-dashed border-black p-3 text-sm text-gray-500">
+                    No categories available. Create categories in Supabase to
+                    enable selection.
+                  </div>
+                ) : (
+                  <select
+                    id="category-select"
+                    aria-label="Select category"
+                    title="Select a category for your post"
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    className="w-full rounded-md border-4 border-black p-3 focus:outline-none focus:ring-2 focus:ring-[#6C63FF]"
+                  >
+                    <option value="">Uncategorized</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+              <div>
+                <label className="mb-2 block text-base font-bold sm:text-lg">Tags</label>
+                {tags.length === 0 ? (
+                  <div className="rounded-md border-4 border-dashed border-black p-3 text-sm text-gray-500">
+                    No tags available. Add tags from the Taxonomy manager to unlock topical
+                    filtering.
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag) => {
+                      const isSelected = selectedTagIds.includes(tag.id)
+                      return (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          onClick={() => handleToggleTag(tag.id)}
+                          className={`rounded-full border-2 px-3 py-1 text-sm font-semibold transition ${
+                            isSelected
+                              ? 'border-[#6C63FF] bg-[#6C63FF] text-white shadow-sm'
+                              : 'border-black/20 bg-white text-[#2A2A2A] hover:border-[#6C63FF] hover:text-[#6C63FF]'
+                          }`}
+                        >
+                          #{tag.name}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+                <p className="mt-2 text-xs uppercase tracking-wide text-gray-500">
+                  Tags help readers discover related posts.
+                </p>
+              </div>
+            </div>
 
-          <div className="border-4 border-black rounded-md bg-white p-4">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <ImageIcon className="h-5 w-5 text-[#6C63FF]" /> Featured Media
-            </h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <label className="block font-semibold">Featured image URL</label>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <input
-                    type="url"
-                    value={featuredImageUrl}
-                    onChange={(event) => setFeaturedImageUrl(event.target.value)}
-                    placeholder="https://..."
-                    className="flex-1 rounded-md border-2 border-black/20 px-3 py-2 focus:border-black focus:outline-none"
-                  />
-                  <div className="flex gap-2">
+            <div>
+              <label className="mb-2 block text-base font-bold sm:text-lg">Accent Color</label>
+              <p className="mb-3 text-xs text-gray-500">{categoryAccent.description}</p>
+              <div className="grid gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 lg:gap-4">
+                {categoryAccent.options.map((option) => {
+                  const isActive = option.value === accentColor
+                  return (
                     <button
+                      key={option.value}
                       type="button"
-                      onClick={handleOpenFeaturedPicker}
-                      className="inline-flex items-center justify-center rounded-md border-2 border-black bg-white px-3 py-2 text-sm font-semibold shadow-sm transition hover:-translate-y-[1px]"
+                      onClick={() => setAccentColor(option.value)}
+                      className={`flex items-center justify-between rounded-md border-3 px-3 py-2 text-sm font-semibold transition ${
+                        isActive
+                          ? 'border-black bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)]'
+                          : 'border-black/20 bg-white text-[#2A2A2A] hover:border-black/60'
+                      }`}
+                      aria-pressed={isActive}
                     >
-                      Library
+                      <span>{option.label}</span>
+                      <span
+                        className="h-6 w-6 rounded-full border border-black/20"
+                        style={{ backgroundColor: option.value }}
+                      />
                     </button>
-                    {featuredImageUrl && (
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="rounded-md border-4 border-black bg-white p-4 sm:p-5">
+              <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
+                <ImageIcon className="h-5 w-5 text-[#6C63FF]" /> Featured Media
+              </h3>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+                <div className="space-y-3">
+                  <label className="block font-semibold">Featured image URL</label>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <input
+                      type="url"
+                      value={featuredImageUrl}
+                      onChange={(event) => setFeaturedImageUrl(event.target.value)}
+                      placeholder="https://..."
+                      className="flex-1 rounded-md border-2 border-black/20 px-3 py-2 focus:border-black focus:outline-none"
+                    />
+                    <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
-                        onClick={() => setFeaturedImageUrl('')}
-                        className="inline-flex items-center justify-center rounded-md border-2 border-red-500/40 bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 transition hover:-translate-y-[1px]"
+                        onClick={handleOpenFeaturedPicker}
+                        className="inline-flex items-center justify-center rounded-md border-2 border-black bg-white px-3 py-2 text-sm font-semibold shadow-sm transition hover:-translate-y-[1px]"
                       >
-                        Clear
+                        Library
                       </button>
-                    )}
+                      {featuredImageUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setFeaturedImageUrl('')}
+                          className="inline-flex items-center justify-center rounded-md border-2 border-red-500/40 bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 transition hover:-translate-y-[1px]"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
                   </div>
+                  <p className="text-xs uppercase tracking-wide text-gray-500">
+                    Displayed as the hero image on the published article.
+                  </p>
+                  {featuredImageUrl && (
+                    <div className="overflow-hidden rounded-md border-2 border-black/10">
+                      <img
+                        src={featuredImageUrl}
+                        alt="Featured preview"
+                        className="h-40 w-full object-cover"
+                      />
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">
-                  Displayed as the hero image on the published article.
-                </p>
-                {featuredImageUrl && (
-                  <div className="overflow-hidden rounded-md border-2 border-black/10">
-                    <img
-                      src={featuredImageUrl}
-                      alt="Featured preview"
-                      className="h-40 w-full object-cover"
+                <div className="space-y-3">
+                  <label className="block font-semibold">Social preview image</label>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <input
+                      type="url"
+                      value={socialImageUrl}
+                      onChange={(event) => setSocialImageUrl(event.target.value)}
+                      placeholder="https://..."
+                      className="flex-1 rounded-md border-2 border-black/20 px-3 py-2 focus:border-black focus:outline-none"
                     />
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={handleOpenSocialPicker}
+                        className="inline-flex items-center justify-center rounded-md border-2 border-black bg-white px-3 py-2 text-sm font-semibold shadow-sm transition hover:-translate-y-[1px]"
+                      >
+                        Library
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleUseFeaturedForSocial}
+                        className="inline-flex items-center justify-center rounded-md border-2 border-[#6C63FF]/40 bg-[#6C63FF]/10 px-3 py-2 text-sm font-semibold text-[#6C63FF] transition hover:-translate-y-[1px]"
+                      >
+                        Use featured
+                      </button>
+                    </div>
                   </div>
-                )}
-              </div>
-              <div className="space-y-3">
-                <label className="block font-semibold">Social preview image</label>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <input
-                    type="url"
-                    value={socialImageUrl}
-                    onChange={(event) => setSocialImageUrl(event.target.value)}
-                    placeholder="https://..."
-                    className="flex-1 rounded-md border-2 border-black/20 px-3 py-2 focus:border-black focus:outline-none"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={handleOpenSocialPicker}
-                      className="inline-flex items-center justify-center rounded-md border-2 border-black bg-white px-3 py-2 text-sm font-semibold shadow-sm transition hover:-translate-y-[1px]"
-                    >
-                      Library
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleUseFeaturedForSocial}
-                      className="inline-flex items-center justify-center rounded-md border-2 border-[#6C63FF]/40 bg-[#6C63FF]/10 px-3 py-2 text-sm font-semibold text-[#6C63FF] transition hover:-translate-y-[1px]"
-                    >
-                      Use featured
-                    </button>
-                  </div>
+                  <p className="text-xs uppercase tracking-wide text-gray-500">
+                    Ideal size 1200×630. Used for Twitter, LinkedIn, and messaging previews.
+                  </p>
+                  {socialImageUrl && (
+                    <div className="overflow-hidden rounded-md border-2 border-black/10">
+                      <img
+                        src={socialImageUrl}
+                        alt="Social preview"
+                        className="h-40 w-full object-cover"
+                      />
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">
-                  Ideal size 1200×630. Used for Twitter, LinkedIn, and messaging previews.
-                </p>
-                {socialImageUrl && (
-                  <div className="overflow-hidden rounded-md border-2 border-black/10">
-                    <img
-                      src={socialImageUrl}
-                      alt="Social preview"
-                      className="h-40 w-full object-cover"
-                    />
-                  </div>
-                )}
               </div>
             </div>
-          </div>
 
-          <div className="border-4 border-black rounded-md bg-[#F8F9FF] p-4">
-            <h3 className="text-lg font-bold mb-4">SEO & Metadata</h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <label className="block font-semibold">Meta title</label>
-                <input
-                  type="text"
-                  value={seoTitle}
-                  onChange={(event) => setSeoTitle(event.target.value)}
-                  placeholder="Appears in browser tabs and search results"
-                  className="mt-1 w-full rounded-md border-2 border-black/20 px-3 py-2 focus:border-black focus:outline-none"
-                />
+            <div className="rounded-md border-4 border-black bg-[#F8F9FF] p-4 sm:p-5">
+              <h3 className="mb-4 text-lg font-bold">SEO & Metadata</h3>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+                <div>
+                  <label className="block font-semibold">Meta title</label>
+                  <input
+                    type="text"
+                    value={seoTitle}
+                    onChange={(event) => setSeoTitle(event.target.value)}
+                    placeholder="Appears in browser tabs and search results"
+                    className="mt-1 w-full rounded-md border-2 border-black/20 px-3 py-2 focus:border-black focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold">Meta description</label>
+                  <textarea
+                    value={seoDescription}
+                    onChange={(event) => setSeoDescription(event.target.value)}
+                    placeholder="Concise summary (recommended 150-160 characters)"
+                    className="mt-1 w-full rounded-md border-2 border-black/20 px-3 py-2 focus:border-black focus:outline-none min-h-[120px]"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block font-semibold">Meta description</label>
-                <textarea
-                  value={seoDescription}
-                  onChange={(event) => setSeoDescription(event.target.value)}
-                  placeholder="Concise summary (recommended 150-160 characters)"
-                  className="mt-1 w-full rounded-md border-2 border-black/20 px-3 py-2 focus:border-black focus:outline-none min-h-[120px]"
-                />
-              </div>
+              <p className="mt-2 text-xs uppercase tracking-wide text-gray-500">
+                If left blank we will reuse the post title and excerpt.
+              </p>
             </div>
-            <p className="mt-2 text-xs uppercase tracking-wide text-gray-500">
-              If left blank we will reuse the post title and excerpt.
-            </p>
-          </div>
-          {/* Publishing Options */}
-          <div className="border-4 border-black p-4 rounded-md bg-gray-50">
-            <h3 className="font-bold text-lg mb-4">Publishing Options</h3>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  id="draft"
-                  name="status"
-                  checked={status === PostStatus.DRAFT}
-                  onChange={() => setStatus(PostStatus.DRAFT)}
-                  className="w-5 h-5"
-                />
-                <label htmlFor="draft" className="font-bold">
-                  Save as Draft
-                </label>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  id="publish"
-                  name="status"
-                  checked={status === PostStatus.PUBLISHED}
-                  onChange={() => setStatus(PostStatus.PUBLISHED)}
-                  className="w-5 h-5"
-                />
-                <label htmlFor="publish" className="font-bold">
-                  Publish Immediately
-                </label>
-              </div>
-              <div>
+            {/* Publishing Options */}
+            <div className="rounded-md border-4 border-black bg-gray-50 p-4 sm:p-5">
+              <h3 className="mb-4 text-lg font-bold">Publishing Options</h3>
+              <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <input
                     type="radio"
-                    id="schedule"
+                    id="draft"
                     name="status"
-                    checked={status === PostStatus.SCHEDULED}
-                    onChange={() => setStatus(PostStatus.SCHEDULED)}
-                    className="w-5 h-5"
+                    checked={status === PostStatus.DRAFT}
+                    onChange={() => setStatus(PostStatus.DRAFT)}
+                    className="h-5 w-5"
                   />
-                  <label htmlFor="schedule" className="font-bold">
-                    Schedule for Later
+                  <label htmlFor="draft" className="font-bold">
+                    Save as Draft
                   </label>
                 </div>
-                {status === PostStatus.SCHEDULED && (
-                  <div className="ml-7 mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="flex items-center gap-2 border-4 border-black rounded-md overflow-hidden">
-                      <label htmlFor="publish-date" className="sr-only">Publication Date</label>
-                      <div className="bg-black text-white p-2">
-                        <Calendar className="h-5 w-5" />
-                      </div>
-                      <input
-                        id="publish-date"
-                        type="date"
-                        value={publishDate}
-                        onChange={(e) => setPublishDate(e.target.value)}
-                        className="p-2 flex-1 focus:outline-none"
-                        required={status === PostStatus.SCHEDULED}
-                        aria-label="Publication date"
-                        title="Select the publication date"
-                        placeholder="Select date"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 border-4 border-black rounded-md overflow-hidden">
-                      <label htmlFor="publish-time" className="sr-only">Publication Time</label>
-                      <div className="bg-black text-white p-2">
-                        <Clock className="h-5 w-5" />
-                      </div>
-                      <input
-                        id="publish-time"
-                        type="time"
-                        value={publishTime}
-                        onChange={(e) => setPublishTime(e.target.value)}
-                        className="p-2 flex-1 focus:outline-none"
-                        aria-label="Publication time"
-                        title="Select the publication time"
-                        placeholder="Select time"
-                      />
-                    </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    id="publish"
+                    name="status"
+                    checked={status === PostStatus.PUBLISHED}
+                    onChange={() => setStatus(PostStatus.PUBLISHED)}
+                    className="h-5 w-5"
+                  />
+                  <label htmlFor="publish" className="font-bold">
+                    Publish Immediately
+                  </label>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      id="schedule"
+                      name="status"
+                      checked={status === PostStatus.SCHEDULED}
+                      onChange={() => setStatus(PostStatus.SCHEDULED)}
+                      className="h-5 w-5"
+                    />
+                    <label htmlFor="schedule" className="font-bold">
+                      Schedule for Later
+                    </label>
                   </div>
-                )}
+                  {status === PostStatus.SCHEDULED && (
+                    <div className="ml-7 mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="flex items-center gap-2 overflow-hidden rounded-md border-4 border-black">
+                        <label htmlFor="publish-date" className="sr-only">
+                          Publication Date
+                        </label>
+                        <div className="bg-black p-2 text-white">
+                          <Calendar className="h-5 w-5" />
+                        </div>
+                        <input
+                          id="publish-date"
+                          type="date"
+                          value={publishDate}
+                          onChange={(e) => setPublishDate(e.target.value)}
+                          className="flex-1 p-2 focus:outline-none"
+                          required={status === PostStatus.SCHEDULED}
+                          aria-label="Publication date"
+                          title="Select the publication date"
+                          placeholder="Select date"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 overflow-hidden rounded-md border-4 border-black">
+                        <label htmlFor="publish-time" className="sr-only">
+                          Publication Time
+                        </label>
+                        <div className="bg-black p-2 text-white">
+                          <Clock className="h-5 w-5" />
+                        </div>
+                        <input
+                          id="publish-time"
+                          type="time"
+                          value={publishTime}
+                          onChange={(e) => setPublishTime(e.target.value)}
+                          className="flex-1 p-2 focus:outline-none"
+                          aria-label="Publication time"
+                          title="Select the publication time"
+                          placeholder="Select time"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div className="mt-8 space-y-4">
-          {formError && (
-            <div className="rounded-md border-2 border-red-500/30 bg-red-50 text-red-700 p-3 font-semibold">
-              {formError}
+          <div className="mt-6 space-y-4 sm:mt-8">
+            {formError && (
+              <div className="rounded-md border-2 border-red-500/30 bg-red-50 p-3 font-semibold text-red-700">
+                {formError}
+              </div>
+            )}
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="rounded-md border-4 border-black px-6 py-3 font-bold hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="rounded-md bg-black px-6 py-3 font-bold text-white transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(108,99,255)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSaving ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Saving...
+                  </span>
+                ) : post ? (
+                  'Update Post'
+                ) : (
+                  'Create Post'
+                )}
+              </button>
             </div>
-          )}
-          <div className="flex gap-4 justify-end">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-6 py-3 font-bold border-4 border-black rounded-md hover:bg-gray-100"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="px-6 py-3 font-bold bg-black text-white rounded-md transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(108,99,255)] disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isSaving ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Saving...
-                </span>
-              ) : post ? (
-                'Update Post'
-              ) : (
-                'Create Post'
-              )}
-            </button>
           </div>
-        </div>
-      </form>
+        </form>
       </div>
       <MediaLibraryDialog
         open={isMediaLibraryOpen}

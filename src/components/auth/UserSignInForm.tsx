@@ -98,17 +98,17 @@ export const UserSignInForm = () => {
   ];
 
   return (
-    <div className="neo-brutalism min-h-screen bg-[#EEF2FF] flex items-center justify-center px-4 py-10">
+    <div className="neo-brutalism min-h-screen bg-[#F6EDE3] flex items-center justify-center px-4 py-10">
       <div className="relative w-full max-w-5xl overflow-hidden rounded-[32px] border-4 border-black bg-white shadow-[12px_12px_0_0_rgba(0,0,0,0.2)]">
         <div
-          className="absolute -right-16 -top-14 hidden h-44 w-44 -rotate-6 rounded-full border-4 border-black bg-[#A5B4FC] md:block"
+          className="absolute -left-16 -top-14 hidden h-44 w-44 rotate-6 rounded-full border-4 border-black bg-[#FFD66B] md:block"
           aria-hidden="true"
         />
         <div className="grid grid-cols-1 md:grid-cols-[0.95fr_1.05fr]">
           <div className="relative z-10 border-b-4 border-black bg-white px-8 py-10 md:border-b-0 md:border-r-4">
             <div className="mx-auto w-full max-w-sm">
-              <span className="inline-flex items-center rounded-full border-2 border-black bg-[#EEF2FF] px-4 py-1 text-xs font-black uppercase tracking-widest text-gray-900 shadow-[4px_4px_0_0_rgba(0,0,0,0.18)]">
-                <Sparkles className="mr-2 h-4 w-4 text-[#6C63FF]" aria-hidden="true" />
+              <span className="inline-flex items-center rounded-full border-2 border-black bg-[#F6EDE3] px-4 py-1 text-xs font-black uppercase tracking-widest text-gray-900 shadow-[4px_4px_0_0_rgba(0,0,0,0.18)]">
+                <Sparkles className="mr-2 h-4 w-4 text-[#FF8A65]" aria-hidden="true" />
                 Syntax &amp; Sips insiders
               </span>
               <h1 className="text-3xl font-black tracking-tight text-gray-900">Welcome back!</h1>
@@ -201,9 +201,9 @@ export const UserSignInForm = () => {
             </div>
           </div>
 
-          <div className="relative flex flex-col justify-between gap-6 bg-[#D9E3FF] px-8 py-12 text-center md:px-12">
+          <div className="relative flex flex-col justify-between gap-6 bg-[#FCD7A5] px-8 py-12 text-center md:px-12">
             <div
-              className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.6),_rgba(217,227,255,0))]"
+              className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.65),_rgba(252,215,165,0))]"
               aria-hidden="true"
             />
             <div className="relative mx-auto max-w-sm">
@@ -215,14 +215,14 @@ export const UserSignInForm = () => {
 
             <div className="relative mx-auto flex w-full max-w-xs flex-col gap-3 text-left text-sm font-semibold text-gray-700">
               <div className="rounded-2xl border-2 border-black bg-white p-4 shadow-[5px_5px_0_0_rgba(0,0,0,0.15)]">
-                <p className="flex items-center gap-2 uppercase tracking-wide text-xs text-[#6C63FF]">
+                <p className="flex items-center gap-2 uppercase tracking-wide text-xs text-[#FF8A65]">
                   <Sparkles className="h-4 w-4" aria-hidden="true" />
                   What you get
                 </p>
                 <ul className="mt-3 space-y-3">
                   {features.map(({ icon: Icon, label }) => (
                     <li key={label} className="flex items-start gap-3">
-                      <span className="mt-1 inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border-2 border-black bg-[#EEF2FF] text-[#6C63FF] shadow-[3px_3px_0_0_rgba(0,0,0,0.12)]">
+                      <span className="mt-1 inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border-2 border-black bg-[#F6EDE3] text-[#FF8A65] shadow-[3px_3px_0_0_rgba(0,0,0,0.12)]">
                         <Icon className="h-4 w-4" aria-hidden="true" />
                       </span>
                       <span>{label}</span>
@@ -232,7 +232,7 @@ export const UserSignInForm = () => {
               </div>
             </div>
 
-            <div className="relative text-sm font-semibold text-gray-700">
+            <div className="relative text-sm font-semibold text-gray-800">
               <p>
                 Part of the editorial or ops team?{' '}
                 <Link href="/admin/login" className="text-[#FF5252] underline">

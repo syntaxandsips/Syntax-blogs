@@ -26,6 +26,39 @@ type StorageObject = {
   metadata: { size?: number | null } | null
 }
 
+type ServiceClient = Awaited<ReturnType<typeof ensureBucket>>
+
+const listAllFiles = async (client: ServiceClient) => {
+  const queue = ['']
+  const files: Array<{ record: StorageObject; path: string }> = []
+
+  while (queue.length > 0) {
+    const currentPrefix = queue.pop() as string
+    const { data, error } = await client.storage.from(BUCKET_NAME).list(currentPrefix, {
+      limit: 1000,
+      sortBy: { column: 'created_at', order: 'desc' },
+    })
+
+    if (error) {
+      throw new Error(`Unable to load media assets: ${error.message}`)
+    }
+
+    for (const item of data ?? []) {
+      const record = item as StorageObject
+      const fullPath = currentPrefix ? `${currentPrefix}/${record.name}` : record.name
+
+      if (!record.id) {
+        queue.push(fullPath)
+        continue
+      }
+
+      files.push({ record, path: fullPath })
+    }
+  }
+
+  return files
+}
+
 const ensureAdminProfile = async (): Promise<
   | { profile: ProfileRecord }
   | { response: NextResponse }
@@ -111,34 +144,40 @@ export async function GET() {
     )
   }
 
-  const { data, error } = await serviceClient.storage
-    .from(BUCKET_NAME)
-    .list('', {
-      limit: 100,
-      sortBy: { column: 'created_at', order: 'desc' },
-    })
-
-  if (error) {
+  let fileEntries: Array<{ record: StorageObject; path: string }>
+  try {
+    fileEntries = await listAllFiles(serviceClient)
+  } catch (error) {
     return NextResponse.json(
-      { error: `Unable to load media assets: ${error.message}` },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unable to load media assets.',
+      },
       { status: 500 },
     )
   }
 
-  const assets = (data ?? []).map((item) => {
-    const record = item as StorageObject
-    const {
-      data: publicUrlData,
-    } = serviceClient.storage.from(BUCKET_NAME).getPublicUrl(record.name)
+  const assets = fileEntries
+    .map(({ record, path }) => {
+      const {
+        data: publicUrlData,
+      } = serviceClient.storage.from(BUCKET_NAME).getPublicUrl(path)
 
-    return {
-      id: record.id ?? record.name,
-      name: record.name,
-      url: publicUrlData.publicUrl,
-      createdAt: record.created_at ?? new Date().toISOString(),
-      size: record.metadata?.size ?? 0,
-    }
-  })
+      return {
+        id: path,
+        name: record.name,
+        url: publicUrlData.publicUrl,
+        createdAt: record.created_at ?? new Date().toISOString(),
+        size: record.metadata?.size ?? 0,
+      }
+    })
+    .sort((a, b) => {
+      const getTime = (value: string | null | undefined) =>
+        value ? new Date(value).getTime() : 0
+      return getTime(b.createdAt) - getTime(a.createdAt)
+    })
 
   return NextResponse.json({ assets })
 }

@@ -286,7 +286,7 @@ function deriveHighlight(term: string, result: BlogListPost) {
       const end = Math.min(haystack.length, index + matcher.length + radius);
       const snippet = haystack.slice(start, end);
 
-      return snippet.replace(new RegExp(`(${escapeRegExp(term)})`, 'gi'), '<mark>$1</mark>');
+      return highlightSnippet(snippet, term);
     }
   }
 
@@ -296,4 +296,31 @@ function deriveHighlight(term: string, result: BlogListPost) {
 function escapeRegExp(value: string) {
   const specialCharacters = /[.*+?^${}()|[\]\\]/g;
   return value.replace(specialCharacters, '\\$&');
+}
+
+function highlightSnippet(snippet: string, term: string) {
+  const regex = new RegExp(escapeRegExp(term), 'gi');
+  let lastIndex = 0;
+  let result = '';
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(snippet)) !== null) {
+    const [matched] = match;
+    result += escapeHtml(snippet.slice(lastIndex, match.index));
+    result += `<mark>${escapeHtml(matched)}</mark>`;
+    lastIndex = match.index + matched.length;
+  }
+
+  result += escapeHtml(snippet.slice(lastIndex));
+
+  return result;
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }

@@ -1,5 +1,9 @@
+'use client'
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
   AlertTriangle,
@@ -7,12 +11,19 @@ import {
   Award,
   CheckCircle2,
   Clock3,
+  Compass,
   ExternalLink,
   FileText,
+  IdCard,
+  LifeBuoy,
   MessageCircle,
+  NotebookPen,
+  PenSquare,
+  Scale,
   ShieldCheck,
   Sparkles,
   UserRound,
+  UsersRound,
 } from 'lucide-react'
 import type {
   AuthenticatedProfileSummary,
@@ -21,6 +32,8 @@ import type {
   UserPostSummary,
 } from '@/utils/types'
 import { CommentStatus, PostStatus } from '@/utils/types'
+import { createBrowserClient } from '@/lib/supabase/client'
+import { useAuthenticatedProfile } from '@/hooks/useAuthenticatedProfile'
 import '@/styles/neo-brutalism.css'
 
 interface UserAccountPanelProps {
@@ -46,6 +59,30 @@ interface ActivityEntry {
   statusLabel: string
   badgeTone: 'purple' | 'blue' | 'orange' | 'emerald' | 'red'
   excerpt?: string
+}
+
+interface SidebarSection {
+  id: string
+  label: string
+  icon: LucideIcon
+}
+
+type CapabilityStatus = 'available' | 'locked' | 'upcoming'
+
+interface CapabilityItem {
+  title: string
+  description: string
+  icon: LucideIcon
+  status: CapabilityStatus
+  ctaHref?: string
+  ctaLabel?: string
+}
+
+type StatusTone = 'success' | 'error'
+
+interface StatusMessage {
+  tone: StatusTone
+  message: string
 }
 
 const formatDate = (iso: string | null) => {
@@ -323,51 +360,489 @@ const AvatarBubble = ({
 }: {
   name: string
   avatarUrl: string | null
-}) => {
-  const initials = name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('')
+}) => (
+  <span className="relative inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl border-4 border-black bg-[#F6EDE3] text-2xl font-black text-black">
+    {avatarUrl ? (
+      <Image src={avatarUrl} alt={`${name}'s avatar`} fill sizes="64px" className="object-cover" />
+    ) : (
+      <UserRound className="h-8 w-8" aria-hidden="true" />
+    )}
+  </span>
+)
+
+const SidebarAvatar = ({
+  name,
+  avatarUrl,
+}: {
+  name: string
+  avatarUrl: string | null
+}) => (
+  <span className="relative inline-flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border-2 border-black bg-[#F6EDE3] text-xl font-black text-black">
+    {avatarUrl ? (
+      <Image src={avatarUrl} alt={`${name}'s avatar`} fill sizes="48px" className="object-cover" />
+    ) : (
+      <UserRound className="h-6 w-6" aria-hidden="true" />
+    )}
+  </span>
+)
+
+const StatusBadge = ({ status }: { status: CapabilityStatus }) => {
+  if (status === 'available') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border-2 border-emerald-500 bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-700">
+        <CheckCircle2 className="h-3 w-3" aria-hidden="true" /> Enabled
+      </span>
+    )
+  }
+
+  if (status === 'locked') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border-2 border-gray-400 bg-gray-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-gray-600">
+        Locked
+      </span>
+    )
+  }
 
   return (
-    <span className="relative inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl border-4 border-black bg-[#F6EDE3] text-2xl font-black text-black">
-      {avatarUrl ? (
-        <Image src={avatarUrl} alt={`${name}'s avatar`} fill sizes="64px" className="object-cover" />
-      ) : initials ? (
-        initials
-      ) : (
-        <UserRound className="h-8 w-8" aria-hidden="true" />
-      )}
+    <span className="inline-flex items-center gap-1 rounded-full border-2 border-blue-400 bg-blue-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-blue-700">
+      Upcoming
     </span>
   )
 }
 
+const CapabilityCard = ({ title, description, icon: Icon, status, ctaHref, ctaLabel }: CapabilityItem) => (
+  <div className="rounded-3xl border-2 border-black bg-white p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)]">
+    <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start gap-3">
+        <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border-2 border-black bg-[#F5F3FF] text-[#6C63FF]">
+          <Icon className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <div>
+          <p className="text-base font-black text-gray-900">{title}</p>
+          <p className="mt-1 text-sm font-medium text-gray-600">{description}</p>
+        </div>
+      </div>
+      <StatusBadge status={status} />
+    </div>
+    {ctaHref && ctaLabel ? (
+      <Link
+        href={ctaHref}
+        className="mt-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#6C63FF] hover:underline"
+      >
+        {ctaLabel} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+      </Link>
+    ) : null}
+  </div>
+)
+
+const AccountSidebar = ({
+  profile,
+  totals,
+  sections,
+}: {
+  profile: AuthenticatedProfileSummary
+  totals: UserContributionSnapshot['totals']
+  sections: SidebarSection[]
+}) => (
+  <aside className="lg:w-72 xl:w-80">
+    <div className="sticky top-6 space-y-6">
+      <div className="rounded-3xl border-4 border-black bg-white p-5 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.18)]">
+        <div className="flex items-center gap-4">
+          <SidebarAvatar name={profile.displayName} avatarUrl={profile.avatarUrl} />
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-gray-500">Signed in</p>
+            <p className="text-lg font-black text-gray-900">{profile.displayName}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Member since {formatDate(profile.createdAt)}
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 text-center">
+          <div className="rounded-2xl border-2 border-black bg-[#F6EDE3] px-3 py-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Posts</p>
+            <p className="text-xl font-black text-gray-900">{totals.publishedPosts}</p>
+          </div>
+          <div className="rounded-2xl border-2 border-black bg-[#E8F5FF] px-3 py-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Comments</p>
+            <p className="text-xl font-black text-gray-900">{totals.totalComments}</p>
+          </div>
+        </div>
+      </div>
+      <nav className="rounded-3xl border-4 border-black bg-white p-5 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.18)]">
+        <p className="text-xs font-black uppercase tracking-[0.3em] text-gray-500">Workspace</p>
+        <ul className="mt-4 space-y-2">
+          {sections.map((section) => (
+            <li key={section.id}>
+              <a
+                href={`#${section.id}`}
+                className="group flex items-center gap-3 rounded-2xl border-2 border-transparent px-3 py-2 text-sm font-bold text-gray-800 transition hover:border-black hover:bg-[#F5F3FF]"
+              >
+                <section.icon className="h-4 w-4 text-[#6C63FF] transition group-hover:scale-110" aria-hidden="true" />
+                {section.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <div className="rounded-3xl border-4 border-black bg-[#0B0B0F] p-5 text-white shadow-[12px_12px_0px_0px_rgba(0,0,0,0.25)]">
+        <p className="text-sm font-black uppercase tracking-[0.25em] opacity-70">Shortcuts</p>
+        <ul className="mt-4 space-y-3 text-sm font-semibold">
+          <li>
+            <Link href="/blogs" className="inline-flex items-center gap-2 text-[#FFD66B] hover:underline">
+              Browse editorial feed <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+          </li>
+          <li>
+            <Link href="#publishing" className="inline-flex items-center gap-2 text-[#6C63FF] hover:underline">
+              Check drafting stats <Activity className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+          </li>
+          {profile.isAdmin ? (
+            <li>
+              <Link href="/admin" className="inline-flex items-center gap-2 text-[#7CFBFF] hover:underline">
+                Review newsroom queue <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+              </Link>
+            </li>
+          ) : null}
+        </ul>
+      </div>
+    </div>
+  </aside>
+)
+
+const SectionHeader = ({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string
+  title: string
+  description: string
+}) => (
+  <header className="space-y-1">
+    <p className="text-xs font-black uppercase tracking-[0.3em] text-[#6C63FF]">{eyebrow}</p>
+    <h2 className="text-3xl font-black text-gray-900">{title}</h2>
+    <p className="text-sm font-semibold text-gray-600">{description}</p>
+  </header>
+)
+
+const getObjectPathFromPublicUrl = (url: string): string | null => {
+  try {
+    const parsed = new URL(url)
+    const segments = parsed.pathname.split('/')
+    const bucketIndex = segments.findIndex((segment) => segment === 'profile-photos')
+    if (bucketIndex === -1) {
+      return null
+    }
+    return segments.slice(bucketIndex + 1).join('/')
+  } catch (error) {
+    console.error('Failed to derive storage path from url', error)
+    return null
+  }
+}
+
+interface ProfileIdentityManagerProps {
+  profile: AuthenticatedProfileSummary
+  onProfileChange: (patch: Partial<AuthenticatedProfileSummary>) => void
+  onRefreshRequested: () => Promise<void>
+}
+
+const ProfileIdentityManager = ({
+  profile,
+  onProfileChange,
+  onRefreshRequested,
+}: ProfileIdentityManagerProps) => {
+  const supabase = useMemo(() => createBrowserClient(), [])
+  const [displayName, setDisplayName] = useState(profile.displayName)
+  const [isSavingName, setIsSavingName] = useState(false)
+  const [nameStatus, setNameStatus] = useState<StatusMessage | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadStatus, setUploadStatus] = useState<StatusMessage | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(() => {
+    setDisplayName(profile.displayName)
+  }, [profile.displayName])
+
+  const handleNameSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      const trimmed = displayName.trim()
+
+      if (!trimmed) {
+        setNameStatus({ tone: 'error', message: 'Display name cannot be empty.' })
+        return
+      }
+
+      if (trimmed === profile.displayName) {
+        setNameStatus({ tone: 'success', message: 'No changes needed — name already saved.' })
+        return
+      }
+
+      setIsSavingName(true)
+      setNameStatus(null)
+
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ display_name: trimmed })
+          .eq('user_id', profile.userId)
+
+        if (error) {
+          throw error
+        }
+
+        onProfileChange({ displayName: trimmed })
+        await onRefreshRequested()
+        setNameStatus({ tone: 'success', message: 'Display name updated.' })
+      } catch (error) {
+        console.error('Failed to update display name', error)
+        setNameStatus({ tone: 'error', message: 'Unable to update name. Please try again.' })
+      } finally {
+        setIsSavingName(false)
+      }
+    },
+    [displayName, onProfileChange, onRefreshRequested, profile.displayName, profile.userId, supabase],
+  )
+
+  const handleFileChange = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0]
+      if (!file) {
+        return
+      }
+
+      if (!file.type.startsWith('image/')) {
+        setUploadStatus({ tone: 'error', message: 'Please choose an image file (PNG, JPG, or GIF).' })
+        return
+      }
+
+      const maxSize = 5 * 1024 * 1024
+      if (file.size > maxSize) {
+        setUploadStatus({ tone: 'error', message: 'Image is larger than 5MB. Choose a smaller file.' })
+        return
+      }
+
+      setIsUploading(true)
+      setUploadStatus(null)
+
+      try {
+        const extension = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
+        const objectPath = `${profile.userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('profile-photos')
+          .upload(objectPath, file, {
+            cacheControl: '3600',
+            upsert: true,
+            contentType: file.type,
+          })
+
+        if (uploadError) {
+          throw uploadError
+        }
+
+        const previousPath = profile.avatarUrl ? getObjectPathFromPublicUrl(profile.avatarUrl) : null
+        if (previousPath && previousPath !== objectPath) {
+          await supabase.storage.from('profile-photos').remove([previousPath])
+        }
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from('profile-photos').getPublicUrl(objectPath)
+
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ avatar_url: publicUrl })
+          .eq('user_id', profile.userId)
+
+        if (profileError) {
+          throw profileError
+        }
+
+        onProfileChange({ avatarUrl: publicUrl })
+        await onRefreshRequested()
+        setUploadStatus({ tone: 'success', message: 'Profile photo updated.' })
+      } catch (error) {
+        console.error('Failed to upload avatar', error)
+        setUploadStatus({ tone: 'error', message: 'Unable to update profile photo. Please try again.' })
+      } finally {
+        setIsUploading(false)
+        if (event.target) {
+          event.target.value = ''
+        }
+      }
+    },
+    [onProfileChange, onRefreshRequested, profile.avatarUrl, profile.userId, supabase],
+  )
+
+  const handleRemovePhoto = useCallback(async () => {
+    if (!profile.avatarUrl) {
+      return
+    }
+
+    setIsUploading(true)
+    setUploadStatus(null)
+
+    try {
+      const objectPath = getObjectPathFromPublicUrl(profile.avatarUrl)
+      if (objectPath) {
+        await supabase.storage.from('profile-photos').remove([objectPath])
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: null })
+        .eq('user_id', profile.userId)
+
+      if (error) {
+        throw error
+      }
+
+      onProfileChange({ avatarUrl: null })
+      await onRefreshRequested()
+      setUploadStatus({ tone: 'success', message: 'Profile photo removed.' })
+    } catch (error) {
+      console.error('Failed to remove avatar', error)
+      setUploadStatus({ tone: 'error', message: 'Unable to remove profile photo right now.' })
+    } finally {
+      setIsUploading(false)
+    }
+  }, [onProfileChange, onRefreshRequested, profile.avatarUrl, profile.userId, supabase])
+
+  return (
+    <div className="rounded-[32px] border-4 border-black bg-white p-6 shadow-[16px_16px_0px_0px_rgba(0,0,0,0.2)]">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-4">
+          <SidebarAvatar name={profile.displayName} avatarUrl={profile.avatarUrl} />
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-gray-500">Profile identity</p>
+            <p className="text-xl font-black text-gray-900">{profile.displayName}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{profile.email}</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <input
+            ref={fileInputRef}
+            id="profile-avatar-upload"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="inline-flex items-center justify-center gap-2 rounded-md border-2 border-black bg-[#6C63FF] px-4 py-2 text-sm font-black uppercase tracking-wide text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] transition hover:-translate-y-[1px]"
+            disabled={isUploading}
+          >
+            Upload new photo
+          </button>
+          <button
+            type="button"
+            onClick={handleRemovePhoto}
+            className="inline-flex items-center justify-center rounded-md border-2 border-dashed border-black/40 bg-white px-4 py-2 text-sm font-black uppercase tracking-wide text-gray-700 transition hover:border-black"
+            disabled={isUploading || !profile.avatarUrl}
+          >
+            Remove photo
+          </button>
+        </div>
+      </div>
+
+      {uploadStatus ? (
+        <p
+          className={`mt-4 rounded-2xl border-2 px-4 py-2 text-sm font-semibold ${
+            uploadStatus.tone === 'success'
+              ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+              : 'border-red-400 bg-red-50 text-red-700'
+          }`}
+        >
+          {uploadStatus.message}
+        </p>
+      ) : null}
+
+      <form onSubmit={handleNameSubmit} className="mt-6 space-y-3">
+        <label htmlFor="display-name" className="text-xs font-black uppercase tracking-[0.3em] text-gray-500">
+          Display name
+        </label>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          <input
+            id="display-name"
+            name="display-name"
+            value={displayName}
+            onChange={(event) => setDisplayName(event.target.value)}
+            className="w-full rounded-xl border-2 border-black bg-[#F8F7FF] px-4 py-2 text-base font-semibold text-gray-900 focus:border-[#6C63FF] focus:outline-none focus:ring-2 focus:ring-[#B7AEFF]"
+          />
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center rounded-md border-2 border-black bg-[#FFD66B] px-4 py-2 text-sm font-black uppercase tracking-wide text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] transition hover:-translate-y-[1px] disabled:opacity-60"
+            disabled={isSavingName}
+          >
+            Save name
+          </button>
+        </div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          This name appears on your articles and comments.
+        </p>
+        {nameStatus ? (
+          <p
+            className={`rounded-2xl border-2 px-4 py-2 text-sm font-semibold ${
+              nameStatus.tone === 'success'
+                ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                : 'border-red-400 bg-red-50 text-red-700'
+            }`}
+          >
+            {nameStatus.message}
+          </p>
+        ) : null}
+      </form>
+    </div>
+  )
+}
+
 export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelProps) => {
-  const primaryRole = profile.roles.find((role) => role.id === profile.primaryRoleId) ?? profile.roles[0] ?? null
-  const activity = buildActivity(contributions.posts, contributions.comments)
+  const { refresh: refreshAuthenticatedProfile } = useAuthenticatedProfile()
+  const [currentProfile, setCurrentProfile] = useState(profile)
+
+  useEffect(() => {
+    setCurrentProfile(profile)
+  }, [profile])
+
+  const primaryRole = useMemo(
+    () =>
+      currentProfile.roles.find((role) => role.id === currentProfile.primaryRoleId) ??
+      currentProfile.roles[0] ??
+      null,
+    [currentProfile.primaryRoleId, currentProfile.roles],
+  )
+
+  const activity = useMemo(
+    () => buildActivity(contributions.posts, contributions.comments),
+    [contributions.comments, contributions.posts],
+  )
 
   const requiredRules: RuleItem[] = [
     {
       title: 'Verified email address',
-      description: profile.emailConfirmedAt
-        ? `Verified on ${formatDate(profile.emailConfirmedAt)}`
+      description: currentProfile.emailConfirmedAt
+        ? `Verified on ${formatDate(currentProfile.emailConfirmedAt)}`
         : 'Confirm your email to secure account recovery.',
-      status: profile.emailConfirmedAt ? 'complete' : 'pending',
+      status: currentProfile.emailConfirmedAt ? 'complete' : 'pending',
     },
     {
       title: 'Recognizable display name',
-      description: `Visible to the community as ${profile.displayName}.`,
-      status: profile.displayName ? 'complete' : 'pending',
+      description: `Visible to the community as ${currentProfile.displayName}.`,
+      status: currentProfile.displayName ? 'complete' : 'pending',
     },
   ]
 
   const recommendedRules: RuleItem[] = [
     {
       title: 'Profile photo',
-      description: profile.avatarUrl ? 'Looking sharp with a custom avatar.' : 'Upload a photo to personalize your presence.',
-      status: profile.avatarUrl ? 'complete' : 'pending',
+      description: currentProfile.avatarUrl
+        ? 'Looking sharp with a custom avatar.'
+        : 'Upload a photo to personalize your presence.',
+      status: currentProfile.avatarUrl ? 'complete' : 'pending',
     },
     {
       title: 'Primary role selected',
@@ -396,7 +871,9 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
   if (contributions.totals.pendingComments > 0) {
     attentionItems.push({
       title: 'Comments awaiting review',
-      description: `${contributions.totals.pendingComments} comment${contributions.totals.pendingComments === 1 ? '' : 's'} pending moderator approval.`,
+      description: `${contributions.totals.pendingComments} comment${
+        contributions.totals.pendingComments === 1 ? '' : 's'
+      } pending moderator approval.`,
       status: 'attention',
     })
   }
@@ -404,7 +881,9 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
   if (contributions.totals.rejectedComments > 0) {
     attentionItems.push({
       title: 'Rejected feedback',
-      description: `${contributions.totals.rejectedComments} comment${contributions.totals.rejectedComments === 1 ? '' : 's'} need revision for compliance.`,
+      description: `${contributions.totals.rejectedComments} comment${
+        contributions.totals.rejectedComments === 1 ? '' : 's'
+      } need revision for compliance.`,
       status: 'attention',
     })
   }
@@ -417,331 +896,492 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
     })
   }
 
-  const heroGreeting = `Bonjour ${profile.displayName.split(' ')[0] ?? profile.displayName},`;
+  const navigationSections: SidebarSection[] = [
+    { id: 'overview', label: 'Overview', icon: Compass },
+    { id: 'identity', label: 'Identity & access', icon: IdCard },
+    { id: 'publishing', label: 'Publishing', icon: PenSquare },
+    { id: 'community', label: 'Community impact', icon: UsersRound },
+    { id: 'capabilities', label: 'Capabilities', icon: ShieldCheck },
+    { id: 'rules', label: 'House rules', icon: Scale },
+    { id: 'resources', label: 'Resources', icon: NotebookPen },
+  ]
+
+  const capabilities: CapabilityItem[] = useMemo(() => {
+    const items: CapabilityItem[] = [
+      {
+        title: 'Publish long-form stories',
+        description: 'Draft, schedule, and share articles that appear in the main Syntax & Sips feed.',
+        icon: FileText,
+        status: 'available',
+        ctaHref: '#publishing',
+        ctaLabel: 'Review your drafts',
+      },
+      {
+        title: 'Join community discussions',
+        description: 'Comment on posts, reply to peers, and keep the threads constructive.',
+        icon: MessageCircle,
+        status: 'available',
+        ctaHref: '#community',
+        ctaLabel: 'Open community timeline',
+      },
+      {
+        title: 'Curate personal reading list',
+        description: 'Bookmark tutorials, podcasts, and changelog updates for future study sessions.',
+        icon: NotebookPen,
+        status: 'upcoming',
+      },
+      {
+        title: 'Analytics snapshot',
+        description: 'Track read-through rates, referral sources, and top-performing headlines.',
+        icon: Activity,
+        status: 'upcoming',
+      },
+    ]
+
+    if (currentProfile.isAdmin) {
+      items.push(
+        {
+          title: 'Moderate newsroom queue',
+          description: 'Approve articles, review comments, and update contributor roles.',
+          icon: ShieldCheck,
+          status: 'available',
+          ctaHref: '/admin',
+          ctaLabel: 'Launch admin tools',
+        },
+        {
+          title: 'Access compliance reports',
+          description: 'Audit contribution trends, flag policy violations, and export reports.',
+          icon: Scale,
+          status: 'available',
+          ctaHref: '/admin?tab=reports',
+          ctaLabel: 'View reports',
+        },
+      )
+    }
+
+    return items
+  }, [currentProfile.isAdmin])
+
+  const handleProfileChange = useCallback(
+    (patch: Partial<AuthenticatedProfileSummary>) => {
+      setCurrentProfile((previous) => ({ ...previous, ...patch }))
+    },
+    [],
+  )
+
+  const heroGreeting = `Bonjour ${
+    currentProfile.displayName.split(' ')[0] ?? currentProfile.displayName
+  },`
 
   return (
     <div className="neo-brutalism min-h-screen bg-gradient-to-br from-[#FFF5F1] via-[#F8F0FF] to-[#E3F2FF] px-4 py-10">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8">
-        <section className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-          <div className="rounded-[32px] border-4 border-black bg-white p-8 shadow-[16px_16px_0px_0px_rgba(0,0,0,0.2)]">
-            <div className="flex flex-wrap items-start justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <AvatarBubble name={profile.displayName} avatarUrl={profile.avatarUrl} />
-                <div>
-                  <p className="text-sm font-black uppercase tracking-[0.35em] text-gray-500">Profile dashboard</p>
-                  <h1 className="mt-2 text-3xl font-black leading-tight text-gray-900">
-                    {heroGreeting}
-                  </h1>
-                  <p className="mt-1 text-base font-semibold text-gray-600">
-                    You are steering your Syntax &amp; Sips journey like a pro.
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 lg:flex-row">
+        <AccountSidebar profile={currentProfile} totals={contributions.totals} sections={navigationSections} />
+
+        <div className="flex-1 space-y-16">
+          <section id="overview" className="scroll-mt-28 space-y-6">
+            <SectionHeader
+              eyebrow="Overview"
+              title="Your Syntax & Sips HQ"
+              description="A personalized cockpit for tracking contributions, audience resonance, and account health."
+            />
+
+            <div className="rounded-[32px] border-4 border-black bg-white p-8 shadow-[16px_16px_0px_0px_rgba(0,0,0,0.2)]">
+              <div className="flex flex-wrap items-start justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <AvatarBubble name={currentProfile.displayName} avatarUrl={currentProfile.avatarUrl} />
+                  <div>
+                    <p className="text-sm font-black uppercase tracking-[0.35em] text-gray-500">Profile dashboard</p>
+                    <h1 className="mt-2 text-3xl font-black leading-tight text-gray-900">{heroGreeting}</h1>
+                    <p className="mt-1 text-base font-semibold text-gray-600">
+                      You are steering your Syntax &amp; Sips journey like a pro.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <span className="inline-flex items-center gap-2 rounded-full border-2 border-black bg-[#FFD66B] px-4 py-1 text-xs font-black uppercase tracking-wide text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)]">
+                    <Sparkles className="h-4 w-4" aria-hidden="true" />
+                    {primaryRole ? primaryRole.name : 'Community member'}
+                  </span>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Member since {formatDate(currentProfile.createdAt)}
+                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Last active {formatRelative(currentProfile.lastSignInAt)}
                   </p>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-2">
-                <span className="inline-flex items-center gap-2 rounded-full border-2 border-black bg-[#FFD66B] px-4 py-1 text-xs font-black uppercase tracking-wide text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)]">
-                  <Sparkles className="h-4 w-4" aria-hidden="true" />
-                  {primaryRole ? primaryRole.name : 'Community member'}
-                </span>
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Member since {formatDate(profile.createdAt)}
-                </p>
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Last active {formatRelative(profile.lastSignInAt)}
-                </p>
+
+              <div className="mt-8 grid gap-4 md:grid-cols-3">
+                <div className="rounded-2xl border-2 border-black bg-[#6C63FF] p-4 text-white shadow-[8px_8px_0px_0px_rgba(108,99,255,0.35)]">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] opacity-80">Account email</p>
+                  <p className="mt-2 break-all text-lg font-bold">{currentProfile.email}</p>
+                  <p className="mt-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
+                    <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                    Session persisted until you sign out
+                  </p>
+                </div>
+                <div className="rounded-2xl border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.18)]">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">Roles</p>
+                  <ul className="mt-3 space-y-2 text-sm font-semibold text-gray-700">
+                    {currentProfile.roles.length > 0 ? (
+                      currentProfile.roles.map((role) => (
+                        <li
+                          key={role.id}
+                          className="inline-flex items-center gap-2 rounded-full border border-black/20 bg-gray-50 px-3 py-1"
+                        >
+                          <ShieldCheck className="h-3.5 w-3.5 text-[#6C63FF]" aria-hidden="true" />
+                          {role.name}
+                        </li>
+                      ))
+                    ) : (
+                      <li>No roles assigned yet.</li>
+                    )}
+                  </ul>
+                </div>
+                <div className="rounded-2xl border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.18)]">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">Most recent activity</p>
+                  {activity[0] ? (
+                    <div className="mt-3 space-y-1">
+                      <p className="text-sm font-bold text-gray-900">{activity[0].title}</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        {activity[0].description}
+                      </p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        {formatRelative(activity[0].timestamp)}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="mt-3 text-sm font-semibold text-gray-600">
+                      Start contributing to see your timeline fill up.
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              <div className="rounded-2xl border-2 border-black bg-[#6C63FF] p-4 text-white shadow-[8px_8px_0px_0px_rgba(108,99,255,0.35)]">
-                <p className="text-xs font-black uppercase tracking-[0.2em] opacity-80">Account email</p>
-                <p className="mt-2 text-lg font-bold break-all">{profile.email}</p>
-                <p className="mt-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
-                  <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                  Session persisted until you sign out
-                </p>
-              </div>
-              <div className="rounded-2xl border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.18)]">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">Roles</p>
-                <ul className="mt-3 space-y-2 text-sm font-semibold text-gray-700">
-                  {profile.roles.length > 0 ? (
-                    profile.roles.map((role) => (
-                      <li
-                        key={role.id}
-                        className="inline-flex items-center gap-2 rounded-full border border-black/20 bg-gray-50 px-3 py-1"
-                      >
-                        <ShieldCheck className="h-3.5 w-3.5 text-[#6C63FF]" aria-hidden="true" />
-                        {role.name}
-                      </li>
-                    ))
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <StatCard
+                label="Published pieces"
+                value={contributions.totals.publishedPosts}
+                accent="rgba(108, 99, 255, 0.25)"
+                helper="Stories visible to the community"
+              />
+              <StatCard
+                label="Drafts in progress"
+                value={contributions.totals.draftPosts}
+                accent="rgba(255, 214, 107, 0.45)"
+                helper="Ideas waiting for the final polish"
+              />
+              <StatCard
+                label="Total reads"
+                value={contributions.totals.totalViews}
+                accent="rgba(124, 251, 255, 0.35)"
+                helper="Lifetime audience views"
+              />
+              <StatCard
+                label="Community replies"
+                value={contributions.totals.totalComments}
+                accent="rgba(255, 82, 82, 0.35)"
+                helper="Conversations you have sparked"
+              />
+            </div>
+          </section>
+
+          <section id="identity" className="scroll-mt-28 space-y-6">
+            <SectionHeader
+              eyebrow="Identity"
+              title="Manage profile identity and security"
+              description="Refresh your public details, keep your avatar current, and review how your account stays signed in."
+            />
+
+            <ProfileIdentityManager
+              profile={currentProfile}
+              onProfileChange={handleProfileChange}
+              onRefreshRequested={refreshAuthenticatedProfile}
+            />
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="rounded-[28px] border-4 border-black bg-white p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.18)]">
+                <h3 className="text-xl font-black text-gray-900">Account access</h3>
+                <p className="mt-2 text-sm font-medium text-gray-600">
+                  You are signed in with a community account.
+                  {currentProfile.isAdmin ? (
+                    <span className="font-semibold text-[#6C63FF]">
+                      {' '}
+                      You also have admin permissions with newsroom oversight.
+                    </span>
                   ) : (
-                    <li>No roles assigned yet.</li>
+                    <span> Contribute consistently to unlock elevated privileges.</span>
                   )}
+                </p>
+                <p className="mt-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                  Session stays active until you sign out. Close your browser without worry—your reading queue and drafts follow you.
+                </p>
+                {currentProfile.isAdmin ? (
+                  <Link
+                    href="/admin"
+                    className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-[#6C63FF] hover:underline"
+                  >
+                    Go to admin console <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </Link>
+                ) : null}
+              </div>
+              <div className="rounded-[28px] border-4 border-black bg-white p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.18)]">
+                <h3 className="text-xl font-black text-gray-900">Security log</h3>
+                <ul className="mt-3 space-y-3 text-sm font-semibold text-gray-600">
+                  <li className="flex items-center justify-between">
+                    <span>Last sign in</span>
+                    <span>{formatDate(currentProfile.lastSignInAt)}</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>Email confirmed</span>
+                    <span>{currentProfile.emailConfirmedAt ? formatDate(currentProfile.emailConfirmedAt) : 'Pending'}</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>Account created</span>
+                    <span>{formatDate(currentProfile.createdAt)}</span>
+                  </li>
                 </ul>
               </div>
-              <div className="rounded-2xl border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.18)]">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">Most recent activity</p>
-                {activity[0] ? (
-                  <div className="mt-3 space-y-1">
-                    <p className="text-sm font-bold text-gray-900">{activity[0].title}</p>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      {activity[0].description}
-                    </p>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      {formatRelative(activity[0].timestamp)}
-                    </p>
-                  </div>
+            </div>
+          </section>
+
+          <section id="publishing" className="scroll-mt-28 space-y-6">
+            <SectionHeader
+              eyebrow="Publishing"
+              title="Contribution velocity"
+              description="Monitor how your stories are performing, keep drafts on track, and plan upcoming releases."
+            />
+
+            {contributions.posts.length > 0 ? (
+              <div className="grid gap-4 lg:grid-cols-2">
+                {contributions.posts.slice(0, 6).map((post) => (
+                  <ContributionCard key={post.id} post={post} />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-white p-6 text-sm font-semibold text-gray-600">
+                You have not published anything yet. Spin up a draft and share your expertise with the community.
+              </div>
+            )}
+          </section>
+
+          <section id="community" className="scroll-mt-28 space-y-6">
+            <SectionHeader
+              eyebrow="Community"
+              title="Engagement timeline"
+              description="Keep tabs on discussions you have started and how moderators responded to your contributions."
+            />
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="space-y-4">
+                <h3 className="text-lg font-black text-gray-900">Recent comments</h3>
+                {contributions.comments.length > 0 ? (
+                  contributions.comments.slice(0, 5).map((comment) => (
+                    <CommentCard key={comment.id} comment={comment} />
+                  ))
                 ) : (
-                  <p className="mt-3 text-sm font-semibold text-gray-600">Start contributing to see your timeline fill up.</p>
+                  <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-white p-6 text-sm font-semibold text-gray-600">
+                    Join the discussion on a post to see your contributions here.
+                  </div>
                 )}
               </div>
-            </div>
-          </div>
-
-          <aside className="space-y-6">
-            <div className="rounded-[28px] border-4 border-black bg-white p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.18)]">
-              <h2 className="text-xl font-black text-gray-900">Account access</h2>
-              <p className="mt-2 text-sm font-medium text-gray-600">
-                You are signed in with a community account.
-                {profile.isAdmin ? (
-                  <span className="font-semibold text-[#6C63FF]"> You also have admin permissions with newsroom oversight.</span>
-                ) : (
-                  <span> Contribute consistently to unlock elevated privileges.</span>
-                )}
-              </p>
-              <p className="mt-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4 text-xs font-semibold uppercase tracking-wide text-gray-600">
-                Session stays active until you sign out. Close your browser without worry—your reading queue and drafts follow you.
-              </p>
-              {profile.isAdmin ? (
-                <Link
-                  href="/admin"
-                  className="mt-4 inline-flex items-center gap-2 rounded-full border-2 border-black bg-black px-4 py-2 text-sm font-black uppercase tracking-wide text-white shadow-[6px_6px_0px_0px_rgba(0,0,0,0.18)] transition hover:-translate-y-[1px]"
-                >
-                  Enter admin control <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              ) : (
-                <Link
-                  href="/admin/login"
-                  className="mt-4 inline-flex items-center gap-2 rounded-full border-2 border-black bg-white px-4 py-2 text-sm font-black uppercase tracking-wide text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,0.18)] transition hover:-translate-y-[1px]"
-                >
-                  Admins sign in here <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              )}
-            </div>
-
-            {profile.isAdmin ? (
-              <div className="rounded-[28px] border-4 border-black bg-[#E3F2FF] p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.18)]">
-                <div className="flex items-start gap-3">
-                  <ShieldCheck className="h-8 w-8 text-[#1E88E5]" aria-hidden="true" />
-                  <div>
-                    <h3 className="text-lg font-black text-gray-900">Editorial oversight</h3>
-                    <p className="mt-1 text-sm font-medium text-gray-700">
-                      Track contributor momentum, approve comments, and keep the newsroom tidy from the admin console.
-                    </p>
-                    <Link
-                      href="/admin/users"
-                      className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-[#1E88E5] hover:underline"
-                    >
-                      Review community contributions <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-          </aside>
-        </section>
-
-        <section id="contributions" className="space-y-6">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-2xl font-black text-gray-900">Your contribution cockpit</h2>
-              <p className="text-sm font-semibold text-gray-600">
-                Monitor story output, audience engagement, and community conversations at a glance.
-              </p>
-            </div>
-            <span className="inline-flex items-center gap-2 rounded-full border-2 border-black bg-white px-4 py-2 text-xs font-black uppercase tracking-wide text-gray-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)]">
-              <Activity className="h-4 w-4" aria-hidden="true" />
-              Live sync enabled
-            </span>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <StatCard
-              label="Published posts"
-              value={contributions.totals.publishedPosts}
-              helper="Live for the community to enjoy"
-              accent="rgba(108,99,255,0.25)"
-            />
-            <StatCard
-              label="Drafts in motion"
-              value={contributions.totals.draftPosts}
-              helper="Polish and publish when ready"
-              accent="rgba(255,82,82,0.25)"
-            />
-            <StatCard
-              label="Total comments"
-              value={contributions.totals.totalComments}
-              helper="Conversations you sparked"
-              accent="rgba(255,214,107,0.35)"
-            />
-            <StatCard
-              label="Total reads"
-              value={contributions.totals.totalViews}
-              helper="Cumulative article views"
-              accent="rgba(76,175,80,0.25)"
-            />
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="space-y-4">
-              <h3 className="flex items-center gap-2 text-lg font-black text-gray-900">
-                <FileText className="h-5 w-5 text-[#6C63FF]" aria-hidden="true" />
-                Featured drafts &amp; publications
-              </h3>
-              {contributions.posts.length > 0 ? (
-                contributions.posts.slice(0, 3).map((post) => <ContributionCard key={post.id} post={post} />)
-              ) : (
-                <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-white p-6 text-sm font-semibold text-gray-600">
-                  No posts yet. Start a new story from the admin console or request author access.
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="flex items-center gap-2 text-lg font-black text-gray-900">
-                <MessageCircle className="h-5 w-5 text-[#FF5252]" aria-hidden="true" />
-                Community conversations
-              </h3>
-              {contributions.comments.length > 0 ? (
-                contributions.comments.slice(0, 3).map((comment) => <CommentCard key={comment.id} comment={comment} />)
-              ) : (
-                <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-white p-6 text-sm font-semibold text-gray-600">
-                  Jump into the comments to cheer on fellow makers or ask thoughtful questions.
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-
-        <section className="space-y-6">
-          <h2 className="text-2xl font-black text-gray-900">Live activity timeline</h2>
-          {activity.length > 0 ? (
-            <ol className="space-y-4">
-              {activity.map((entry) => (
-                <li
-                  key={entry.id}
-                  className="rounded-2xl border-2 border-black bg-white p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.15)]"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <span
-                        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
-                          entry.badgeTone === 'emerald'
-                            ? 'border-emerald-500 bg-emerald-100 text-emerald-700'
-                            : entry.badgeTone === 'orange'
-                            ? 'border-orange-500 bg-orange-100 text-orange-700'
-                            : entry.badgeTone === 'blue'
-                            ? 'border-blue-500 bg-blue-100 text-blue-700'
-                            : entry.badgeTone === 'red'
-                            ? 'border-red-500 bg-red-100 text-red-700'
-                            : 'border-purple-500 bg-purple-100 text-purple-700'
-                        }`}
+              <div className="space-y-4">
+                <h3 className="text-lg font-black text-gray-900">Activity timeline</h3>
+                {activity.length > 0 ? (
+                  <ol className="space-y-4">
+                    {activity.map((entry) => (
+                      <li
+                        key={entry.id}
+                        className="rounded-2xl border-2 border-black bg-white p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.15)]"
                       >
-                        {entry.type === 'post' ? (
-                          <FileText className="h-3.5 w-3.5" aria-hidden="true" />
-                        ) : (
-                          <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
-                        )}
-                        {entry.statusLabel}
-                      </span>
-                      <p className="text-lg font-black text-gray-900">{entry.title}</p>
-                      <p className="text-sm font-semibold text-gray-600">{entry.description}</p>
-                      {entry.excerpt ? (
-                        <p className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-3 text-sm font-medium text-gray-700">
-                          {entry.excerpt}
-                        </p>
-                      ) : null}
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        {formatDate(entry.timestamp)}
-                      </p>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        {formatRelative(entry.timestamp)}
-                      </p>
-                      {entry.href ? (
-                        <Link
-                          href={entry.href}
-                          className="mt-3 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#6C63FF] hover:underline"
-                        >
-                          Jump to detail <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                        </Link>
-                      ) : null}
-                    </div>
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <span
+                              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
+                                entry.badgeTone === 'emerald'
+                                  ? 'border-emerald-500 bg-emerald-100 text-emerald-700'
+                                  : entry.badgeTone === 'orange'
+                                  ? 'border-orange-500 bg-orange-100 text-orange-700'
+                                  : entry.badgeTone === 'blue'
+                                  ? 'border-blue-500 bg-blue-100 text-blue-700'
+                                  : entry.badgeTone === 'red'
+                                  ? 'border-red-500 bg-red-100 text-red-700'
+                                  : 'border-purple-500 bg-purple-100 text-purple-700'
+                              }`}
+                            >
+                              {entry.type === 'post' ? (
+                                <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+                              ) : (
+                                <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                              )}
+                              {entry.statusLabel}
+                            </span>
+                            <p className="text-lg font-black text-gray-900">{entry.title}</p>
+                            <p className="text-sm font-semibold text-gray-600">{entry.description}</p>
+                            {entry.excerpt ? (
+                              <p className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-3 text-sm font-medium text-gray-700">
+                                {entry.excerpt}
+                              </p>
+                            ) : null}
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                              {formatDate(entry.timestamp)}
+                            </p>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                              {formatRelative(entry.timestamp)}
+                            </p>
+                            {entry.href ? (
+                              <Link
+                                href={entry.href}
+                                className="mt-3 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#6C63FF] hover:underline"
+                              >
+                                Jump to detail <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                              </Link>
+                            ) : null}
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-white p-6 text-sm font-semibold text-gray-600">
+                    Your activity trail will appear here once you publish articles or join discussions.
                   </div>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-white p-6 text-sm font-semibold text-gray-600">
-              Your activity trail will appear here once you publish articles or join discussions.
+                )}
+              </div>
             </div>
-          )}
-        </section>
+          </section>
 
-        <section className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-black text-gray-900">House rules &amp; benefits</h2>
-            <p className="text-sm font-semibold text-gray-600">
-              Keep these essentials, recommendations, and perks in sight to stay in good standing and maximize your membership.
-            </p>
-          </div>
+          <section id="capabilities" className="scroll-mt-28 space-y-6">
+            <SectionHeader
+              eyebrow="Capabilities"
+              title="What you can do inside Syntax & Sips"
+              description="A quick reference of powers already unlocked and features coming soon for your membership tier."
+            />
 
-          <div className="grid gap-6 lg:grid-cols-4">
-            <div className="space-y-3">
-              <h3 className="flex items-center gap-2 text-lg font-black text-gray-900">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600" aria-hidden="true" />
-                Required
-              </h3>
-              {requiredRules.map((rule) => (
-                <RuleCard key={rule.title} {...rule} />
+            <div className="grid gap-4 md:grid-cols-2">
+              {capabilities.map((capability) => (
+                <CapabilityCard key={capability.title} {...capability} />
               ))}
             </div>
+          </section>
 
-            <div className="space-y-3">
-              <h3 className="flex items-center gap-2 text-lg font-black text-gray-900">
-                <Sparkles className="h-5 w-5 text-[#6C63FF]" aria-hidden="true" />
-                Recommended
-              </h3>
-              {recommendedRules.map((rule) => (
-                <RuleCard key={rule.title} {...rule} />
-              ))}
-            </div>
+          <section id="rules" className="scroll-mt-28 space-y-6">
+            <SectionHeader
+              eyebrow="Guidelines"
+              title="House rules & benefits"
+              description="Keep these essentials, recommendations, and perks in sight to stay in good standing and maximize your membership."
+            />
 
-            <div className="space-y-3">
-              <h3 className="flex items-center gap-2 text-lg font-black text-gray-900">
-                <Award className="h-5 w-5 text-[#FF8A65]" aria-hidden="true" />
-                Complimentary perks
-              </h3>
-              {complimentaryBenefits.map((rule) => (
-                <RuleCard key={rule.title} {...rule} />
-              ))}
-            </div>
+            <div className="grid gap-6 lg:grid-cols-4">
+              <div className="space-y-3">
+                <h3 className="flex items-center gap-2 text-lg font-black text-gray-900">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600" aria-hidden="true" />
+                  Required
+                </h3>
+                {requiredRules.map((rule) => (
+                  <RuleCard key={rule.title} {...rule} />
+                ))}
+              </div>
 
-            <div className="space-y-3">
-              <h3 className="flex items-center gap-2 text-lg font-black text-gray-900">
-                <AlertTriangle className="h-5 w-5 text-red-500" aria-hidden="true" />
-                Needs attention
-              </h3>
-              {attentionItems.length > 0 ? (
-                attentionItems.map((rule) => <RuleCard key={rule.title} {...rule} />)
-              ) : (
-                <div className="rounded-2xl border-2 border-black bg-white p-4 text-sm font-semibold text-gray-600 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.12)]">
-                  All clear! Keep up the excellent community etiquette.
-                </div>
-              )}
+              <div className="space-y-3">
+                <h3 className="flex items-center gap-2 text-lg font-black text-gray-900">
+                  <Sparkles className="h-5 w-5 text-[#6C63FF]" aria-hidden="true" />
+                  Recommended
+                </h3>
+                {recommendedRules.map((rule) => (
+                  <RuleCard key={rule.title} {...rule} />
+                ))}
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="flex items-center gap-2 text-lg font-black text-gray-900">
+                  <Award className="h-5 w-5 text-[#FF8A65]" aria-hidden="true" />
+                  Complimentary perks
+                </h3>
+                {complimentaryBenefits.map((rule) => (
+                  <RuleCard key={rule.title} {...rule} />
+                ))}
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="flex items-center gap-2 text-lg font-black text-gray-900">
+                  <AlertTriangle className="h-5 w-5 text-red-500" aria-hidden="true" />
+                  Needs attention
+                </h3>
+                {attentionItems.length > 0 ? (
+                  attentionItems.map((rule) => <RuleCard key={rule.title} {...rule} />)
+                ) : (
+                  <div className="rounded-2xl border-2 border-black bg-white p-4 text-sm font-semibold text-gray-600 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.12)]">
+                    All clear! Keep up the excellent community etiquette.
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+
+          <section id="resources" className="scroll-mt-28 space-y-6">
+            <SectionHeader
+              eyebrow="Support"
+              title="Resources & help desk"
+              description="Need a refresher on guidelines or a human to chat with? Start here to find the right channel."
+            />
+
+            <div className="grid gap-4 lg:grid-cols-3">
+              <div className="rounded-3xl border-2 border-black bg-white p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)]">
+                <h3 className="flex items-center gap-2 text-lg font-black text-gray-900">
+                  <NotebookPen className="h-5 w-5 text-[#6C63FF]" aria-hidden="true" />
+                  Contributor playbook
+                </h3>
+                <p className="mt-2 text-sm font-medium text-gray-600">
+                  Review formatting expectations, tone guidance, and examples of exceptional submissions.
+                </p>
+                <Link
+                  href="/resources"
+                  className="mt-3 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#6C63FF] hover:underline"
+                >
+                  Browse resources <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              </div>
+
+              <div className="rounded-3xl border-2 border-black bg-white p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)]">
+                <h3 className="flex items-center gap-2 text-lg font-black text-gray-900">
+                  <LifeBuoy className="h-5 w-5 text-[#FF5252]" aria-hidden="true" />
+                  Contact the editors
+                </h3>
+                <p className="mt-2 text-sm font-medium text-gray-600">
+                  Need feedback on a draft or help recovering an account? Reach out and we will respond quickly.
+                </p>
+                <Link
+                  href="mailto:editors@syntaxandsips.dev"
+                  className="mt-3 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#FF5252] hover:underline"
+                >
+                  Email editorial desk <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              </div>
+
+              <div className="rounded-3xl border-2 border-black bg-white p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)]">
+                <h3 className="flex items-center gap-2 text-lg font-black text-gray-900">
+                  <UsersRound className="h-5 w-5 text-[#FFD66B]" aria-hidden="true" />
+                  Admin insights
+                </h3>
+                <p className="mt-2 text-sm font-medium text-gray-600">
+                  Admins can review member contributions, flag policy violations, and assign new privileges.
+                </p>
+                <Link
+                  href={currentProfile.isAdmin ? '/admin' : '#community'}
+                  className="mt-3 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#FFD66B] hover:underline"
+                >
+                  {currentProfile.isAdmin ? 'Open moderation tools' : 'See how you contribute'}{' '}
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   )

@@ -157,13 +157,6 @@ interface ProfileShortcutProps {
 }
 
 const ProfileShortcut = ({ profile }: ProfileShortcutProps) => {
-  const initials = profile.displayName
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('')
-
   return (
     <Link
       href="/account"
@@ -178,8 +171,6 @@ const ProfileShortcut = ({ profile }: ProfileShortcutProps) => {
             sizes="40px"
             className="object-cover"
           />
-        ) : initials ? (
-          initials
         ) : (
           <UserRound className="h-5 w-5" aria-hidden="true" />
         )}

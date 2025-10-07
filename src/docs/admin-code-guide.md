@@ -1,24 +1,47 @@
-# Code Block Guide for Admin Panel
+# Admin Code Block Authoring Guide
 
-This guide explains how to add code blocks with syntax highlighting and language selection tabs in the admin panel's blog post editor.
+Crafting polished, trustworthy technical content starts with well-structured code examples. This guide walks you through every tool available in the Syntax Blogs admin editor so you can publish posts that look as good as they read.
 
-## Basic Code Blocks
+> [!TIP]
+> Bookmark this page. It doubles as both an onboarding checklist for new authors and a reference for experienced editors who need a refresher.
 
-When writing your blog post in the admin panel, you can add code blocks using Markdown syntax. Here's how:
+## At a Glance
 
-1. In the "Content (Markdown)" field of the post form, use triple backticks (```) followed by the language name to create a code block.
+| Task | Where to Configure | Key Reminder |
+| --- | --- | --- |
+| Insert a single-language snippet | **Content (Markdown)** field | Wrap code in triple backticks and name the language. |
+| Showcase equivalent code in multiple languages | `{:code-block}` container | Provide a language label before each snippet. |
+| Validate formatting | Post preview panel | Confirm the copy button and tab switcher render as expected. |
 
-Example:
+## Authoring Workflow
 
-```
+1. **Draft or paste your article** into the "Content (Markdown)" field inside the admin panel.
+2. **Enhance the narrative** with code samples using the patterns below.
+3. **Save the draft** to trigger the live preview, verifying that tabs, highlighting, and copy buttons are present.
+4. **Publish with confidence** once the rendered result mirrors the examples in this guide.
+
+> [!IMPORTANT]
+> The preview mirrors production styling. If something looks wrong here, it will also look wrong on the public site—always troubleshoot before publishing.
+
+## Single-Language Code Blocks
+
+When you only need one language, stick with classic fenced code blocks:
+
+1. Start with three backticks (```) followed immediately by the language name.
+2. Paste or type your code.
+3. Close the block with three backticks on a new line.
+
+**Markdown input**
+
+````markdown
 ```javascript
 function helloWorld() {
   console.log("Hello, world!");
 }
 ```
-```
+````
 
-This will render on the blog page as:
+**Rendered output**
 
 ```javascript
 function helloWorld() {
@@ -26,17 +49,15 @@ function helloWorld() {
 }
 ```
 
-With syntax highlighting for JavaScript and a copy button.
+Syntax highlighting and the copy-to-clipboard button are automatically applied when the language identifier is supplied.
 
-## Multi-Language Code Blocks
+## Multi-Language Code Tabs
 
-Our blog platform supports showing the same code example in multiple programming languages with a tabbed interface. Here's how to create them:
+Syntax Blogs can present the same example in multiple languages inside a single, tabbed component—perfect for framework comparisons and polyglot tutorials.
 
-1. Use the special syntax with `{:code-block}` tags and language identifiers.
+Follow this pattern:
 
-Example:
-
-```
+````markdown
 {:code-block}
 {:javascript}
 function calculateArea(radius) {
@@ -51,47 +72,52 @@ public double calculateArea(double radius) {
     return Math.PI * radius * radius;
 }
 {:code-block}
-```
+````
 
-This will create a tabbed interface where readers can switch between JavaScript, Python, and Java implementations.
+Each `{:language}` tag introduces a new tab. The surrounding `{:code-block}` markers open and close the tabbed component.
 
-## Supported Languages
+> [!NOTE]
+> The tab order follows the order of the language declarations. Lead with the language most relevant to your article’s primary audience.
 
-The following languages are supported for syntax highlighting:
+## Supported Language Identifiers
 
-- javascript (js)
-- typescript (ts)
-- python (py)
-- java
-- c
-- cpp (c++)
-- csharp (c#)
-- go
-- rust
-- ruby
-- php
-- swift
-- kotlin
-- html
-- css
-- json
-- yaml
-- bash (shell)
-- sql
+Use the identifiers exactly as listed to guarantee proper syntax highlighting and iconography.
 
-## Tips for Better Code Blocks
+| Language | Identifier(s) |
+| --- | --- |
+| Bash / Shell | `bash`, `shell` |
+| C | `c` |
+| C++ | `cpp`, `c++` |
+| C# | `csharp`, `c#` |
+| CSS | `css` |
+| Go | `go` |
+| HTML | `html` |
+| Java | `java` |
+| JavaScript | `javascript`, `js` |
+| JSON | `json` |
+| Kotlin | `kotlin` |
+| PHP | `php` |
+| Python | `python`, `py` |
+| Ruby | `ruby` |
+| Rust | `rust` |
+| SQL | `sql` |
+| Swift | `swift` |
+| TypeScript | `typescript`, `ts` |
+| YAML | `yaml` |
 
-1. **Always specify the language** - This ensures proper syntax highlighting.
-2. **Use consistent indentation** - This makes your code more readable.
-3. **Keep examples concise** - Focus on the specific concept you're explaining.
-4. **Add comments** - Explain complex parts of your code with comments.
-5. **Test your code** - Ensure the code examples actually work before publishing.
+## Presentation Best Practices
 
-## Example Blog Post with Code
+- **Name every block.** Unguarded triple backticks render plain text and disable copy buttons.
+- **Keep it scannable.** Short snippets communicate concepts faster—link to a repo for full scripts.
+- **Show, then tell.** Surround code with context that explains why the snippet matters.
+- **Comment the tricky parts.** Inline comments prevent reader confusion and reduce support requests.
+- **Test before publishing.** Broken samples undermine trust; run them locally first.
 
-Here's a complete example of a blog post with various code blocks:
+## End-to-End Example
 
-```markdown
+Need inspiration? This template demonstrates how a rich tutorial should be structured.
+
+````markdown
 # Understanding Async/Await in Different Languages
 
 Modern programming languages provide different ways to handle asynchronous operations. Let's explore how async/await works across languages.
@@ -141,8 +167,6 @@ asyncio.run(main())
 
 ## Comparing Implementations
 
-Let's compare how to implement a simple delay function across languages:
-
 {:code-block}
 {:javascript}
 function delay(ms) {
@@ -174,7 +198,7 @@ public class Program
     {
         await Task.Delay(milliseconds);
     }
-    
+
     static async Task Example()
     {
         Console.WriteLine("Starting");
@@ -185,27 +209,31 @@ public class Program
 {:code-block}
 
 Each implementation achieves the same result but uses language-specific constructs.
-```
+````
 
-## Troubleshooting
+## Troubleshooting Checklist
 
-If your code blocks aren't rendering correctly:
+| Issue | What to Verify |
+| --- | --- |
+| Tabs not appearing | Ensure the block starts and ends with `{:code-block}`. |
+| No syntax highlighting | Confirm the language identifier is supported and spelled correctly. |
+| Backticks rendering in the output | Escape nested backticks using four backticks (````) around the block. |
+| Copy button missing | Make sure the block isn’t indented and that a language is specified. |
 
-1. **Check your backticks** - Ensure you're using the correct number of backticks (three) and they're properly closed.
-2. **Verify language names** - Make sure you're using supported language identifiers.
-3. **Preview your post** - After saving, check how it looks on the actual blog page.
-4. **Special characters** - If your code contains triple backticks, you may need to escape them.
+> [!HELP]
+> Preview after every major edit. Rendering glitches usually appear immediately and are faster to fix before the article grows.
 
 ## Admin Test Account
 
-Need a quick way to verify the editor with real data? Seed the bundled admin account and sign in using:
+Quickly validate your post with seeded data:
 
-- Run `npm run seed:test-user` after applying the database migrations.
-- Email: `test.admin@syntaxblogs.dev`
-- Password: `TestAdmin123!`
+1. Run `npm run seed:test-user` once database migrations are applied.
+2. Sign in using **test.admin@syntaxblogs.dev** with password **TestAdmin123!**.
+3. Re-run the seed script any time you need to reset the password or repopulate data.
 
-The script is idempotent and can be re-run to reset the password if needed. Remember to disable or delete this account before pushing to production.
+Remember to disable or delete this account before pushing changes to production.
 
-## Need More Help?
+## Additional Resources
 
-For more detailed information about Markdown formatting, check out the [full Markdown guide](../docs/markdown-guide.md).
+- Deep dive into Markdown features in the [full Markdown guide](./markdown-guide.md).
+- Need layout or styling assistance? Reach out in the `#content-platform` channel for same-day support.

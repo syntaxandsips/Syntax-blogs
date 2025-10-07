@@ -10,10 +10,12 @@ import { useRouter } from 'next/navigation'
 import { Sidebar } from './Sidebar'
 import { PostsTable } from './PostsTable'
 import { PostForm } from './PostForm'
-import { StatsSection } from './StatsSection'
 import { UserManagement } from './UserManagement'
 import { CommentsModeration } from './CommentsModeration'
 import { TaxonomyManager } from './TaxonomyManager'
+import { DashboardOverview } from './DashboardOverview'
+import { AnalyticsPanel } from './AnalyticsPanel'
+import { SettingsPanel } from './SettingsPanel'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { Menu } from 'lucide-react'
 import {
@@ -67,27 +69,26 @@ const AdminDashboard = ({
   const [isLoadingComments, setIsLoadingComments] = useState(false)
   const [hasLoadedComments, setHasLoadedComments] = useState(false)
   const [commentsFilter, setCommentsFilter] = useState<CommentStatus | 'all'>('all')
+  const [recentComments, setRecentComments] = useState<AdminCommentSummary[]>([])
 
   const mapPostsFromPayload = useCallback((data: AdminPost[]) => {
-    setPosts(
-      data.map((post) => ({
-        ...post,
-        excerpt: post.excerpt ?? null,
-        accentColor: post.accentColor ?? null,
-        categoryId: post.categoryId ?? null,
-        categoryName: post.categoryName ?? null,
-        categorySlug: post.categorySlug ?? null,
-        seoTitle: post.seoTitle ?? null,
-        seoDescription: post.seoDescription ?? null,
-        featuredImageUrl: post.featuredImageUrl ?? null,
-        socialImageUrl: post.socialImageUrl ?? null,
-        tags: post.tags ?? [],
-        publishedAt: post.publishedAt ?? null,
-        scheduledFor: post.scheduledFor ?? null,
-        authorId: post.authorId ?? null,
-        views: post.views ?? 0,
-      })),
-    )
+    return data.map((post) => ({
+      ...post,
+      excerpt: post.excerpt ?? null,
+      accentColor: post.accentColor ?? null,
+      categoryId: post.categoryId ?? null,
+      categoryName: post.categoryName ?? null,
+      categorySlug: post.categorySlug ?? null,
+      seoTitle: post.seoTitle ?? null,
+      seoDescription: post.seoDescription ?? null,
+      featuredImageUrl: post.featuredImageUrl ?? null,
+      socialImageUrl: post.socialImageUrl ?? null,
+      tags: post.tags ?? [],
+      publishedAt: post.publishedAt ?? null,
+      scheduledFor: post.scheduledFor ?? null,
+      authorId: post.authorId ?? null,
+      views: post.views ?? 0,
+    }))
   }, [])
 
   const fetchPosts = useCallback(async () => {
@@ -104,11 +105,28 @@ const AdminDashboard = ({
         throw new Error(payload.error ?? 'Unable to load posts.')
       }
 
-      mapPostsFromPayload(payload.posts as AdminPost[])
+      const normalized = mapPostsFromPayload(payload.posts as AdminPost[])
+      setPosts(normalized)
+      return normalized
     } finally {
       setIsRefreshingPosts(false)
     }
   }, [mapPostsFromPayload])
+
+  const fetchRecentComments = useCallback(async () => {
+    const response = await fetch('/api/admin/comments?limit=8', {
+      method: 'GET',
+      cache: 'no-store',
+    })
+
+    const payload = await response.json()
+
+    if (!response.ok) {
+      throw new Error(payload.error ?? 'Unable to load comment activity.')
+    }
+
+    return (payload.comments ?? []) as AdminCommentSummary[]
+  }, [])
 
   const loadInitialData = useCallback(async () => {
     setIsLoading(true)
@@ -118,6 +136,8 @@ const AdminDashboard = ({
       const [
         { data: categoriesData, error: categoryError },
         { data: tagsData, error: tagsError },
+        postsResult,
+        recentCommentResult,
       ] = await Promise.all([
         supabase
           .from('categories')
@@ -127,9 +147,8 @@ const AdminDashboard = ({
           .from('tags')
           .select('id, name, slug')
           .order('name'),
-        fetchPosts().catch((error) => {
-          throw error
-        }),
+        fetchPosts(),
+        fetchRecentComments().catch(() => [] as AdminCommentSummary[]),
       ])
 
       if (categoryError) {
@@ -142,6 +161,10 @@ const AdminDashboard = ({
 
       setCategories((categoriesData ?? []) as CategoryOption[])
       setTags((tagsData ?? []) as TagOption[])
+      if (Array.isArray(postsResult)) {
+        setPosts(postsResult)
+      }
+      setRecentComments(recentCommentResult)
     } catch (error) {
       setFeedback({
         type: 'error',
@@ -153,7 +176,7 @@ const AdminDashboard = ({
     } finally {
       setIsLoading(false)
     }
-  }, [fetchPosts, supabase])
+  }, [fetchPosts, fetchRecentComments, supabase])
 
   useEffect(() => {
     void loadInitialData()
@@ -578,6 +601,7 @@ const AdminDashboard = ({
 
       setComments((payload.comments ?? []) as AdminCommentSummary[])
       setHasLoadedComments(true)
+      setRecentComments((payload.comments ?? []).slice(0, 8))
     } catch (error) {
       setFeedback({
         type: 'error',
@@ -707,6 +731,13 @@ const AdminDashboard = ({
             : comment,
         ),
       )
+      setRecentComments((prev) =>
+        prev.map((comment) =>
+          comment.id === id
+            ? { ...comment, status: CommentStatus.APPROVED }
+            : comment,
+        ),
+      )
     } catch (error) {
       setFeedback({
         type: 'error',
@@ -739,6 +770,13 @@ const AdminDashboard = ({
             : comment,
         ),
       )
+      setRecentComments((prev) =>
+        prev.map((comment) =>
+          comment.id === id
+            ? { ...comment, status: CommentStatus.REJECTED }
+            : comment,
+        ),
+      )
     } catch (error) {
       setFeedback({
         type: 'error',
@@ -761,6 +799,7 @@ const AdminDashboard = ({
       }
 
       setComments((prev) => prev.filter((comment) => comment.id !== id))
+      setRecentComments((prev) => prev.filter((comment) => comment.id !== id))
     } catch (error) {
       setFeedback({
         type: 'error',
@@ -774,16 +813,12 @@ const AdminDashboard = ({
     switch (currentView) {
       case 'overview':
         return (
-          <>
-            <h1 className="text-[#2A2A2A] text-3xl font-bold mb-8">
-              Dashboard Overview
-            </h1>
-            <StatsSection posts={posts} />
-            <div className="bg-white border-3 border-[#2A2A2A]/20 rounded-lg p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
-              <h2 className="text-2xl font-bold mb-4">Recent Activity</h2>
-              <p className="text-gray-500">Coming soon...</p>
-            </div>
-          </>
+          <DashboardOverview
+            posts={posts}
+            recentComments={recentComments}
+            onNavigateToPosts={() => handleNavigate('posts')}
+            onNavigateToComments={() => handleNavigate('comments')}
+          />
         )
       case 'posts':
         return (
@@ -853,25 +888,9 @@ const AdminDashboard = ({
           />
         )
       case 'analytics':
-        return (
-          <>
-            <h1 className="text-[#2A2A2A] text-3xl font-bold mb-8">
-              Analytics
-            </h1>
-            <div className="bg-white border-3 border-[#2A2A2A]/20 rounded-lg p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
-              <p className="text-gray-500">Analytics features coming soon...</p>
-            </div>
-          </>
-        )
+        return <AnalyticsPanel posts={posts} recentComments={recentComments} />
       case 'settings':
-        return (
-          <>
-            <h1 className="text-[#2A2A2A] text-3xl font-bold mb-8">Settings</h1>
-            <div className="bg-white border-3 border-[#2A2A2A]/20 rounded-lg p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
-              <p className="text-gray-500">Settings features coming soon...</p>
-            </div>
-          </>
-        )
+        return <SettingsPanel />
       default:
         return null
     }

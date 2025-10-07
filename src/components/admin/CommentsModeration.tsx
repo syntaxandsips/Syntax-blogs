@@ -22,6 +22,32 @@ const FILTER_OPTIONS: { label: string; value: CommentStatus | 'all' }[] = [
   { label: 'Rejected', value: CommentStatus.REJECTED },
 ]
 
+const STATUS_STYLES: Record<
+  CommentStatus,
+  { badge: string; badgeText: string; row: string }
+> = {
+  [CommentStatus.PENDING]: {
+    badge:
+      'border-amber-400/60 bg-amber-50 text-amber-700 dark:border-amber-300/50 dark:bg-amber-400/20 dark:text-amber-100',
+    badgeText: 'Pending',
+    row: 'bg-white dark:bg-slate-900/70',
+  },
+  [CommentStatus.APPROVED]: {
+    badge:
+      'border-emerald-400/60 bg-emerald-50 text-emerald-700 dark:border-emerald-300/40 dark:bg-emerald-400/20 dark:text-emerald-100',
+    badgeText: 'Approved',
+    row:
+      'bg-emerald-50/60 dark:bg-emerald-500/15 border-l-4 border-emerald-400/70 dark:border-emerald-300/60',
+  },
+  [CommentStatus.REJECTED]: {
+    badge:
+      'border-rose-400/60 bg-rose-50 text-rose-700 dark:border-rose-300/40 dark:bg-rose-400/20 dark:text-rose-100',
+    badgeText: 'Rejected',
+    row:
+      'bg-rose-50/60 dark:bg-rose-500/15 border-l-4 border-rose-400/70 dark:border-rose-300/60',
+  },
+}
+
 export const CommentsModeration = ({
   comments,
   isLoading,
@@ -93,11 +119,20 @@ export const CommentsModeration = ({
         ) : (
           <ul className="divide-y-4 divide-black/5">
             {filtered.map((comment) => (
-              <li key={comment.id} className="grid gap-3 px-6 py-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+              <li
+                key={comment.id}
+                className={`grid gap-3 px-6 py-5 transition-shadow md:grid-cols-[minmax(0,1fr)_auto] md:items-center ${
+                  STATUS_STYLES[comment.status].row
+                }`}
+              >
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-wide text-[#2A2A2A]/70">
-                    <span className="rounded-full border border-[#6C63FF]/40 bg-[#6C63FF]/10 px-2 py-0.5 font-semibold text-[#6C63FF]">
-                      {comment.status}
+                    <span
+                      className={`rounded-full border px-2 py-0.5 font-semibold ${
+                        STATUS_STYLES[comment.status].badge
+                      }`}
+                    >
+                      {STATUS_STYLES[comment.status].badgeText}
                     </span>
                     <span className="font-semibold text-[#2A2A2A]">
                       {comment.authorDisplayName ?? 'Community member'}

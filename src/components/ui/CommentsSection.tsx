@@ -9,6 +9,9 @@ interface CommentAuthor {
   id: string | null;
   displayName: string | null;
   avatarUrl: string | null;
+  isAdmin: boolean;
+  primaryRoleSlug: string | null;
+  primaryRoleName: string | null;
 }
 
 interface CommentItem {
@@ -23,6 +26,51 @@ interface CommentsSectionProps {
 }
 
 type SubmissionState = 'idle' | 'loading' | 'success' | 'error';
+
+const ANON_ADJECTIVES = [
+  'Curious',
+  'Thoughtful',
+  'Inquisitive',
+  'Bold',
+  'Inventive',
+  'Insightful',
+  'Clever',
+  'Pensive',
+  'Creative',
+  'Fearless',
+];
+
+const ANON_NOUNS = [
+  'Reader',
+  'Thinker',
+  'Explorer',
+  'Strategist',
+  'Coder',
+  'Dreamer',
+  'Analyst',
+  'Scholar',
+  'Visionary',
+  'Trailblazer',
+];
+
+const STAFF_ROLES = new Set(['admin', 'editor', 'author']);
+
+const hashString = (input: string) => {
+  let hash = 0;
+  for (let index = 0; index < input.length; index += 1) {
+    hash = (hash << 5) - hash + input.charCodeAt(index);
+    hash |= 0; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
+};
+
+const getAnonymousAlias = (seed: string) => {
+  const hash = hashString(seed);
+  const adjective = ANON_ADJECTIVES[hash % ANON_ADJECTIVES.length];
+  const noun = ANON_NOUNS[(hash >> 3) % ANON_NOUNS.length];
+  const number = (hash % 900) + 100;
+  return `${adjective} ${noun} #${number}`;
+};
 
 export function CommentsSection({ postSlug }: CommentsSectionProps) {
   const supabase = useMemo(() => createBrowserClient(), []);
@@ -220,21 +268,41 @@ export function CommentsSection({ postSlug }: CommentsSectionProps) {
         </p>
       ) : (
         <ul className="space-y-4">
-          {comments.map((comment) => (
-            <li key={comment.id} className="rounded-lg border-2 border-black/10 bg-[#f9f9f9] p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-[#2A2A2A]">
-                    {comment.author.displayName ?? 'Community member'}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(comment.createdAt).toLocaleString()}
-                  </p>
+          {comments.map((comment) => {
+            const roleSlug = comment.author.primaryRoleSlug ?? undefined;
+            const isStaff =
+              comment.author.isAdmin || (roleSlug ? STAFF_ROLES.has(roleSlug) : false);
+            const displayName = isStaff
+              ? comment.author.displayName ?? 'Team member'
+              : getAnonymousAlias(comment.id);
+            const badgeLabel = isStaff
+              ? comment.author.primaryRoleName ?? (comment.author.isAdmin ? 'Admin' : 'Team')
+              : 'Anonymous';
+
+            return (
+              <li
+                key={comment.id}
+                className="rounded-lg border-2 border-black/10 bg-[#f9f9f9] p-4"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-[#2A2A2A]">{displayName}</p>
+                      <span className="inline-flex items-center rounded-full border border-black/20 bg-black/80 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white">
+                        {badgeLabel}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      {new Date(comment.createdAt).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <p className="mt-3 whitespace-pre-line text-sm text-gray-700">{comment.content}</p>
-            </li>
-          ))}
+                <p className="mt-3 whitespace-pre-line text-sm text-gray-700">
+                  {comment.content}
+                </p>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>

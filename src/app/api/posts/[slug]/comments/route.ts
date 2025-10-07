@@ -12,6 +12,8 @@ interface CommentRecord {
     id: string | null
     display_name: string | null
     avatar_url: string | null
+    is_admin: boolean | null
+    primary_role: { slug: string | null; name: string | null } | null
   } | null
 }
 
@@ -24,6 +26,9 @@ const mapComment = (record: CommentRecord) => ({
     id: record.author?.id ?? null,
     displayName: record.author?.display_name ?? record.author?.id ?? 'Anonymous',
     avatarUrl: record.author?.avatar_url ?? null,
+    isAdmin: Boolean(record.author?.is_admin),
+    primaryRoleSlug: record.author?.primary_role?.slug ?? null,
+    primaryRoleName: record.author?.primary_role?.name ?? null,
   },
 })
 
@@ -52,7 +57,7 @@ export async function GET(
   const { data, error } = await supabase
     .from('comments')
     .select(
-      `id, content, status, created_at, author:author_profile_id (id, display_name, avatar_url)`,
+      `id, content, status, created_at, author:author_profile_id (id, display_name, avatar_url, is_admin, primary_role:primary_role_id (slug, name))`,
     )
     .eq('post_id', post.id)
     .eq('status', 'approved')

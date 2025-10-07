@@ -31,13 +31,13 @@ This guide explains how to format your blog posts using Markdown, with special f
 
 To create a code block with syntax highlighting, use triple backticks (```) followed by the language name:
 
-```
+````markdown
 ```javascript
 function helloWorld() {
   console.log("Hello, world!");
 }
 ```
-```
+````
 
 This will render as:
 
@@ -75,7 +75,7 @@ Our platform supports syntax highlighting for many languages, including:
 
 To create code blocks with multiple language tabs, use our special syntax with language identifiers:
 
-```
+````markdown
 {:code-block}
 {:javascript}
 function helloWorld() {
@@ -91,7 +91,7 @@ public class HelloWorld {
     }
 }
 {:code-block}
-```
+````
 
 This will create a tabbed interface where users can switch between JavaScript, Python, and Java implementations.
 
@@ -106,58 +106,58 @@ This will create a tabbed interface where users can switch between JavaScript, P
 
 To embed a YouTube video, use the following syntax:
 
-```
+````markdown
 {youtube:VIDEO_ID}
-```
+````
 
 Replace `VIDEO_ID` with the actual YouTube video ID. For example:
 
-```
+````markdown
 {youtube:dQw4w9WgXcQ}
-```
+````
 
 ## Images
 
 For basic images, use the standard Markdown syntax:
 
-```
+````markdown
 ![Alt text](image-url.jpg)
-```
+````
 
 For images with captions or additional styling:
 
-```
+````markdown
 {:image}
 ![AI-generated art](ai-art.jpg)
 Caption: This image was created using a neural network
 {:image}
-```
+````
 
 ## Other Elements
 
 ### Callouts/Notes
 
-```
+````markdown
 {:note}
 This is an important note for readers.
 {:note}
-```
+````
 
 ### Warnings
 
-```
+````markdown
 {:warning}
 Be careful when implementing this code in production!
 {:warning}
-```
+````
 
 ### Tips
 
-```
+````markdown
 {:tip}
 Here's a pro tip to make your code more efficient.
 {:tip}
-```
+````
 
 ## Example Blog Post
 

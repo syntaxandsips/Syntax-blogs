@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Coffee, Code } from 'lucide-react';
+import { Menu, X, Coffee, Code, LogIn, Search } from 'lucide-react';
 import Link from 'next/link';
 import { GlobalSearch } from './GlobalSearch';
 import { useClientPathname } from '@/hooks/useClientPathname';
@@ -26,7 +26,7 @@ export const NewNavbar = () => {
   return (
     <header className="sticky top-0 z-50 bg-[#f0f0f0] border-b-4 border-black">
       <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Coffee className="h-8 w-8 text-[#FF5252]" />
             <Code className="h-8 w-8 text-[#6C63FF]" />
@@ -54,6 +54,9 @@ export const NewNavbar = () => {
             <NavLink href="/changelog" isActive={isActive('/changelog')}>
               Changelogs
             </NavLink>
+            <NavLink href="/me" isActive={isActive('/me')}>
+              Sign in / Sign up
+            </NavLink>
             <GlobalSearch />
             <button
               type="button"
@@ -62,14 +65,34 @@ export const NewNavbar = () => {
               Subscribe
             </button>
           </nav>
-          {/* Mobile menu button */}
-          <button
-            type="button"
-            className="md:hidden p-2 rounded-md bg-black text-white"
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            {isOpen ? <X /> : <Menu />}
-          </button>
+          {/* Mobile actions */}
+          <div className="flex items-center gap-2 md:hidden">
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new Event('global-search:open'));
+              }}
+              className="inline-flex items-center gap-2 rounded-md border-2 border-black bg-white px-3 py-2 text-sm font-semibold text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px]"
+            >
+              <Search className="h-4 w-4" aria-hidden="true" />
+              <span>Search</span>
+            </button>
+            <Link
+              href="/me"
+              className="inline-flex items-center gap-1 rounded-md border-2 border-black bg-white px-3 py-2 text-sm font-semibold text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px]"
+            >
+              <LogIn className="h-4 w-4" aria-hidden="true" />
+              <span>Sign in</span>
+            </Link>
+            <button
+              type="button"
+              className="p-2 rounded-md bg-black text-white"
+              onClick={() => setIsOpen(!isOpen)}
+              aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
+            >
+              {isOpen ? <X /> : <Menu />}
+            </button>
+          </div>
         </div>
         {/* Mobile Navigation */}
         {isOpen && (
@@ -87,9 +110,9 @@ export const NewNavbar = () => {
               <MobileNavLink href="/changelog" isActive={isActive('/changelog')}>
                 Changelogs
               </MobileNavLink>
-              <div className="md:hidden">
-                <GlobalSearch />
-              </div>
+              <MobileNavLink href="/me" isActive={isActive('/me')}>
+                Sign in / Sign up
+              </MobileNavLink>
               <button
                 type="button"
                 className="bg-black text-white px-4 py-2 font-bold rounded-md w-full"

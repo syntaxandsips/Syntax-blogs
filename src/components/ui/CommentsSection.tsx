@@ -1,9 +1,7 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Loader2, MessageCircle, Send } from 'lucide-react';
-import { createBrowserClient } from '@/lib/supabase/client';
 
 interface CommentAuthor {
   id: string | null;
@@ -73,14 +71,12 @@ const getAnonymousAlias = (seed: string) => {
 };
 
 export function CommentsSection({ postSlug }: CommentsSectionProps) {
-  const supabase = useMemo(() => createBrowserClient(), []);
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState<string | null>(null);
   const [content, setContent] = useState('');
   const [submissionState, setSubmissionState] = useState<SubmissionState>('idle');
   const [submissionMessage, setSubmissionMessage] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const loadComments = useCallback(async () => {
     setIsLoading(true);
@@ -115,31 +111,10 @@ export function CommentsSection({ postSlug }: CommentsSectionProps) {
     void loadComments();
   }, [loadComments]);
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setIsAuthenticated(Boolean(session));
-    };
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(Boolean(session));
-    });
-
-    void checkSession();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [supabase]);
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!isAuthenticated || submissionState === 'loading') {
+    if (submissionState === 'loading') {
       return;
     }
 
@@ -194,68 +169,56 @@ export function CommentsSection({ postSlug }: CommentsSectionProps) {
         </div>
       )}
 
-      {isAuthenticated ? (
-        <form className="mb-6 space-y-3" onSubmit={handleSubmit}>
-          <label htmlFor="comment-body" className="block text-sm font-semibold text-gray-700">
-            Share your thoughts
-          </label>
-          <textarea
-            id="comment-body"
-            name="comment"
-            required
-            minLength={10}
-            rows={4}
-            value={content}
-            onChange={(event) => setContent(event.target.value)}
-            className="w-full rounded-md border-4 border-black px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#6C63FF]"
-            placeholder="What resonated with you?"
-          />
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xs text-gray-500">
-              Comments go live after a quick moderation pass to keep the community welcoming.
-            </p>
-            <button
-              type="submit"
-              className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 font-semibold text-white transition hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={isSubmitDisabled}
-            >
-              {submissionState === 'loading' ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  Sending
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4" aria-hidden="true" />
-                  Post comment
-                </>
-              )}
-            </button>
-          </div>
-          {submissionMessage && (
-            <p
-              className={`rounded-md border px-3 py-2 text-sm ${
-                submissionState === 'error'
-                  ? 'border-red-200 bg-red-50 text-red-700'
-                  : 'border-green-200 bg-green-50 text-green-700'
-              }`}
-              role="status"
-            >
-              {submissionMessage}
-            </p>
-          )}
-        </form>
-      ) : (
-        <div className="mb-6 rounded-md border-2 border-dashed border-black/20 bg-[#f8f9ff] p-4 text-sm text-[#2A2A2A]">
-          <p className="font-semibold">Want to add your perspective?</p>
-          <p className="mt-1">
-            <Link href="/me" className="font-bold text-[#6C63FF] hover:underline">
-              Sign in to your Syntax &amp; Sips account
-            </Link>{' '}
-            to join the conversation.
+      <form className="mb-6 space-y-3" onSubmit={handleSubmit}>
+        <label htmlFor="comment-body" className="block text-sm font-semibold text-gray-700">
+          Share your thoughts
+        </label>
+        <textarea
+          id="comment-body"
+          name="comment"
+          required
+          minLength={10}
+          rows={4}
+          value={content}
+          onChange={(event) => setContent(event.target.value)}
+          className="w-full rounded-md border-4 border-black px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#6C63FF]"
+          placeholder="What resonated with you?"
+        />
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-gray-500">
+            No account required—comments publish after a quick moderation pass to keep things welcoming.
           </p>
+          <button
+            type="submit"
+            className="inline-flex items-center gap-2 self-start rounded-md bg-black px-4 py-2 font-semibold text-white transition hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60 sm:self-auto"
+            disabled={isSubmitDisabled}
+          >
+            {submissionState === 'loading' ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                Sending
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4" aria-hidden="true" />
+                Post comment
+              </>
+            )}
+          </button>
         </div>
-      )}
+        {submissionMessage && (
+          <p
+            className={`rounded-md border px-3 py-2 text-sm ${
+              submissionState === 'error'
+                ? 'border-red-200 bg-red-50 text-red-700'
+                : 'border-green-200 bg-green-50 text-green-700'
+            }`}
+            role="status"
+          >
+            {submissionMessage}
+          </p>
+        )}
+      </form>
 
       {isLoading ? (
         <div className="flex items-center gap-3 text-sm text-gray-600">

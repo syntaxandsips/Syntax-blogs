@@ -55,5 +55,6 @@ create policy if not exists "Admins manage site settings"
 create policy if not exists "Service role access to site settings"
   on public.site_settings
   for all
+  to service_role
   using (true)
   with check (true);

@@ -42,7 +42,7 @@ export const PostsTable = ({
   return (
     <div className="bg-white border-3 border-[#2A2A2A]/20 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] overflow-hidden">
       <div className="p-6 border-b border-[#2A2A2A]/10">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-2xl font-bold text-[#2A2A2A]">Manage Posts</h2>
             <p className="text-sm text-gray-500">
@@ -54,7 +54,7 @@ export const PostsTable = ({
               type="button"
               onClick={onRefresh}
               disabled={isLoading}
-              className="inline-flex items-center gap-2 bg-black text-white px-3 py-2 rounded-md font-semibold shadow-[3px_3px_0px_0px_rgba(0,0,0,0.2)] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-md border-2 border-black/10 bg-black px-3 py-2 font-semibold text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,0.2)] transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
               <RotateCcw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
@@ -63,7 +63,7 @@ export const PostsTable = ({
         </div>
       </div>
       <div className="p-6 border-b-4 border-black">
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto pb-2 [-ms-overflow-style:'none'] [scrollbar-width:'none']">
           <FilterTab
             label="ALL POSTS"
             isActive={activeTab === 'all'}
@@ -91,7 +91,7 @@ export const PostsTable = ({
         </div>
       </div>
       {isLoading ? (
-        <div className="p-12 text-center flex flex-col items-center gap-3 text-lg font-semibold text-gray-600">
+        <div className="flex flex-col items-center gap-3 p-12 text-center text-lg font-semibold text-gray-600">
           <Loader2 className="h-6 w-6 animate-spin" />
           Loading posts...
         </div>
@@ -101,95 +101,169 @@ export const PostsTable = ({
           <p className="text-gray-500 mt-2">Create a new post to get started</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-black text-white">
-                <th className="text-left p-4 font-bold">Title</th>
-                <th className="text-left p-4 font-bold">Category</th>
-                <th className="text-left p-4 font-bold">Status</th>
-                <th className="text-left p-4 font-bold">Date</th>
-                <th className="text-left p-4 font-bold">Views</th>
-                <th className="text-right p-4 font-bold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPosts.map((post) => {
-                const displayDate =
-                  post.status === PostStatus.SCHEDULED
-                    ? formatDateValue(post.scheduledFor)
-                    : formatDateValue(post.publishedAt || post.createdAt)
+        <>
+          <div className="space-y-4 p-6 md:hidden">
+            {filteredPosts.map((post) => {
+              const displayDate =
+                post.status === PostStatus.SCHEDULED
+                  ? formatDateValue(post.scheduledFor)
+                  : formatDateValue(post.publishedAt || post.createdAt)
 
-                return (
-                  <tr
-                    key={post.id}
-                    className="border-b border-black/10 hover:bg-gray-50"
-                  >
-                    <td className="p-4">
-                      <div className="font-bold">{post.title}</div>
-                      <div className="text-sm text-gray-500 truncate max-w-[300px]">
+              return (
+                <article
+                  key={post.id}
+                  className="rounded-lg border-2 border-[#2A2A2A]/10 bg-white p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.08)]"
+                >
+                  <div className="flex flex-col gap-2">
+                    <div>
+                      <h3 className="text-lg font-bold text-[#2A2A2A]">{post.title}</h3>
+                      <p className="text-sm text-gray-500">
                         {post.excerpt || 'No excerpt provided'}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div
-                        className="inline-block px-3 py-1 font-bold text-white rounded-md"
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                      <span
+                        className="inline-flex items-center rounded-md px-3 py-1 text-white"
                         style={{
                           backgroundColor: getCategoryColor(post),
-                          transform: 'rotate(-2deg)',
                         }}
                       >
                         {post.categoryName ?? 'Uncategorized'}
-                      </div>
-                    </td>
-                    <td className="p-4">
+                      </span>
                       <StatusBadge status={post.status} />
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-1 text-sm">
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+                      <span className="inline-flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
                         {displayDate}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-1">
+                      </span>
+                      <span className="inline-flex items-center gap-1">
                         <Eye className="h-4 w-4" />
-                        {post.views ?? 0}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center justify-end gap-2">
+                        {post.views ?? 0} views
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      <button
+                        onClick={() => onEdit(post)}
+                        className="flex flex-1 items-center justify-center gap-1 rounded-md bg-[#6C63FF] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+                        title="Edit"
+                      >
+                        <Pencil className="h-4 w-4" /> Edit
+                      </button>
+                      {post.status !== PostStatus.PUBLISHED && (
                         <button
-                          onClick={() => onEdit(post)}
-                          className="bg-[#6C63FF] text-white p-2 rounded-md hover:opacity-90"
-                          title="Edit"
+                          onClick={() => onPublish(post.id)}
+                          className="flex flex-1 items-center justify-center gap-1 rounded-md bg-[#06D6A0] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+                          title="Publish"
                         >
-                          <Pencil className="h-4 w-4" />
+                          <ArrowUpRight className="h-4 w-4" /> Publish
                         </button>
-                        {post.status !== PostStatus.PUBLISHED && (
-                          <button
-                            onClick={() => onPublish(post.id)}
-                            className="bg-[#06D6A0] text-white p-2 rounded-md hover:opacity-90"
-                            title="Publish"
-                          >
-                            <ArrowUpRight className="h-4 w-4" />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => onDelete(post.id)}
-                          className="bg-[#FF5252] text-white p-2 rounded-md hover:opacity-90"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
+                      )}
+                      <button
+                        onClick={() => onDelete(post.id)}
+                        className="flex flex-1 items-center justify-center gap-1 rounded-md bg-[#FF5252] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" /> Delete
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+          <div className="hidden md:block">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-black text-white">
+                    <th className="p-4 text-left font-bold">Title</th>
+                    <th className="p-4 text-left font-bold">Category</th>
+                    <th className="p-4 text-left font-bold">Status</th>
+                    <th className="p-4 text-left font-bold">Date</th>
+                    <th className="p-4 text-left font-bold">Views</th>
+                    <th className="p-4 text-right font-bold">Actions</th>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody>
+                  {filteredPosts.map((post) => {
+                    const displayDate =
+                      post.status === PostStatus.SCHEDULED
+                        ? formatDateValue(post.scheduledFor)
+                        : formatDateValue(post.publishedAt || post.createdAt)
+
+                    return (
+                      <tr
+                        key={post.id}
+                        className="border-b border-black/10 hover:bg-gray-50"
+                      >
+                        <td className="max-w-[320px] p-4">
+                          <div className="font-bold">{post.title}</div>
+                          <div className="max-w-[280px] truncate text-sm text-gray-500">
+                            {post.excerpt || 'No excerpt provided'}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div
+                            className="inline-block rounded-md px-3 py-1 font-bold text-white"
+                            style={{
+                              backgroundColor: getCategoryColor(post),
+                              transform: 'rotate(-2deg)',
+                            }}
+                          >
+                            {post.categoryName ?? 'Uncategorized'}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <StatusBadge status={post.status} />
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-1 text-sm">
+                            <Calendar className="h-4 w-4" />
+                            {displayDate}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-1">
+                            <Eye className="h-4 w-4" />
+                            {post.views ?? 0}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => onEdit(post)}
+                              className="rounded-md bg-[#6C63FF] p-2 text-white transition hover:opacity-90"
+                              title="Edit"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            {post.status !== PostStatus.PUBLISHED && (
+                              <button
+                                onClick={() => onPublish(post.id)}
+                                className="rounded-md bg-[#06D6A0] p-2 text-white transition hover:opacity-90"
+                                title="Publish"
+                              >
+                                <ArrowUpRight className="h-4 w-4" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => onDelete(post.id)}
+                              className="rounded-md bg-[#FF5252] p-2 text-white transition hover:opacity-90"
+                              title="Delete"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
     </div>
   )
@@ -206,7 +280,11 @@ const FilterTab = ({ label, isActive, onClick, color }: FilterTabProps) => {
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-2 font-bold rounded-md transition-all duration-200 whitespace-nowrap ${isActive ? 'text-white border-2 border-[#2A2A2A]/20 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)]' : 'bg-white border-2 border-[#2A2A2A]/20 hover:bg-gray-50'}`}
+      className={`whitespace-nowrap rounded-md px-4 py-2 text-sm font-bold transition-all duration-200 ${
+        isActive
+          ? 'border-2 border-[#2A2A2A]/20 text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)]'
+          : 'border-2 border-[#2A2A2A]/20 bg-white hover:bg-gray-50'
+      }`}
       style={{
         backgroundColor: isActive ? color : undefined,
       }}
@@ -231,7 +309,7 @@ const StatusBadge = ({ status }: { status: PostStatus }) => {
   }
   return (
     <span
-      className="inline-block px-3 py-1 font-bold text-white rounded-md"
+      className="inline-flex items-center rounded-md px-3 py-1 text-xs font-bold text-white md:text-sm"
       style={{
         backgroundColor: bgColor,
       }}

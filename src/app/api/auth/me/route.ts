@@ -3,8 +3,42 @@ import { createServerClient } from '@/lib/supabase/server-client'
 import type {
   AdminUserRole,
   AuthenticatedProfileSummary,
+  OnboardingAccountability,
+  OnboardingCommunication,
+  OnboardingContribution,
+  OnboardingExperienceLevel,
+  OnboardingGoal,
+  OnboardingLearningFormat,
+  OnboardingPersona,
+  OnboardingSupportPreference,
   ProfileOnboardingJourney,
+  ProfileOnboardingResponses,
 } from '@/utils/types'
+
+const toNullableString = <T extends string>(value: unknown): T | null =>
+  typeof value === 'string' ? (value as T) : null
+
+const toStringArray = <T extends string>(value: unknown): T[] =>
+  Array.isArray(value) ? value.filter((entry): entry is T => typeof entry === 'string') : []
+
+const parseOnboardingResponses = (payload: unknown): ProfileOnboardingResponses | null => {
+  if (!payload || typeof payload !== 'object') {
+    return null
+  }
+
+  const source = payload as Record<string, unknown>
+
+  return {
+    persona: toNullableString<OnboardingPersona>(source.persona),
+    experienceLevel: toNullableString<OnboardingExperienceLevel>(source.experienceLevel),
+    motivations: toStringArray<OnboardingGoal>(source.motivations),
+    focusAreas: toStringArray<OnboardingContribution>(source.focusAreas),
+    preferredLearningFormats: toStringArray<OnboardingLearningFormat>(source.preferredLearningFormats),
+    supportPreferences: toStringArray<OnboardingSupportPreference>(source.supportPreferences),
+    accountabilityStyle: toNullableString<OnboardingAccountability>(source.accountabilityStyle),
+    communicationPreferences: toStringArray<OnboardingCommunication>(source.communicationPreferences),
+  }
+}
 
 export async function GET() {
   const supabase = createServerClient()
@@ -92,6 +126,8 @@ export async function GET() {
       console.error('Unable to load onboarding journey for authenticated user', onboardingError)
     }
 
+    const onboardingResponses = onboardingRecord ? parseOnboardingResponses(onboardingRecord.responses) : null
+
     const onboarding: ProfileOnboardingJourney | null = onboardingRecord
       ? {
           status: onboardingRecord.status ?? 'pending',
@@ -99,14 +135,19 @@ export async function GET() {
           completedAt: onboardingRecord.completed_at ?? null,
           updatedAt: onboardingRecord.updated_at ?? null,
           version: onboardingRecord.version ?? null,
-          responses: (onboardingRecord.responses as ProfileOnboardingJourney['responses']) ?? null,
+          responses: onboardingResponses,
         }
       : null
+
+    const preferredDisplayName =
+      typeof profile.display_name === 'string' && profile.display_name.trim().length > 0
+        ? profile.display_name
+        : user.email ?? ''
 
     const payload: AuthenticatedProfileSummary = {
       userId: user.id,
       email: user.email ?? '',
-      displayName: profile.display_name,
+      displayName: preferredDisplayName,
       avatarUrl: profile.avatar_url ?? null,
       isAdmin: profile.is_admin,
       createdAt: profile.created_at,

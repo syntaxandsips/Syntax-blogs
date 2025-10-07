@@ -317,8 +317,10 @@ const computeOnboardingProgress = (journey: ProfileOnboardingJourney | null) => 
   return 0
 }
 
-const formatOnboardingList = <T extends string>(values: T[], dictionary: Record<T, string>) =>
-  values.map((value) => dictionary[value] ?? value)
+const formatOnboardingList = <T extends string>(
+  values: ReadonlyArray<T> | null | undefined,
+  dictionary: Record<T, string>,
+) => (values ?? []).map((value) => dictionary[value] ?? value)
 
 const renderRuleBadge = (status: RuleStatus) => {
   if (status === 'complete') {

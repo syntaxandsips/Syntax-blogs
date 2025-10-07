@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { AdminDashboard } from '@/components/admin/AdminDashboard'
+import AdminDashboard from '@/components/admin/AdminDashboard'
 import { createServerComponentClient } from '@/lib/supabase/server-client'
 
 export const dynamic = 'force-dynamic'

@@ -198,18 +198,18 @@ export const UserManagement = ({
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-[#2A2A2A]">User Management</h1>
           <p className="text-gray-600">
             Create new accounts, manage roles, and control access to the dashboard.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           <button
             type="button"
             onClick={resetToCreateMode}
-            className={`neo-button px-4 py-2 font-bold ${
+            className={`neo-button w-full px-4 py-2 font-bold sm:w-auto ${
               mode === 'create' ? 'bg-[#6C63FF] text-white' : 'bg-white text-[#2A2A2A]'
             }`}
           >
@@ -220,7 +220,7 @@ export const UserManagement = ({
             onClick={() => {
               void onRefresh()
             }}
-            className="neo-button px-4 py-2 font-bold bg-white text-[#2A2A2A]"
+            className="neo-button w-full px-4 py-2 font-bold bg-white text-[#2A2A2A] sm:w-auto"
             disabled={isLoading}
           >
             Refresh
@@ -240,31 +240,29 @@ export const UserManagement = ({
           ) : users.length === 0 ? (
             <p className="text-gray-500">No users found. Create the first account above.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr className="bg-gray-50 text-left text-sm font-semibold text-gray-700">
-                    <th className="px-4 py-3">Name</th>
-                    <th className="px-4 py-3">Email</th>
-                    <th className="px-4 py-3">Roles</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {users.map((user) => (
-                    <tr key={user.profileId} className="text-sm">
-                      <td className="px-4 py-3 font-semibold text-gray-900">
-                        {user.displayName}
-                        {user.isAdmin && (
-                          <span className="ml-2 inline-flex items-center rounded-full bg-[#6C63FF]/10 px-2 py-0.5 text-xs font-bold text-[#6C63FF]">
-                            Admin
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">{user.email}</td>
-                      <td className="px-4 py-3 text-gray-600">
+            <>
+              <div className="space-y-3 lg:hidden">
+                {users.map((user) => (
+                  <article
+                    key={user.profileId}
+                    className="rounded-lg border-2 border-[#2A2A2A]/10 bg-white p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.08)]"
+                  >
+                    <div className="flex flex-col gap-2">
+                      <div>
+                        <p className="text-base font-semibold text-gray-900">
+                          {user.displayName}
+                          {user.isAdmin && (
+                            <span className="ml-2 inline-flex items-center rounded-full bg-[#6C63FF]/10 px-2 py-0.5 text-xs font-bold text-[#6C63FF]">
+                              Admin
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-sm text-gray-600">{user.email}</p>
+                      </div>
+                      <div className="space-y-1 text-sm text-gray-600">
+                        <p className="font-semibold text-gray-700">Roles</p>
                         {user.roles.length === 0 ? (
-                          <span className="italic text-gray-400">No roles</span>
+                          <span className="italic text-gray-400">No roles assigned</span>
                         ) : (
                           <div className="flex flex-wrap gap-2">
                             {user.roles.map((role) => (
@@ -277,22 +275,77 @@ export const UserManagement = ({
                             ))}
                           </div>
                         )}
-                      </td>
-                      <td className="px-4 py-3 text-right">
+                      </div>
+                      <div className="flex flex-wrap gap-2 pt-1">
                         <button
                           type="button"
                           onClick={() => handleEditClick(user)}
-                          className="neo-button px-3 py-1 text-xs font-bold bg-white text-[#2A2A2A]"
+                          className="neo-button w-full px-3 py-2 text-xs font-bold bg-white text-[#2A2A2A] sm:w-auto"
                           disabled={isSaving && selectedUser?.profileId === user.profileId}
                         >
-                          Edit
+                          Edit User
                         </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              <div className="hidden lg:block">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead>
+                      <tr className="bg-gray-50 text-left text-sm font-semibold text-gray-700">
+                        <th className="px-4 py-3">Name</th>
+                        <th className="px-4 py-3">Email</th>
+                        <th className="px-4 py-3">Roles</th>
+                        <th className="px-4 py-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {users.map((user) => (
+                        <tr key={user.profileId} className="text-sm">
+                          <td className="px-4 py-3 font-semibold text-gray-900">
+                            {user.displayName}
+                            {user.isAdmin && (
+                              <span className="ml-2 inline-flex items-center rounded-full bg-[#6C63FF]/10 px-2 py-0.5 text-xs font-bold text-[#6C63FF]">
+                                Admin
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-gray-600">{user.email}</td>
+                          <td className="px-4 py-3 text-gray-600">
+                            {user.roles.length === 0 ? (
+                              <span className="italic text-gray-400">No roles</span>
+                            ) : (
+                              <div className="flex flex-wrap gap-2">
+                                {user.roles.map((role) => (
+                                  <span
+                                    key={`${user.profileId}-${role.id}`}
+                                    className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-700"
+                                  >
+                                    {role.name}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleEditClick(user)}
+                              className="neo-button px-3 py-1 text-xs font-bold bg-white text-[#2A2A2A]"
+                              disabled={isSaving && selectedUser?.profileId === user.profileId}
+                            >
+                              Edit
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
           )}
         </div>
 

@@ -152,10 +152,15 @@ export default async function AccountPage() {
       }
     : null;
 
+  const resolvedDisplayName =
+    typeof profileRecord.display_name === 'string' && profileRecord.display_name.trim().length > 0
+      ? profileRecord.display_name.trim()
+      : user.email ?? 'Community friend';
+
   const profileSummary: AuthenticatedProfileSummary = {
     userId: user.id,
     email: user.email ?? '',
-    displayName: profileRecord.display_name as string,
+    displayName: resolvedDisplayName,
     avatarUrl: (profileRecord.avatar_url as string | null) ?? null,
     isAdmin: Boolean(profileRecord.is_admin),
     createdAt: profileRecord.created_at as string,

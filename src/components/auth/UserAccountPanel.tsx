@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
@@ -344,7 +345,10 @@ const renderRuleBadge = (status: RuleStatus) => {
 }
 
 const RuleCard = ({ title, description, status }: RuleItem) => (
-  <div className="rounded-2xl border-2 border-black bg-white p-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.12)]">
+  <div
+    className="rounded-2xl border-2 border-black bg-white p-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.12)]"
+    title={description}
+  >
     <div className="flex items-start justify-between gap-3">
       <div>
         <p className="text-base font-extrabold leading-tight text-gray-900">{title}</p>
@@ -369,6 +373,7 @@ const StatCard = ({
   <div
     className="rounded-3xl border-2 border-black bg-white p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.18)]"
     style={{ boxShadow: `8px 8px 0 0 ${accent}` }}
+    title={helper}
   >
     <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">{label}</p>
     <p className="mt-3 text-4xl font-black text-gray-900">{value.toLocaleString('en-US')}</p>
@@ -398,7 +403,10 @@ const ContributionCard = ({
     <article className="rounded-2xl border-2 border-black bg-white p-4 shadow-[5px_5px_0px_0px_rgba(0,0,0,0.15)]">
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">
-          <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${badgeClass}`}>
+          <div
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${badgeClass}`}
+            title={badgeLabel}
+          >
             <FileText className="h-3.5 w-3.5" aria-hidden="true" />
             {badgeLabel}
           </div>
@@ -447,7 +455,10 @@ const CommentCard = ({ comment }: { comment: UserCommentSummary }) => {
     <article className="rounded-2xl border-2 border-black bg-white p-4 shadow-[5px_5px_0px_0px_rgba(0,0,0,0.15)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-2">
-          <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${badgeClass}`}>
+          <div
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${badgeClass}`}
+            title={badgeLabel}
+          >
             <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
             {badgeLabel}
           </div>
@@ -507,7 +518,10 @@ const SidebarAvatar = ({
 const StatusBadge = ({ status }: { status: CapabilityStatus }) => {
   if (status === 'available') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border-2 border-emerald-500 bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-700">
+      <span
+        className="inline-flex items-center gap-1 rounded-full border-2 border-emerald-500 bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-700"
+        title="Feature enabled"
+      >
         <CheckCircle2 className="h-3 w-3" aria-hidden="true" /> Enabled
       </span>
     )
@@ -515,21 +529,30 @@ const StatusBadge = ({ status }: { status: CapabilityStatus }) => {
 
   if (status === 'locked') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border-2 border-gray-400 bg-gray-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-gray-600">
+      <span
+        className="inline-flex items-center gap-1 rounded-full border-2 border-gray-400 bg-gray-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-gray-600"
+        title="Feature locked"
+      >
         Locked
       </span>
     )
   }
 
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border-2 border-blue-400 bg-blue-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-blue-700">
+    <span
+      className="inline-flex items-center gap-1 rounded-full border-2 border-blue-400 bg-blue-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-blue-700"
+      title="Feature coming soon"
+    >
       Upcoming
     </span>
   )
 }
 
 const CapabilityCard = ({ title, description, icon: Icon, status, ctaHref, ctaLabel }: CapabilityItem) => (
-  <div className="rounded-3xl border-2 border-black bg-white p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)]">
+  <div
+    className="rounded-3xl border-2 border-black bg-white p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)]"
+    title={description}
+  >
     <div className="flex items-start justify-between gap-3">
       <div className="flex items-start gap-3">
         <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border-2 border-black bg-[#F5F3FF] text-[#6C63FF]">
@@ -546,6 +569,7 @@ const CapabilityCard = ({ title, description, icon: Icon, status, ctaHref, ctaLa
       <Link
         href={ctaHref}
         className="mt-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#6C63FF] hover:underline"
+        title={ctaLabel}
       >
         {ctaLabel} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
       </Link>
@@ -562,8 +586,8 @@ const AccountSidebar = ({
   totals: UserContributionSnapshot['totals']
   sections: SidebarSection[]
 }) => (
-  <aside className="lg:w-72 xl:w-80">
-    <div className="sticky top-6 space-y-6">
+  <aside className="mb-6 w-full lg:mb-0 lg:w-[320px] xl:w-[360px]">
+    <div className="space-y-6 lg:sticky lg:top-6">
       <div className="rounded-3xl border-4 border-black bg-white p-5 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.18)]">
         <div className="flex items-center gap-4">
           <SidebarAvatar name={profile.displayName} avatarUrl={profile.avatarUrl} />
@@ -575,12 +599,18 @@ const AccountSidebar = ({
             </p>
           </div>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-3 text-center">
-          <div className="rounded-2xl border-2 border-black bg-[#F6EDE3] px-3 py-2">
+        <div className="mt-4 grid grid-cols-2 gap-4 text-center">
+          <div
+            className="rounded-2xl border-2 border-black bg-[#F6EDE3] px-3 py-2"
+            title="Published posts"
+          >
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Posts</p>
             <p className="text-xl font-black text-gray-900">{totals.publishedPosts}</p>
           </div>
-          <div className="rounded-2xl border-2 border-black bg-[#E8F5FF] px-3 py-2">
+          <div
+            className="rounded-2xl border-2 border-black bg-[#E8F5FF] px-3 py-2"
+            title="Total comments contributed"
+          >
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Comments</p>
             <p className="text-xl font-black text-gray-900">{totals.totalComments}</p>
           </div>
@@ -594,6 +624,7 @@ const AccountSidebar = ({
               <a
                 href={`#${section.id}`}
                 className="group flex items-center gap-3 rounded-2xl border-2 border-transparent px-3 py-2 text-sm font-bold text-gray-800 transition hover:border-black hover:bg-[#F5F3FF]"
+                title={`Jump to ${section.label}`}
               >
                 <section.icon className="h-4 w-4 text-[#6C63FF] transition group-hover:scale-110" aria-hidden="true" />
                 {section.label}
@@ -606,18 +637,30 @@ const AccountSidebar = ({
         <p className="text-sm font-black uppercase tracking-[0.25em] opacity-70">Shortcuts</p>
         <ul className="mt-4 space-y-3 text-sm font-semibold">
           <li>
-            <Link href="/blogs" className="inline-flex items-center gap-2 text-[#FFD66B] hover:underline">
+            <Link
+              href="/blogs"
+              className="inline-flex items-center gap-2 text-[#FFD66B] hover:underline"
+              title="Browse the latest articles"
+            >
               Browse editorial feed <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </li>
           <li>
-            <Link href="#publishing" className="inline-flex items-center gap-2 text-[#6C63FF] hover:underline">
+            <Link
+              href="#publishing"
+              className="inline-flex items-center gap-2 text-[#6C63FF] hover:underline"
+              title="Jump to publishing insights"
+            >
               Check drafting stats <Activity className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </li>
           {profile.isAdmin ? (
             <li>
-              <Link href="/admin" className="inline-flex items-center gap-2 text-[#7CFBFF] hover:underline">
+              <Link
+                href="/admin"
+                className="inline-flex items-center gap-2 text-[#7CFBFF] hover:underline"
+                title="Launch the admin console"
+              >
                 Review newsroom queue <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>
             </li>
@@ -920,7 +963,11 @@ const ProfileIdentityManager = ({
 
 export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelProps) => {
   const { refresh: refreshAuthenticatedProfile } = useAuthenticatedProfile()
+  const router = useRouter()
+  const supabase = useMemo(() => createBrowserClient(), [])
   const [currentProfile, setCurrentProfile] = useState(profile)
+  const [isSigningOut, setIsSigningOut] = useState(false)
+  const [signOutError, setSignOutError] = useState<string | null>(null)
 
   useEffect(() => {
     setCurrentProfile(profile)
@@ -933,6 +980,28 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
       null,
     [currentProfile.primaryRoleId, currentProfile.roles],
   )
+
+  const handleSignOut = useCallback(async () => {
+    setIsSigningOut(true)
+    setSignOutError(null)
+
+    try {
+      const { error } = await supabase.auth.signOut()
+
+      if (error) {
+        throw error
+      }
+
+      await refreshAuthenticatedProfile().catch(() => {})
+      router.push('/')
+      router.refresh()
+    } catch (error) {
+      console.error('Failed to sign out', error)
+      setSignOutError('Unable to sign out right now. Please try again in a moment.')
+    } finally {
+      setIsSigningOut(false)
+    }
+  }, [refreshAuthenticatedProfile, router, supabase])
 
   const activity = useMemo(
     () => buildActivity(contributions.posts, contributions.comments),
@@ -1136,16 +1205,20 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
     [],
   )
 
-  const heroGreeting = `Bonjour ${
-    currentProfile.displayName.split(' ')[0] ?? currentProfile.displayName
-  },`
+  const greetingSource = currentProfile.displayName?.trim().length
+    ? currentProfile.displayName.trim()
+    : currentProfile.email
+  const greetingFirstWord = greetingSource.split(' ')[0] ?? greetingSource
+  const heroGreeting = `नमस्ते ${greetingFirstWord}!`
 
   return (
-    <div className="neo-brutalism min-h-screen bg-gradient-to-br from-[#FFF5F1] via-[#F8F0FF] to-[#E3F2FF] px-4 py-10">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 lg:flex-row">
-        <AccountSidebar profile={currentProfile} totals={contributions.totals} sections={navigationSections} />
+    <div className="neo-brutalism min-h-screen bg-gradient-to-br from-[#FFF5F1] via-[#F8F0FF] to-[#E3F2FF] px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto grid w-full max-w-7xl gap-10 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-12 xl:gap-16">
+        <div className="lg:self-start">
+          <AccountSidebar profile={currentProfile} totals={contributions.totals} sections={navigationSections} />
+        </div>
 
-        <div className="flex-1 space-y-16">
+        <div className="space-y-16">
           <section id="overview" className="scroll-mt-28 space-y-6">
             <SectionHeader
               eyebrow="Overview"
@@ -1179,7 +1252,7 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
                 </div>
               </div>
 
-              <div className="mt-8 grid gap-4 md:grid-cols-3">
+              <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
                 <div className="rounded-2xl border-2 border-black bg-[#6C63FF] p-4 text-white shadow-[8px_8px_0px_0px_rgba(108,99,255,0.35)]">
                   <p className="text-xs font-black uppercase tracking-[0.2em] opacity-80">Account email</p>
                   <p className="mt-2 break-all text-lg font-bold">{currentProfile.email}</p>
@@ -1227,7 +1300,7 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
               </div>
             </div>
 
-            <div className="mt-8 grid gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+            <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
               <div className="rounded-3xl border-2 border-black bg-white p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.15)]">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -1394,7 +1467,7 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
               <StatCard
                 label="Published pieces"
                 value={contributions.totals.publishedPosts}
@@ -1435,7 +1508,7 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
               onRefreshRequested={refreshAuthenticatedProfile}
             />
 
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-2">
               <div className="rounded-[28px] border-4 border-black bg-white p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.18)]">
                 <h3 className="text-xl font-black text-gray-900">Account access</h3>
                 <p className="mt-2 text-sm font-medium text-gray-600">
@@ -1452,6 +1525,25 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
                 <p className="mt-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4 text-xs font-semibold uppercase tracking-wide text-gray-600">
                   Session stays active until you sign out. Close your browser without worry—your reading queue and drafts follow you.
                 </p>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    disabled={isSigningOut}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-md border-2 border-black bg-[#FF5252] px-4 py-2 text-sm font-black uppercase tracking-wide text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+                    title="Sign out of your Syntax &amp; Sips account"
+                  >
+                    {isSigningOut ? 'Signing out…' : 'Sign out securely'}
+                  </button>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Need to switch accounts? Sign out first.
+                  </span>
+                </div>
+                {signOutError ? (
+                  <p className="mt-3 rounded-2xl border-2 border-red-400 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
+                    {signOutError}
+                  </p>
+                ) : null}
                 {currentProfile.isAdmin ? (
                   <Link
                     href="/admin"
@@ -1489,7 +1581,7 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
             />
 
             {contributions.posts.length > 0 ? (
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid gap-6 lg:grid-cols-2">
                 {contributions.posts.slice(0, 6).map((post) => (
                   <ContributionCard key={post.id} post={post} />
                 ))}
@@ -1508,7 +1600,7 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
               description="Keep tabs on discussions you have started and how moderators responded to your contributions."
             />
 
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-2">
               <div className="space-y-4">
                 <h3 className="text-lg font-black text-gray-900">Recent comments</h3>
                 {contributions.comments.length > 0 ? (
@@ -1596,7 +1688,7 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
               description="A quick reference of powers already unlocked and features coming soon for your membership tier."
             />
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-2">
               {capabilities.map((capability) => (
                 <CapabilityCard key={capability.title} {...capability} />
               ))}
@@ -1664,7 +1756,7 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
               description="Need a refresher on guidelines or a human to chat with? Start here to find the right channel."
             />
 
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid gap-6 lg:grid-cols-3">
               <div className="rounded-3xl border-2 border-black bg-white p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)]">
                 <h3 className="flex items-center gap-2 text-lg font-black text-gray-900">
                   <NotebookPen className="h-5 w-5 text-[#6C63FF]" aria-hidden="true" />

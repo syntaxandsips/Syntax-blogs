@@ -64,7 +64,7 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
         responses: null,
       };
 
-  const redirectPath = sanitizeRedirect(resolvedSearchParams?.redirect);
+  const redirectPath = sanitizeRedirect(resolvedSearchParams?.redirect) ?? '/account';
 
   return (
     <OnboardingFlow

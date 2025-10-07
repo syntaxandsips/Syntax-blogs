@@ -124,16 +124,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unable to process upload.' }, { status: 400 })
   }
 
-  const file = formData.get('file')
+  const fileEntry = formData.get('file')
+  const candidateFile = fileEntry instanceof File ? fileEntry : null
 
   try {
-    validateFile(file instanceof File ? file : null)
+    validateFile(candidateFile)
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Invalid upload.' },
       { status: 400 },
     )
   }
+
+  if (!candidateFile) {
+    return NextResponse.json({ error: 'No file provided.' }, { status: 400 })
+  }
+
+  const file = candidateFile
 
   let serviceClient
   try {

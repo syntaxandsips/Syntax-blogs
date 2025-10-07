@@ -45,24 +45,18 @@ export const NewNavbar = () => {
             <GlobalSearch />
             <div className="flex items-center gap-3">
               <Link
-                href="/me?view=signup"
+                href="/signup"
                 className="inline-flex items-center justify-center rounded-md border-2 border-black bg-[#6C63FF] px-4 py-2 text-sm font-extrabold uppercase tracking-wide text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_0px_rgba(108,99,255,0.45)]"
               >
                 Sign up
               </Link>
               <Link
-                href="/me"
+                href="/login"
                 className="inline-flex items-center justify-center rounded-md border-2 border-black bg-[#FF5252] px-4 py-2 text-sm font-extrabold uppercase tracking-wide text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_0px_rgba(255,82,82,0.45)]"
               >
                 Sign in
               </Link>
             </div>
-            <button
-              type="button"
-              className="bg-black text-white px-4 py-2 font-bold rounded-md transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(255,82,82)]"
-            >
-              Create account
-            </button>
           </nav>
           {/* Mobile actions */}
           <div className="flex items-center gap-2 md:hidden">
@@ -104,24 +98,18 @@ export const NewNavbar = () => {
               </MobileNavLink>
               <div className="grid grid-cols-2 gap-3">
                 <Link
-                  href="/me?view=signup"
+                  href="/signup"
                   className="inline-flex items-center justify-center rounded-md border-2 border-black bg-[#6C63FF] px-4 py-2 text-sm font-extrabold uppercase tracking-wide text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_0px_rgba(108,99,255,0.45)]"
                 >
                   Sign up
                 </Link>
                 <Link
-                  href="/me"
+                  href="/login"
                   className="inline-flex items-center justify-center rounded-md border-2 border-black bg-[#FF5252] px-4 py-2 text-sm font-extrabold uppercase tracking-wide text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_0px_rgba(255,82,82,0.45)]"
                 >
                   Sign in
                 </Link>
               </div>
-              <button
-                type="button"
-                className="bg-black text-white px-4 py-2 font-bold rounded-md w-full"
-              >
-                Create account
-              </button>
             </div>
           </div>
         )}

@@ -240,19 +240,6 @@ export const AdminLoginForm = () => {
                 </button>
               </form>
 
-              <div className="mt-6 rounded-2xl border-2 border-black bg-[#F2F5FF] p-4 text-xs font-semibold text-slate-700 shadow-[3px_3px_0_0_rgba(0,0,0,0.12)]">
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-2">
-                    <KeyRound className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#2563EB]" aria-hidden="true" />
-                    Use your Supabase admin email and password. Confirm <code className="rounded bg-white px-1 py-0.5 text-slate-900">is_admin</code> is toggled on in <code className="rounded bg-white px-1 py-0.5 text-slate-900">profiles</code>.
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" aria-hidden="true" />
-                    Need a quick demo? Run <code className="rounded bg-white px-1 py-0.5 text-slate-900">npm run seed:test-user</code> to recreate <code className="rounded bg-white px-1 py-0.5 text-slate-900">test.admin@syntaxblogs.dev</code>.
-                  </li>
-                </ul>
-              </div>
-
               <p className="mt-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <ShieldAlert className="mr-2 inline h-4 w-4 align-[-0.2em] text-rose-500" aria-hidden="true" />
                 Trying to access reader features? <Link href="/login" className="text-[#2563EB] underline">Head to the member login</Link>.

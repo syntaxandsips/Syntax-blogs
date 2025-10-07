@@ -4,7 +4,16 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Activity, KeyRound, Lock, LogIn, Mail, ShieldAlert, ShieldCheck, Sparkles } from 'lucide-react';
+import {
+  Activity,
+  KeyRound,
+  Lock,
+  LogIn,
+  Mail,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
 import '@/styles/neo-brutalism.css';
 import { createBrowserClient } from '@/lib/supabase/client';
 import { syncAuthState } from '@/lib/supabase/sync-auth-state';
@@ -140,22 +149,26 @@ export const AdminLoginForm = () => {
   ];
 
   return (
-    <div className="neo-brutalism min-h-screen bg-[#0F172A] flex items-center justify-center px-4 py-10">
-      <div className="relative w-full max-w-5xl overflow-hidden rounded-[32px] border-4 border-black bg-[#0B1220] text-white shadow-[12px_12px_0_0_rgba(0,0,0,0.35)]">
+    <div className="neo-brutalism min-h-screen bg-[#DDE6FF] flex items-center justify-center px-4 py-10">
+      <div className="relative w-full max-w-5xl overflow-hidden rounded-[32px] border-4 border-black bg-[#F2F5FF] text-slate-900 shadow-[12px_12px_0_0_rgba(0,0,0,0.25)]">
         <div
-          className="absolute -right-16 -top-16 hidden h-48 w-48 -rotate-12 rounded-full border-4 border-black bg-[#38BDF8] md:block"
+          className="absolute -left-20 -top-20 hidden h-48 w-48 rotate-6 rounded-full border-4 border-black bg-[#99B5FF] md:block"
           aria-hidden="true"
         />
-        <div className="grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr]">
-          <div className="relative z-10 border-b-4 border-black px-8 py-10 md:border-b-0 md:border-r-4 md:px-10">
+        <div
+          className="absolute -bottom-24 -right-16 hidden h-56 w-56 -rotate-12 rounded-full border-4 border-black bg-[#C1D4FF] md:block"
+          aria-hidden="true"
+        />
+        <div className="relative grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr]">
+          <div className="relative z-10 border-b-4 border-black bg-white px-8 py-10 md:border-b-0 md:border-r-4 md:px-12">
             <div className="mx-auto w-full max-w-sm">
-              <span className="inline-flex items-center rounded-full border-2 border-black bg-[#0F172A] px-4 py-1 text-xs font-black uppercase tracking-widest text-[#38BDF8] shadow-[4px_4px_0_0_rgba(0,0,0,0.4)]">
+              <span className="inline-flex items-center rounded-full border-2 border-black bg-[#E8EEFF] px-4 py-1 text-xs font-black uppercase tracking-widest text-[#1D4ED8] shadow-[4px_4px_0_0_rgba(0,0,0,0.2)]">
                 <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />
                 Syntax &amp; Sips admin portal
               </span>
-              <h1 className="mt-4 text-3xl font-black tracking-tight text-white">Welcome to the control room</h1>
-              <p className="mt-2 text-sm font-medium text-slate-200">
-                Use your admin credentials to ship updates, schedule features, and keep the content pipeline humming.
+              <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900">Welcome back, captain</h1>
+              <p className="mt-2 text-sm font-medium text-slate-600">
+                Sign in with your admin credentials to orchestrate posts, manage contributors, and keep the roadmap aligned.
               </p>
 
               {error && (
@@ -178,19 +191,19 @@ export const AdminLoginForm = () => {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              <form onSubmit={handleSubmit} className="mt-8 space-y-6">
                 <div className="space-y-2">
-                  <label htmlFor="admin-email" className="block text-xs font-bold uppercase tracking-wide text-slate-200">
+                  <label htmlFor="admin-email" className="block text-xs font-bold uppercase tracking-wide text-slate-700">
                     Email
                   </label>
                   <div className="relative">
-                    <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#38BDF8]" aria-hidden="true" />
+                    <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#2563EB]" aria-hidden="true" />
                     <input
                       id="admin-email"
                       name="email"
                       type="email"
                       required
-                      className="w-full rounded-lg border-2 border-white/20 bg-[#101B33] px-4 py-2 pl-11 text-sm font-semibold text-white shadow-[3px_3px_0_0_rgba(0,0,0,0.35)] focus:outline-none focus:ring-4 focus:ring-[#38BDF8]/50"
+                      className="w-full rounded-lg border-2 border-black px-4 py-3 pl-11 text-sm font-semibold text-slate-900 shadow-[3px_3px_0_0_rgba(0,0,0,0.15)] focus:outline-none focus:ring-4 focus:ring-[#2563EB]/40"
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
                       autoComplete="email"
@@ -199,17 +212,17 @@ export const AdminLoginForm = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="admin-password" className="block text-xs font-bold uppercase tracking-wide text-slate-200">
+                  <label htmlFor="admin-password" className="block text-xs font-bold uppercase tracking-wide text-slate-700">
                     Password
                   </label>
                   <div className="relative">
-                    <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#38BDF8]" aria-hidden="true" />
+                    <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#2563EB]" aria-hidden="true" />
                     <input
                       id="admin-password"
                       name="password"
                       type="password"
                       required
-                      className="w-full rounded-lg border-2 border-white/20 bg-[#101B33] px-4 py-2 pl-11 text-sm font-semibold text-white shadow-[3px_3px_0_0_rgba(0,0,0,0.35)] focus:outline-none focus:ring-4 focus:ring-[#38BDF8]/50"
+                      className="w-full rounded-lg border-2 border-black px-4 py-3 pl-11 text-sm font-semibold text-slate-900 shadow-[3px_3px_0_0_rgba(0,0,0,0.15)] focus:outline-none focus:ring-4 focus:ring-[#2563EB]/40"
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       autoComplete="current-password"
@@ -220,66 +233,62 @@ export const AdminLoginForm = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="inline-flex w-full items-center justify-center rounded-xl border-2 border-black bg-[#38BDF8] px-6 py-3 text-base font-black uppercase tracking-wide text-[#0B1220] shadow-[5px_5px_0_0_rgba(0,0,0,0.4)] transition-transform hover:-translate-y-1 hover:shadow-[7px_7px_0_0_rgba(0,0,0,0.45)] disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none"
+                  className="inline-flex w-full items-center justify-center rounded-xl border-2 border-black bg-[#2563EB] px-6 py-3 text-base font-black uppercase tracking-wide text-white shadow-[5px_5px_0_0_rgba(0,0,0,0.25)] transition-transform hover:-translate-y-1 hover:shadow-[7px_7px_0_0_rgba(0,0,0,0.3)] disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none"
                 >
                   <LogIn className="mr-2 h-5 w-5" aria-hidden="true" />
-                  {isLoading ? 'Logging in…' : 'Enter dashboard'}
+                  {isLoading ? 'Logging in…' : 'Sign in'}
                 </button>
               </form>
 
-              <div className="mt-6 space-y-3 rounded-2xl border-2 border-white/10 bg-[#101B33]/70 p-4 text-xs font-semibold text-slate-200">
+              <div className="mt-6 space-y-3 rounded-2xl border-2 border-black bg-[#F2F5FF] p-4 text-xs font-semibold text-slate-700 shadow-[3px_3px_0_0_rgba(0,0,0,0.12)]">
                 <p className="flex items-start gap-2">
-                  <KeyRound className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#38BDF8]" aria-hidden="true" />
-                  Use the Supabase credentials for your admin profile. Accounts must have <code className="rounded bg-white/10 px-1 py-0.5">is_admin</code> enabled in the <code className="rounded bg-white/10 px-1 py-0.5">profiles</code> table.
+                  <KeyRound className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#2563EB]" aria-hidden="true" />
+                  Use the Supabase credentials for your admin profile. Accounts must have <code className="rounded bg-white px-1 py-0.5 text-slate-900">is_admin</code> enabled in the <code className="rounded bg-white px-1 py-0.5 text-slate-900">profiles</code> table.
                 </p>
                 <p className="flex items-start gap-2">
-                  <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#34D399]" aria-hidden="true" />
-                  Need a demo identity? Run <code className="rounded bg-white/10 px-1 py-0.5">npm run seed:test-user</code> to recreate <code className="rounded bg-white/10 px-1 py-0.5">test.admin@syntaxblogs.dev</code> with the default password.
+                  <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" aria-hidden="true" />
+                  Need a demo identity? Run <code className="rounded bg-white px-1 py-0.5 text-slate-900">npm run seed:test-user</code> to recreate <code className="rounded bg-white px-1 py-0.5 text-slate-900">test.admin@syntaxblogs.dev</code> with the default password.
                 </p>
               </div>
 
-              <p className="mt-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-                <ShieldAlert className="mr-2 inline h-4 w-4 align-[-0.2em] text-[#F87171]" aria-hidden="true" />
-                Trying to access reader features? <Link href="/login" className="text-[#38BDF8] underline">Head to the member login</Link>.
+              <p className="mt-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <ShieldAlert className="mr-2 inline h-4 w-4 align-[-0.2em] text-rose-500" aria-hidden="true" />
+                Trying to access reader features? <Link href="/login" className="text-[#2563EB] underline">Head to the member login</Link>.
               </p>
             </div>
           </div>
 
-          <div className="relative flex flex-col justify-between gap-6 bg-[#13203A] px-8 py-12 text-left md:px-12">
-            <div
-              className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.3),_rgba(19,32,58,0))]"
-              aria-hidden="true"
-            />
+          <div className="relative flex flex-col justify-between gap-8 bg-[#E8EEFF] px-8 py-12 text-left md:px-12">
             <div className="relative max-w-sm">
-              <span className="inline-flex items-center rounded-full border-2 border-black bg-[#0F172A] px-4 py-1 text-xs font-black uppercase tracking-widest text-[#38BDF8] shadow-[4px_4px_0_0_rgba(0,0,0,0.45)]">
-                Mission control brief
+              <span className="inline-flex items-center rounded-full border-2 border-black bg-white px-4 py-1 text-xs font-black uppercase tracking-widest text-[#2563EB] shadow-[4px_4px_0_0_rgba(0,0,0,0.2)]">
+                Stay in sync with the crew
               </span>
-              <h2 className="mt-6 text-3xl font-black tracking-tight text-white">Keep the editorial engine running</h2>
-              <p className="mt-3 text-sm font-medium text-slate-200">
-                Configure the homepage, curate spotlight stories, and coordinate drops with the rest of the Syntax &amp; Sips crew.
+              <h2 className="mt-6 text-3xl font-black tracking-tight text-slate-900">Drive the Syntax &amp; Sips newsroom</h2>
+              <p className="mt-3 text-sm font-medium text-slate-600">
+                Shape the editorial calendar, coach contributors, and publish updates the moment they’re ready for readers.
               </p>
             </div>
 
-            <div className="relative space-y-4 text-sm font-semibold text-slate-200">
+            <div className="relative space-y-4 text-sm font-semibold text-slate-700">
               {highlights.map(({ icon: Icon, title, description }) => (
                 <div
                   key={title}
-                  className="flex gap-3 rounded-2xl border-2 border-black bg-[#0F172A] p-4 shadow-[5px_5px_0_0_rgba(0,0,0,0.45)]"
+                  className="flex gap-3 rounded-2xl border-2 border-black bg-white p-4 shadow-[5px_5px_0_0_rgba(0,0,0,0.2)]"
                 >
-                  <span className="mt-1 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-[#38BDF8] bg-[#101B33] text-[#38BDF8]">
+                  <span className="mt-1 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-[#2563EB] bg-[#E8EEFF] text-[#2563EB]">
                     <Icon className="h-5 w-5" aria-hidden="true" />
                   </span>
                   <div>
-                    <p className="text-base font-black text-white">{title}</p>
-                    <p className="mt-1 text-xs font-medium text-slate-300">{description}</p>
+                    <p className="text-base font-black text-slate-900">{title}</p>
+                    <p className="mt-1 text-xs font-medium text-slate-600">{description}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="relative rounded-2xl border-2 border-white/10 bg-[#101B33]/70 p-4 text-xs font-semibold text-slate-300">
+            <div className="relative rounded-2xl border-2 border-black bg-white p-4 text-xs font-semibold text-slate-600 shadow-[4px_4px_0_0_rgba(0,0,0,0.18)]">
               <p>
-                Deployment tip: ensure the <code className="rounded bg-white/10 px-1 py-0.5">profiles</code> table is migrated before seeding so the admin flag persists across environments.
+                Deployment tip: ensure the <code className="rounded bg-[#E8EEFF] px-1 py-0.5 text-slate-900">profiles</code> table is migrated before seeding so the admin flag persists across environments.
               </p>
             </div>
           </div>

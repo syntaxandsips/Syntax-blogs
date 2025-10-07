@@ -120,8 +120,8 @@ export async function POST(request: Request) {
   const email = sanitizeEmail(body?.email)
   const password = sanitizePassword(body?.password)
   const displayName = sanitizeDisplayName(body?.displayName)
-  const isAdmin = Boolean(body?.isAdmin)
   const requestedRoles = sanitizeRoleSlugs(body?.roleSlugs)
+  const isAdmin = Boolean(body?.isAdmin) || requestedRoles.includes('admin')
 
   if (!email) {
     return NextResponse.json({ error: 'Email is required.' }, { status: 400 })
@@ -177,7 +177,13 @@ export async function POST(request: Request) {
       )
     }
 
-    await ensureRoleAssignments(serviceClient, profileData.id, roles, requestedRoles, isAdmin)
+    await ensureRoleAssignments(
+      serviceClient,
+      profileData.id,
+      roles,
+      requestedRoles,
+      isAdmin,
+    )
 
     const refreshedProfile = await fetchProfileById(serviceClient, profileData.id)
     const summary = await buildUserSummary(serviceClient, refreshedProfile)

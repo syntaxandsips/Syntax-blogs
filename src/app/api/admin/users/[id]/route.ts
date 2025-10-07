@@ -91,8 +91,8 @@ export async function PATCH(
   const body = (await request.json()) as Partial<UpdateAdminUserPayload>
 
   const displayName = sanitizeDisplayName(body?.displayName)
-  const isAdmin = Boolean(body?.isAdmin)
   const requestedRoles = sanitizeRoleSlugs(body?.roleSlugs)
+  const isAdmin = Boolean(body?.isAdmin) || requestedRoles.includes('admin')
   const newPassword = sanitizePassword(body?.newPassword)
 
   if (!displayName) {

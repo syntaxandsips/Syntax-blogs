@@ -62,7 +62,8 @@ export async function GET(
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  const comments = (data ?? []).map((record) => mapComment(record as CommentRecord))
+  const rows = (data ?? []) as unknown as CommentRecord[]
+  const comments = rows.map((record) => mapComment(record))
   return NextResponse.json({ comments })
 }
 

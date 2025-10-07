@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -82,7 +82,7 @@ export default function NewBlogPostClient({ post, relatedPosts }: BlogPostClient
   }, [shareUrl]);
 
   const shareTargets = useMemo<
-    { name: string; href?: string; icon: JSX.Element; styles: string; onClick?: () => void }[]
+    { name: string; href?: string; icon: ReactNode; styles: string; onClick?: () => void }[]
   >(
     () => [
       {

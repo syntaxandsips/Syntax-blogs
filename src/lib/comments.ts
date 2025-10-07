@@ -41,7 +41,7 @@ export const getApprovedCommentsForPost = async (postId: string): Promise<PostCo
       throw error
     }
 
-    const rows = (data ?? []) as CommentRecord[]
+    const rows = (data ?? []) as unknown as CommentRecord[]
 
     return rows.map((row) => ({
       id: row.id,

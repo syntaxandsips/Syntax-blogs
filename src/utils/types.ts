@@ -117,3 +117,53 @@ export interface AdminCommentSummary {
   authorDisplayName: string | null
   authorProfileId: string | null
 }
+
+export interface AuthenticatedProfileSummary {
+  userId: string
+  email: string
+  displayName: string
+  avatarUrl: string | null
+  isAdmin: boolean
+  createdAt: string
+  lastSignInAt: string | null
+  emailConfirmedAt: string | null
+  primaryRoleId: string | null
+  roles: AdminUserRole[]
+}
+
+export interface UserPostSummary {
+  id: string
+  title: string
+  slug: string | null
+  status: PostStatus
+  views: number
+  createdAt: string
+  publishedAt: string | null
+}
+
+export interface UserCommentSummary {
+  id: string
+  content: string
+  status: CommentStatus
+  createdAt: string
+  postTitle: string | null
+  postSlug: string | null
+}
+
+export interface UserContributionTotals {
+  totalPosts: number
+  publishedPosts: number
+  draftPosts: number
+  scheduledPosts: number
+  totalViews: number
+  totalComments: number
+  approvedComments: number
+  pendingComments: number
+  rejectedComments: number
+}
+
+export interface UserContributionSnapshot {
+  posts: UserPostSummary[]
+  comments: UserCommentSummary[]
+  totals: UserContributionTotals
+}

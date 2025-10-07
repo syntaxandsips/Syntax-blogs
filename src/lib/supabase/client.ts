@@ -12,4 +12,10 @@ if (!supabaseAnonKey) {
 }
 
 export const createBrowserClient = () =>
-  createSupabaseBrowserClient(supabaseUrl, supabaseAnonKey)
+  createSupabaseBrowserClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  })

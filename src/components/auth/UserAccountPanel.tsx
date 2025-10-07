@@ -50,6 +50,10 @@ import type {
 } from '@/utils/types'
 import { CommentStatus, PostStatus } from '@/utils/types'
 import { createBrowserClient } from '@/lib/supabase/client'
+import {
+  MAX_PROFILE_PHOTO_SIZE,
+  getObjectPathFromPublicUrl,
+} from '@/lib/storage/profile-photos'
 import { useAuthenticatedProfile } from '@/hooks/useAuthenticatedProfile'
 import '@/styles/neo-brutalism.css'
 
@@ -747,21 +751,6 @@ const SectionHeader = ({
   </header>
 )
 
-const getObjectPathFromPublicUrl = (url: string): string | null => {
-  try {
-    const parsed = new URL(url)
-    const segments = parsed.pathname.split('/')
-    const bucketIndex = segments.findIndex((segment) => segment === 'profile-photos')
-    if (bucketIndex === -1) {
-      return null
-    }
-    return segments.slice(bucketIndex + 1).join('/')
-  } catch (error) {
-    console.error('Failed to derive storage path from url', error)
-    return null
-  }
-}
-
 interface ProfileIdentityManagerProps {
   profile: AuthenticatedProfileSummary
   onProfileChange: (patch: Partial<AuthenticatedProfileSummary>) => void
@@ -834,12 +823,14 @@ const ProfileIdentityManager = ({
       }
 
       if (!file.type.startsWith('image/')) {
-        setUploadStatus({ tone: 'error', message: 'Please choose an image file (PNG, JPG, or GIF).' })
+        setUploadStatus({
+          tone: 'error',
+          message: 'Please choose an image file (PNG, JPG, GIF, SVG, or WebP).',
+        })
         return
       }
 
-      const maxSize = 5 * 1024 * 1024
-      if (file.size > maxSize) {
+      if (file.size > MAX_PROFILE_PHOTO_SIZE) {
         setUploadStatus({ tone: 'error', message: 'Image is larger than 5MB. Choose a smaller file.' })
         return
       }
@@ -848,45 +839,38 @@ const ProfileIdentityManager = ({
       setUploadStatus(null)
 
       try {
-        const extension = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
-        const objectPath = `${profile.userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`
-
-        const { error: uploadError } = await supabase.storage
-          .from('profile-photos')
-          .upload(objectPath, file, {
-            cacheControl: '3600',
-            upsert: true,
-            contentType: file.type,
-          })
-
-        if (uploadError) {
-          throw uploadError
-        }
+        const formData = new FormData()
+        formData.append('file', file)
 
         const previousPath = profile.avatarUrl ? getObjectPathFromPublicUrl(profile.avatarUrl) : null
-        if (previousPath && previousPath !== objectPath) {
-          await supabase.storage.from('profile-photos').remove([previousPath])
+        if (previousPath) {
+          formData.append('previousPath', previousPath)
         }
 
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from('profile-photos').getPublicUrl(objectPath)
+        const response = await fetch('/api/profile/avatar', {
+          method: 'POST',
+          body: formData,
+        })
 
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ avatar_url: publicUrl })
-          .eq('user_id', profile.userId)
-
-        if (profileError) {
-          throw profileError
+        if (!response.ok) {
+          const payload = (await response.json().catch(() => null)) as { error?: string } | null
+          throw new Error(payload?.error ?? 'Unable to update profile photo. Please try again.')
         }
 
-        onProfileChange({ avatarUrl: publicUrl })
+        const { avatarUrl } = (await response.json()) as { avatarUrl: string }
+
+        onProfileChange({ avatarUrl })
         await onRefreshRequested()
         setUploadStatus({ tone: 'success', message: 'Profile photo updated.' })
       } catch (error) {
         console.error('Failed to upload avatar', error)
-        setUploadStatus({ tone: 'error', message: 'Unable to update profile photo. Please try again.' })
+        setUploadStatus({
+          tone: 'error',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Unable to update profile photo. Please try again.',
+        })
       } finally {
         setIsUploading(false)
         if (event.target) {
@@ -894,7 +878,7 @@ const ProfileIdentityManager = ({
         }
       }
     },
-    [onProfileChange, onRefreshRequested, profile.avatarUrl, profile.userId, supabase],
+    [onProfileChange, onRefreshRequested, profile.avatarUrl],
   )
 
   const handleRemovePhoto = useCallback(async () => {
@@ -906,18 +890,15 @@ const ProfileIdentityManager = ({
     setUploadStatus(null)
 
     try {
-      const objectPath = getObjectPathFromPublicUrl(profile.avatarUrl)
-      if (objectPath) {
-        await supabase.storage.from('profile-photos').remove([objectPath])
-      }
+      const response = await fetch('/api/profile/avatar', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatarUrl: profile.avatarUrl }),
+      })
 
-      const { error } = await supabase
-        .from('profiles')
-        .update({ avatar_url: null })
-        .eq('user_id', profile.userId)
-
-      if (error) {
-        throw error
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null
+        throw new Error(payload?.error ?? 'Unable to remove profile photo. Please try again.')
       }
 
       onProfileChange({ avatarUrl: null })
@@ -925,11 +906,15 @@ const ProfileIdentityManager = ({
       setUploadStatus({ tone: 'success', message: 'Profile photo removed.' })
     } catch (error) {
       console.error('Failed to remove avatar', error)
-      setUploadStatus({ tone: 'error', message: 'Unable to remove profile photo right now.' })
+      setUploadStatus({
+        tone: 'error',
+        message:
+          error instanceof Error ? error.message : 'Unable to remove profile photo right now.',
+      })
     } finally {
       setIsUploading(false)
     }
-  }, [onProfileChange, onRefreshRequested, profile.avatarUrl, profile.userId, supabase])
+  }, [onProfileChange, onRefreshRequested, profile.avatarUrl])
 
   return (
     <div className="rounded-[32px] border-4 border-black bg-white p-6 shadow-[16px_16px_0px_0px_rgba(0,0,0,0.2)]">

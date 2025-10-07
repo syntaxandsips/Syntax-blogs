@@ -11,12 +11,12 @@ test.describe('Authentication flows', () => {
 
   test('redirects unauthenticated admin visitors to the login screen', async ({ page }) => {
     await page.goto('/admin');
-    await expect(page).toHaveURL(/\/me/);
+    await expect(page).toHaveURL(/\/admin\/login/);
     await expect(page.getByRole('heading', { name: /admin login/i })).toBeVisible();
   });
 
   test('rejects invalid credentials gracefully', async ({ page }) => {
-    await page.goto('/me');
+    await page.goto('/admin/login');
 
     await page.fill('input[name="email"]', 'invalid@example.com');
     await page.fill('input[name="password"]', 'nottherightpassword');
@@ -28,7 +28,7 @@ test.describe('Authentication flows', () => {
   test('allows an administrator to sign in and sign out', async ({ page }) => {
     test.skip(!(adminEmail && adminPassword), 'Provide PLAYWRIGHT_E2E_EMAIL and PLAYWRIGHT_E2E_PASSWORD to execute admin login tests.');
 
-    await page.goto('/me');
+    await page.goto('/admin/login');
     await page.fill('input[name="email"]', adminEmail!);
     await page.fill('input[name="password"]', adminPassword!);
     await page.click('button[type="submit"]');
@@ -38,7 +38,7 @@ test.describe('Authentication flows', () => {
     await expect(page).toHaveURL(/\/admin/);
 
     await page.getByRole('button', { name: /log out/i }).click();
-    await page.waitForURL('**/me', { timeout: 15000 });
-    await expect(page).toHaveURL(/\/me/);
+    await page.waitForURL('**/admin/login', { timeout: 15000 });
+    await expect(page).toHaveURL(/\/admin\/login/);
   });
 });

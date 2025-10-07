@@ -543,7 +543,7 @@ const AdminDashboard = ({
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    router.push('/me')
+    router.push('/admin/login')
   }
 
   const handleNavigate = (view: string) => {

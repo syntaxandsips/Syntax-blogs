@@ -54,16 +54,16 @@ export const NewNavbar = () => {
             <NavLink href="/changelog" isActive={isActive('/changelog')}>
               Changelogs
             </NavLink>
-            <NavLink href="/me" isActive={isActive('/me')}>
-              Sign in / Sign up
+            <NavLink href="/login" isActive={isActive('/login')}>
+              Sign in
             </NavLink>
             <GlobalSearch />
-            <button
-              type="button"
+            <Link
+              href="/signup"
               className="bg-black text-white px-4 py-2 font-bold rounded-md transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(255,82,82)]"
             >
-              Subscribe
-            </button>
+              Create account
+            </Link>
           </nav>
           {/* Mobile actions */}
           <div className="flex items-center gap-2 md:hidden">
@@ -78,7 +78,7 @@ export const NewNavbar = () => {
               <span>Search</span>
             </button>
             <Link
-              href="/me"
+              href="/login"
               className="inline-flex items-center gap-1 rounded-md border-2 border-black bg-white px-3 py-2 text-sm font-semibold text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px]"
             >
               <LogIn className="h-4 w-4" aria-hidden="true" />
@@ -110,15 +110,15 @@ export const NewNavbar = () => {
               <MobileNavLink href="/changelog" isActive={isActive('/changelog')}>
                 Changelogs
               </MobileNavLink>
-              <MobileNavLink href="/me" isActive={isActive('/me')}>
-                Sign in / Sign up
+              <MobileNavLink href="/login" isActive={isActive('/login')}>
+                Sign in
               </MobileNavLink>
-              <button
-                type="button"
-                className="bg-black text-white px-4 py-2 font-bold rounded-md w-full"
+              <Link
+                href="/signup"
+                className="bg-black text-white px-4 py-2 font-bold rounded-md w-full text-center"
               >
-                Subscribe
-              </button>
+                Create account
+              </Link>
             </div>
           </div>
         )}

@@ -63,7 +63,7 @@ export default function EditPostClient({ postId }: EditPostClientProps) {
     // Check if user is authenticated
     const token = localStorage.getItem('adminToken');
     if (!token) {
-      router.push('/me');
+      router.push('/admin/login');
       return;
     }
     

@@ -315,7 +315,7 @@ export const getPublishedPostBySlug = cache(async (slug: string) => {
       return null
     }
 
-    record = ensureOptionalImageColumns(data as PostDetailRecord)
+    record = ensureOptionalImageColumns(data)
   }
 
   let author: AuthorRecord | null = null

@@ -9,6 +9,7 @@ import { syncAuthState } from '@/lib/supabase/sync-auth-state';
 import { useSupabaseAuthSync } from '@/hooks/useSupabaseAuthSync';
 import '@/styles/neo-brutalism.css';
 import { getSiteUrl } from '@/lib/site-url';
+import { sanitizeRedirect } from '@/utils/sanitizeRedirect';
 
 export const UserSignUpForm = () => {
   const router = useRouter();
@@ -23,7 +24,7 @@ export const UserSignUpForm = () => {
   const [info, setInfo] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const redirectTo = searchParams.get('redirect_to');
+  const redirectTo = sanitizeRedirect(searchParams.get('redirect_to'), { defaultValue: null });
 
   useSupabaseAuthSync(supabase);
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Loader2, Search, X, ArrowUpRight } from 'lucide-react';
 import type { BlogListPost } from '@/lib/posts';
 
@@ -12,7 +12,6 @@ interface SearchResult extends BlogListPost {
 type SearchStatus = 'idle' | 'loading' | 'error' | 'success';
 
 export function GlobalSearch() {
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -134,14 +133,6 @@ export function GlobalSearch() {
     return () => window.clearTimeout(timeout);
   }, [isOpen, query, runSearch]);
 
-  const handleResultClick = useCallback(
-    (slug: string) => {
-      router.push(`/blogs/${slug}`);
-      close();
-    },
-    [close, router],
-  );
-
   const hasResults = results.length > 0;
 
   return (
@@ -218,16 +209,13 @@ export function GlobalSearch() {
               {status === 'success' && !hasResults && (
                 <p className="text-sm text-gray-600">
                   No matches just yet. Try a different keyword or visit the{' '}
-                  <button
-                    type="button"
+                  <Link
+                    href="/blogs"
                     className="font-semibold text-[#6C63FF] underline"
-                    onClick={() => {
-                      router.push('/blogs');
-                      close();
-                    }}
+                    onClick={close}
                   >
                     blog archive
-                  </button>
+                  </Link>
                   .
                 </p>
               )}
@@ -236,9 +224,9 @@ export function GlobalSearch() {
                 <ul className="space-y-3" role="list">
                   {results.map((result) => (
                     <li key={result.id}>
-                      <button
-                        type="button"
-                        onClick={() => handleResultClick(result.slug)}
+                      <Link
+                        href={`/blogs/${result.slug}`}
+                        onClick={close}
                         className="group flex w-full flex-col gap-2 rounded-xl border-2 border-black bg-white px-4 py-3 text-left transition hover:-translate-y-[2px] hover:border-[#6C63FF] hover:shadow-[6px_6px_0px_0px_rgba(108,99,255,0.28)]"
                       >
                         <div className="flex items-center justify-between gap-3">
@@ -260,7 +248,7 @@ export function GlobalSearch() {
                           )}
                           <span>{result.views.toLocaleString()} views</span>
                         </div>
-                      </button>
+                      </Link>
                     </li>
                   ))}
                 </ul>

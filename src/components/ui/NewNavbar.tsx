@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Coffee, Code } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { GlobalSearch } from './GlobalSearch';
+import { useClientPathname } from '@/hooks/useClientPathname';
 
 export const NewNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const pathname = usePathname();
+  const pathname = useClientPathname();
 
   // Function to check if a path is active
   const isActive = (path: string) => {

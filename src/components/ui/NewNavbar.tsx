@@ -62,7 +62,7 @@ export const NewNavbar = () => {
               className="bg-black text-white px-4 py-2 font-bold rounded-md transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(255,82,82)]"
             >
               Create account
-            </Link>
+            </button>
           </nav>
           {/* Mobile actions */}
           <div className="flex items-center gap-2 md:hidden">
@@ -121,7 +121,7 @@ export const NewNavbar = () => {
                 className="bg-black text-white px-4 py-2 font-bold rounded-md w-full"
               >
                 Create account
-              </Link>
+              </button>
             </div>
           </div>
         )}

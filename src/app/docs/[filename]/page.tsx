@@ -2,13 +2,27 @@ import fs from 'fs';
 import path from 'path';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { remark } from 'remark';
-import remarkGfm from 'remark-gfm';
-import remarkRehype from 'remark-rehype';
-import rehypeRaw from 'rehype-raw';
-import rehypeHighlight from 'rehype-highlight';
-import rehypeStringify from 'rehype-stringify';
 import { CopyButtonScript } from '@/components/docs/copy-button-script';
+
+export const runtime = 'nodejs';
+
+type RemarkModules = [
+  typeof import('remark'),
+  typeof import('remark-gfm'),
+  typeof import('remark-rehype'),
+  typeof import('rehype-raw'),
+  typeof import('rehype-highlight'),
+  typeof import('rehype-stringify'),
+];
+
+const remarkModulesPromise: Promise<RemarkModules> = Promise.all([
+  import('remark'),
+  import('remark-gfm'),
+  import('remark-rehype'),
+  import('rehype-raw'),
+  import('rehype-highlight'),
+  import('rehype-stringify'),
+]);
 
 // Define the metadata for the page
 export const metadata: Metadata = {
@@ -32,9 +46,13 @@ export default async function DocPage({
   const { filename } = await params;
 
   try {
-    // Construct the file path
-    const filePath = path.join(process.cwd(), 'src', 'docs', filename);
-    
+    const safeFilename = path.basename(filename);
+    if (!safeFilename || path.extname(safeFilename) !== '.md') {
+      return notFound();
+    }
+    const docsDirectory = path.join(process.cwd(), 'src', 'docs');
+    const filePath = path.join(docsDirectory, safeFilename);
+
     // Check if the file exists
     if (!fs.existsSync(filePath)) {
       return notFound();
@@ -62,6 +80,15 @@ export default async function DocPage({
 }
 
 async function renderMarkdown(markdown: string): Promise<string> {
+  const [
+    { remark },
+    { default: remarkGfm },
+    { default: remarkRehype },
+    { default: rehypeRaw },
+    { default: rehypeHighlight },
+    { default: rehypeStringify },
+  ] = await remarkModulesPromise;
+
   const processed = await remark()
     .use(remarkGfm)
     .use(remarkRehype, { allowDangerousHtml: true })

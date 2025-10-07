@@ -13,6 +13,7 @@ import { PostForm } from './PostForm'
 import { StatsSection } from './StatsSection'
 import { UserManagement } from './UserManagement'
 import { createBrowserClient } from '@/lib/supabase/client'
+import { Menu } from 'lucide-react'
 import {
   AdminPost,
   AdminRole,
@@ -55,6 +56,7 @@ export const AdminDashboard = ({
   const [isLoadingUsers, setIsLoadingUsers] = useState(false)
   const [hasLoadedUsers, setHasLoadedUsers] = useState(false)
   const [isUserMutationInFlight, setIsUserMutationInFlight] = useState(false)
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
 
   const mapPostsFromPayload = useCallback((data: AdminPost[]) => {
     setPosts(
@@ -149,6 +151,7 @@ export const AdminDashboard = ({
   const handleCreatePost = () => {
     setEditingPost(null)
     setCurrentView('post-form')
+    setIsMobileSidebarOpen(false)
   }
 
   const handleEditPost = (post: AdminPost) => {
@@ -266,6 +269,11 @@ export const AdminDashboard = ({
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     router.push('/me')
+  }
+
+  const handleNavigate = (view: string) => {
+    setCurrentView(view)
+    setIsMobileSidebarOpen(false)
   }
 
   const fetchUsers = useCallback(async () => {
@@ -478,31 +486,75 @@ export const AdminDashboard = ({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f8f9fa]">
-      <Sidebar
-        currentView={currentView}
-        onNavigate={setCurrentView}
-        onCreatePost={handleCreatePost}
-        onSignOut={handleSignOut}
-        displayName={displayName}
-        isAdmin={isAdmin}
-      />
-      <main className="flex-1 overflow-y-auto p-8">
-        <div className="max-w-7xl mx-auto space-y-6">
-          {feedback && (
-            <div
-              className={`rounded-md border-2 p-4 font-semibold ${
-                feedback.type === 'success'
-                  ? 'border-green-500/30 bg-green-50 text-green-700'
-                  : 'border-red-500/30 bg-red-50 text-red-700'
-              }`}
-            >
-              {feedback.message}
-            </div>
-          )}
-          {renderContent()}
+    <div className="relative flex min-h-screen bg-[#f8f9fa]">
+      <div className="hidden lg:flex">
+        <Sidebar
+          currentView={currentView}
+          onNavigate={handleNavigate}
+          onCreatePost={handleCreatePost}
+          onSignOut={handleSignOut}
+          displayName={displayName}
+          isAdmin={isAdmin}
+        />
+      </div>
+
+      {isMobileSidebarOpen && (
+        <div className="fixed inset-0 z-40 flex lg:hidden">
+          <button
+            type="button"
+            aria-label="Close navigation"
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setIsMobileSidebarOpen(false)}
+          />
+          <Sidebar
+            currentView={currentView}
+            onNavigate={handleNavigate}
+            onCreatePost={handleCreatePost}
+            onSignOut={handleSignOut}
+            displayName={displayName}
+            isAdmin={isAdmin}
+            className="relative z-50 w-[min(85vw,320px)]"
+            showCloseButton
+            onClose={() => setIsMobileSidebarOpen(false)}
+          />
         </div>
-      </main>
+      )}
+
+      <div className="flex min-h-screen flex-1 flex-col">
+        <header className="flex items-center justify-between gap-4 border-b border-[#2A2A2A]/10 bg-[#f8f9fa] px-4 py-4 shadow-sm lg:hidden">
+          <button
+            type="button"
+            onClick={() => setIsMobileSidebarOpen(true)}
+            className="inline-flex items-center justify-center rounded-md border-2 border-[#2A2A2A]/10 bg-white p-2 text-[#2A2A2A] shadow-sm"
+            aria-label="Open navigation"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <div className="flex-1 text-center">
+            <p className="text-sm font-semibold uppercase tracking-wide text-[#2A2A2A]/70">
+              Admin Area
+            </p>
+            <h1 className="text-lg font-bold text-[#2A2A2A]">Dashboard</h1>
+          </div>
+          <div className="w-9" aria-hidden="true" />
+        </header>
+        <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+          <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+            {feedback && (
+              <div
+                className={`rounded-md border-2 p-4 font-semibold ${
+                  feedback.type === 'success'
+                    ? 'border-green-500/30 bg-green-50 text-green-700'
+                    : 'border-red-500/30 bg-red-50 text-red-700'
+                }`}
+              >
+                {feedback.message}
+              </div>
+            )}
+            {renderContent()}
+          </div>
+        </main>
+      </div>
     </div>
   )
 }

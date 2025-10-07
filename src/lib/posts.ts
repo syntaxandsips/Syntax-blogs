@@ -82,6 +82,34 @@ const mapListPost = (record: PostListRecord): BlogListPost => ({
   views: record.views ?? 0,
 })
 
+const OPTIONAL_IMAGE_COLUMNS = ['featured_image_url', 'social_image_url'] as const
+
+const isMissingOptionalImageColumnsError = (error: unknown) => {
+  if (!error || typeof error !== 'object') {
+    return false
+  }
+
+  const parts = [
+    'message' in error && typeof error.message === 'string' ? error.message : '',
+    'details' in error && typeof error.details === 'string' ? error.details : '',
+    'hint' in error && typeof error.hint === 'string' ? error.hint : '',
+  ]
+
+  const combined = parts.filter(Boolean).join(' ')
+
+  return OPTIONAL_IMAGE_COLUMNS.some((column) => combined.includes(column))
+}
+
+const ensureOptionalImageColumns = (record: unknown): PostDetailRecord => {
+  const typedRecord = record as PostDetailRecord
+
+  return {
+    ...typedRecord,
+    featured_image_url: typedRecord?.featured_image_url ?? null,
+    social_image_url: typedRecord?.social_image_url ?? null,
+  }
+}
+
 const mapDetailPost = (record: PostDetailRecord, author: AuthorRecord | null): BlogPostDetail => ({
   ...mapListPost(record),
   content: record.content,
@@ -152,10 +180,7 @@ export const getTrendingPosts = async (limit = 6) => {
 export const getPublishedPostBySlug = cache(async (slug: string) => {
   const supabase = createServiceRoleClient()
 
-  const { data, error } = await supabase
-    .from('posts')
-    .select(
-      `
+  const detailSelect = `
         id,
         title,
         slug,
@@ -171,21 +196,65 @@ export const getPublishedPostBySlug = cache(async (slug: string) => {
         author_id,
         categories:categories(id, name, slug),
         post_tags:post_tags(tags(id, name, slug))
-      `,
+      `
+
+  const legacyDetailSelect = `
+        id,
+        title,
+        slug,
+        excerpt,
+        content,
+        accent_color,
+        views,
+        published_at,
+        seo_title,
+        seo_description,
+        author_id,
+        categories:categories(id, name, slug),
+        post_tags:post_tags(tags(id, name, slug))
+      `
+
+  let record: PostDetailRecord | null = null
+
+  const { data, error } = await supabase
+    .from('posts')
+    .select(
+      detailSelect,
     )
     .eq('status', 'published')
     .eq('slug', slug)
     .maybeSingle()
 
   if (error) {
-    throw new Error(`Unable to load post ${slug}: ${error.message}`)
+    if (isMissingOptionalImageColumnsError(error)) {
+      const { data: legacyData, error: legacyError } = await supabase
+        .from('posts')
+        .select(legacyDetailSelect)
+        .eq('status', 'published')
+        .eq('slug', slug)
+        .maybeSingle()
+
+      if (legacyError) {
+        throw new Error(`Unable to load post ${slug}: ${legacyError.message}`)
+      }
+
+      if (!legacyData) {
+        return null
+      }
+
+      record = ensureOptionalImageColumns(legacyData as Partial<PostDetailRecord>)
+    } else {
+      throw new Error(`Unable to load post ${slug}: ${error.message}`)
+    }
   }
 
-  if (!data) {
-    return null
-  }
+  if (!record) {
+    if (!data) {
+      return null
+    }
 
-  const record = data as unknown as PostDetailRecord
+    record = ensureOptionalImageColumns(data as PostDetailRecord)
+  }
 
   let author: AuthorRecord | null = null
 

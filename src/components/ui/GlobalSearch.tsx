@@ -55,6 +55,18 @@ export function GlobalSearch() {
   }, [close]);
 
   useEffect(() => {
+    const handleOpenEvent = () => {
+      open();
+    };
+
+    window.addEventListener('global-search:open', handleOpenEvent);
+
+    return () => {
+      window.removeEventListener('global-search:open', handleOpenEvent);
+    };
+  }, [open]);
+
+  useEffect(() => {
     if (isOpen) {
       const timeout = window.setTimeout(() => {
         inputRef.current?.focus();

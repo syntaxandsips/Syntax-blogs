@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createServerComponentClient, createServiceRoleClient } from '@/lib/supabase/server-client'
+import {
+  createServerComponentClient,
+  createServiceRoleClient,
+} from '@/lib/supabase/server-client'
 
 export const dynamic = 'force-dynamic'
 
@@ -87,33 +90,30 @@ export async function POST(
     )
   }
 
-  const supabase = createServerComponentClient()
+  const authAwareClient = createServerComponentClient()
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await authAwareClient.auth.getUser()
 
-  if (!user) {
-    return NextResponse.json({ error: 'You must be signed in to comment.' }, { status: 401 })
+  const serviceClient = createServiceRoleClient()
+
+  let authorProfileId: string | null = null
+
+  if (user) {
+    const { data: profile, error: profileError } = await serviceClient
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (profileError) {
+      return NextResponse.json({ error: profileError.message }, { status: 500 })
+    }
+
+    authorProfileId = profile?.id ?? null
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id, display_name')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  if (profileError) {
-    return NextResponse.json({ error: profileError.message }, { status: 500 })
-  }
-
-  if (!profile) {
-    return NextResponse.json(
-      { error: 'A profile is required to leave comments.' },
-      { status: 403 },
-    )
-  }
-
-  const { data: post, error: postError } = await supabase
+  const { data: post, error: postError } = await serviceClient
     .from('posts')
     .select('id')
     .eq('slug', slug)
@@ -128,9 +128,9 @@ export async function POST(
     return NextResponse.json({ error: 'Post not found.' }, { status: 404 })
   }
 
-  const { error: insertError } = await supabase.from('comments').insert({
+  const { error: insertError } = await serviceClient.from('comments').insert({
     post_id: post.id,
-    author_profile_id: profile.id,
+    author_profile_id: authorProfileId,
     content,
     status: 'pending',
   })

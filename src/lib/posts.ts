@@ -89,15 +89,38 @@ const isMissingOptionalImageColumnsError = (error: unknown) => {
     return false
   }
 
-  const parts = [
-    'message' in error && typeof error.message === 'string' ? error.message : '',
-    'details' in error && typeof error.details === 'string' ? error.details : '',
-    'hint' in error && typeof error.hint === 'string' ? error.hint : '',
+  const readString = (value: unknown) => (typeof value === 'string' ? value : '')
+
+  const fallback = (() => {
+    try {
+      return String(error)
+    } catch {
+      return ''
+    }
+  })()
+
+  const fields = [
+    readString('message' in error ? (error as { message?: unknown }).message : ''),
+    readString('details' in error ? (error as { details?: unknown }).details : ''),
+    readString('hint' in error ? (error as { hint?: unknown }).hint : ''),
+    fallback,
   ]
 
-  const combined = parts.filter(Boolean).join(' ')
+  const combined = fields.filter(Boolean).join(' ')
 
-  return OPTIONAL_IMAGE_COLUMNS.some((column) => combined.includes(column))
+  if (OPTIONAL_IMAGE_COLUMNS.some((column) => combined.includes(column))) {
+    return true
+  }
+
+  const code = 'code' in error ? (error as { code?: unknown }).code : undefined
+
+  if (code === '42703') {
+    return OPTIONAL_IMAGE_COLUMNS.some((column) =>
+      combined.includes(column) || combined.includes(`posts.${column}`) || combined.includes(`"${column}"`),
+    )
+  }
+
+  return false
 }
 
 const ensureOptionalImageColumns = (record: unknown): PostDetailRecord => {

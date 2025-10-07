@@ -20,6 +20,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Syntax and Sips - AI & ML Insights",
   description: "Exploring the cutting edge of artificial intelligence, machine learning, and deep learning",
+  icons: {
+    icon: "/window.svg",
+    shortcut: "/window.svg",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default async function RootLayout({

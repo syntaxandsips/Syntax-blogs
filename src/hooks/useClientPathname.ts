@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
-type PathListener = (pathname: string) => void;
+type PathListener = () => void;
 
 const listeners = new Set<PathListener>();
 
 let cleanupHandlers: (() => void) | null = null;
 
-function notifyAll(pathname: string) {
-  listeners.forEach((listener) => listener(pathname));
+function notifyAll() {
+  listeners.forEach((listener) => listener());
 }
 
 function ensureHistoryPatched() {
@@ -18,7 +18,7 @@ function ensureHistoryPatched() {
   }
 
   const handleNavigation = () => {
-    notifyAll(window.location.pathname);
+    notifyAll();
   };
 
   const originalPushState = window.history.pushState;
@@ -45,38 +45,29 @@ function ensureHistoryPatched() {
   };
 }
 
+function subscribe(listener: PathListener) {
+  if (typeof window === "undefined") {
+    return () => undefined;
+  }
+
+  ensureHistoryPatched();
+  listeners.add(listener);
+
+  return () => {
+    listeners.delete(listener);
+    if (listeners.size === 0 && cleanupHandlers) {
+      cleanupHandlers();
+    }
+  };
+}
+
+const getSnapshot = () =>
+  typeof window === "undefined" ? "/" : window.location.pathname;
+
 export function useClientPathname(initialPathname = "/") {
-  const [pathname, setPathname] = useState<string>(() => {
-    if (typeof window === "undefined") {
-      return initialPathname;
-    }
-
-    return window.location.pathname;
-  });
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return () => undefined;
-    }
-
-    ensureHistoryPatched();
-
-    const listener: PathListener = (nextPathname) => {
-      setPathname(nextPathname);
-    };
-
-    listeners.add(listener);
-
-    // Ensure the initial path is in sync when the hook mounts.
-    listener(window.location.pathname);
-
-    return () => {
-      listeners.delete(listener);
-      if (listeners.size === 0 && cleanupHandlers) {
-        cleanupHandlers();
-      }
-    };
-  }, []);
-
-  return pathname;
+  return useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    () => initialPathname,
+  );
 }

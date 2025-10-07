@@ -209,8 +209,8 @@ export const UserManagement = ({
           <button
             type="button"
             onClick={resetToCreateMode}
-            className={`neo-button w-full px-4 py-2 font-bold sm:w-auto ${
-              mode === 'create' ? 'bg-[#6C63FF] text-white' : 'bg-white text-[#2A2A2A]'
+            className={`inline-flex w-full items-center justify-center rounded-md border-2 border-black bg-black px-4 py-2 font-bold uppercase tracking-wide text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.18)] transition hover:-translate-y-[2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.18)] sm:w-auto ${
+              mode === 'create' ? 'ring-2 ring-offset-2 ring-[#FFD166]' : ''
             }`}
           >
             + New User
@@ -220,7 +220,7 @@ export const UserManagement = ({
             onClick={() => {
               void onRefresh()
             }}
-            className="neo-button w-full px-4 py-2 font-bold bg-white text-[#2A2A2A] sm:w-auto"
+            className="inline-flex w-full items-center justify-center rounded-md border-2 border-black bg-black px-4 py-2 font-bold uppercase tracking-wide text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.18)] transition hover:-translate-y-[2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.18)] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             disabled={isLoading}
           >
             Refresh

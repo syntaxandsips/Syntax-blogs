@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Calendar, Clock, Image as ImageIcon, Loader2 } from 'lucide-react'
 import {
   AdminPost,
@@ -220,14 +220,81 @@ export const PostForm = ({
     await onSave(values)
   }
 
-  const accentColors = [
-    '#6C63FF',
-    '#FF5252',
-    '#06D6A0',
-    '#FFD166',
-    '#118AB2',
-    '#073B4C',
-  ]
+  const BRAND_ACCENTS = useMemo(
+    () => [
+      { value: '#6C63FF', label: 'Synthwave Violet' },
+      { value: '#FF5252', label: 'Neon Coral' },
+      { value: '#FFD166', label: 'Sundial Amber' },
+      { value: '#06D6A0', label: 'Mint Surge' },
+      { value: '#118AB2', label: 'Deep Azure' },
+      { value: '#073B4C', label: 'Midnight Steel' },
+    ],
+    [],
+  )
+
+  const CATEGORY_ACCENT_PRESETS = useMemo(
+    () =>
+      [
+        {
+          keywords: ['data', 'analytics', 'visualization'],
+          description: 'Cool blues keep technical stories approachable and crisp.',
+          palette: ['#6C63FF', '#118AB2', '#073B4C'],
+        },
+        {
+          keywords: ['ai', 'ml', 'machine', 'neural'],
+          description: 'High-contrast tones mirror cutting-edge machine intelligence.',
+          palette: ['#FF5252', '#6C63FF', '#FFD166'],
+        },
+        {
+          keywords: ['product', 'design', 'ux', 'ui'],
+          description: 'Warm highlights support storytelling around experience and craft.',
+          palette: ['#FFD166', '#06D6A0', '#FF5252'],
+        },
+        {
+          keywords: ['culture', 'career', 'community', 'leadership'],
+          description: 'Grounded hues emphasise people-first narratives and thought leadership.',
+          palette: ['#06D6A0', '#FFD166', '#073B4C'],
+        },
+      ] as const,
+    [],
+  )
+
+  const categoryAccent = useMemo(() => {
+    const activeCategory = categories.find((cat) => cat.id === categoryId)
+    if (!activeCategory) {
+      return {
+        options: BRAND_ACCENTS,
+        description: 'Default brand palette for unpublished content.',
+      }
+    }
+
+    const normalized = `${activeCategory.slug ?? ''} ${activeCategory.name ?? ''}`.toLowerCase()
+    const preset = CATEGORY_ACCENT_PRESETS.find((item) =>
+      item.keywords.some((keyword) => normalized.includes(keyword)),
+    )
+
+    if (!preset) {
+      return {
+        options: BRAND_ACCENTS,
+        description: 'Signature Syntax & Sips palette.',
+      }
+    }
+
+    const mappedOptions = preset.palette
+      .map((value) => BRAND_ACCENTS.find((accent) => accent.value === value))
+      .filter((accent): accent is { value: string; label: string } => Boolean(accent))
+
+    return {
+      options: mappedOptions.length > 0 ? mappedOptions : BRAND_ACCENTS,
+      description: preset.description,
+    }
+  }, [BRAND_ACCENTS, CATEGORY_ACCENT_PRESETS, categories, categoryId])
+
+  useEffect(() => {
+    if (!categoryAccent.options.some((option) => option.value === accentColor)) {
+      setAccentColor(categoryAccent.options[0]?.value ?? '#6C63FF')
+    }
+  }, [accentColor, categoryAccent.options])
 
   return (
     <>
@@ -370,17 +437,30 @@ export const PostForm = ({
 
           <div>
             <label className="block font-bold mb-2 text-lg">Accent Color</label>
-            <div className="flex flex-wrap gap-3">
-              {accentColors.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => setAccentColor(color)}
-                  className={`h-10 w-10 rounded-full border-4 ${accentColor === color ? 'border-black' : 'border-transparent'} accent-color-${color.replace('#', '')}`}
-                  aria-label={`Select ${color} as accent color`}
-                  title={`Select ${color} as accent color`}
-                />
-              ))}
+            <p className="text-xs text-gray-500 mb-3">{categoryAccent.description}</p>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {categoryAccent.options.map((option) => {
+                const isActive = option.value === accentColor
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setAccentColor(option.value)}
+                    className={`flex items-center justify-between rounded-md border-3 px-3 py-2 text-sm font-semibold transition ${
+                      isActive
+                        ? 'border-black bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)]'
+                        : 'border-black/20 bg-white text-[#2A2A2A] hover:border-black/60'
+                    }`}
+                    aria-pressed={isActive}
+                  >
+                    <span>{option.label}</span>
+                    <span
+                      className="h-6 w-6 rounded-full border border-black/20"
+                      style={{ backgroundColor: option.value }}
+                    />
+                  </button>
+                )
+              })}
             </div>
           </div>
 

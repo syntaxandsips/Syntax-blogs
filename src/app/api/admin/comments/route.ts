@@ -100,11 +100,17 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const statusFilter = searchParams.get('status')
 
+  const limitParam = searchParams.get('limit')
+  const parsedLimit = limitParam ? Number.parseInt(limitParam, 10) : NaN
+  const limit = Number.isFinite(parsedLimit)
+    ? Math.min(250, Math.max(1, parsedLimit))
+    : 250
+
   const query = serviceClient
     .from('comments')
     .select(COMMENT_SELECT)
     .order('created_at', { ascending: false })
-    .limit(250)
+    .limit(limit)
 
   if (statusFilter && allowedStatuses.has(statusFilter)) {
     query.eq('status', statusFilter)

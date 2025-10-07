@@ -98,14 +98,14 @@ export const UserSignInForm = () => {
   ];
 
   return (
-    <div className="neo-brutalism min-h-screen bg-[#F6EDE3] flex items-center justify-center px-4 py-10">
-      <div className="relative w-full max-w-5xl overflow-hidden rounded-[32px] border-4 border-black bg-white shadow-[12px_12px_0_0_rgba(0,0,0,0.2)]">
+    <div className="neo-brutalism min-h-screen bg-[#F6EDE3] flex items-center justify-center px-4 py-8">
+      <div className="relative w-full max-w-6xl overflow-hidden rounded-[32px] border-4 border-black bg-white shadow-[12px_12px_0_0_rgba(0,0,0,0.2)]">
         <div
           className="absolute -left-16 -top-14 hidden h-44 w-44 rotate-6 rounded-full border-4 border-black bg-[#FFD66B] md:block"
           aria-hidden="true"
         />
         <div className="grid grid-cols-1 md:grid-cols-[0.95fr_1.05fr]">
-          <div className="relative z-10 border-b-4 border-black bg-white px-8 py-10 md:border-b-0 md:border-r-4">
+          <div className="relative z-10 border-b-4 border-black bg-white px-8 py-8 md:border-b-0 md:border-r-4">
             <div className="mx-auto w-full max-w-sm">
               <span className="inline-flex items-center rounded-full border-2 border-black bg-[#F6EDE3] px-4 py-1 text-xs font-black uppercase tracking-widest text-gray-900 shadow-[4px_4px_0_0_rgba(0,0,0,0.18)]">
                 <Sparkles className="mr-2 h-4 w-4 text-[#FF8A65]" aria-hidden="true" />
@@ -201,7 +201,7 @@ export const UserSignInForm = () => {
             </div>
           </div>
 
-          <div className="relative flex flex-col justify-between gap-6 bg-[#FCD7A5] px-8 py-12 text-center md:px-12">
+          <div className="relative flex flex-col justify-between gap-6 bg-[#FCD7A5] px-8 py-10 text-center md:px-12">
             <div
               className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.65),_rgba(252,215,165,0))]"
               aria-hidden="true"

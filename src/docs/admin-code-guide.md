@@ -223,15 +223,16 @@ Each implementation achieves the same result but uses language-specific construc
 > [!HELP]
 > Preview after every major edit. Rendering glitches usually appear immediately and are faster to fix before the article grows.
 
-## Admin Test Account
+## Admin Account Checklist
 
-Quickly validate your post with seeded data:
+Before testing editorial flows, verify that your Supabase project has at least one admin-capable profile:
 
-1. Run `npm run seed:test-user` once database migrations are applied.
-2. Sign in using **test.admin@syntaxblogs.dev** with password **TestAdmin123!**.
-3. Re-run the seed script any time you need to reset the password or repopulate data.
+1. Create a user via the Supabase Auth dashboard or Admin API with an email/password you control.
+2. Insert a corresponding row into the `profiles` table where `user_id` matches the auth user and `is_admin` is `true`.
+3. Optionally assign a primary role through the `profile_roles` join table to unlock role-specific UI.
+4. Sign in at `/admin/login` with that account. The application validates both authentication and the `is_admin` flag before granting access.
 
-Remember to disable or delete this account before pushing changes to production.
+Rotate credentials regularly and delete unused accounts to maintain least-privilege access.
 
 ## Additional Resources
 

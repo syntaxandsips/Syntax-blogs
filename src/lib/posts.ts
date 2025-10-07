@@ -33,6 +33,8 @@ interface PostDetailRecord extends PostListRecord {
   seo_title: string | null
   seo_description: string | null
   author_id: string | null
+  featured_image_url: string | null
+  social_image_url: string | null
   post_tags: TagRecord[] | null
 }
 
@@ -61,6 +63,8 @@ export interface BlogPostDetail extends BlogListPost {
   tags: string[]
   seoTitle: string | null
   seoDescription: string | null
+  featuredImageUrl: string | null
+  socialImageUrl: string | null
 }
 
 const mapListPost = (record: PostListRecord): BlogListPost => ({
@@ -92,6 +96,8 @@ const mapDetailPost = (record: PostDetailRecord, author: AuthorRecord | null): B
       .filter((tag: string | null): tag is string => Boolean(tag)),
   seoTitle: record.seo_title ?? null,
   seoDescription: record.seo_description ?? null,
+  featuredImageUrl: record.featured_image_url ?? null,
+  socialImageUrl: record.social_image_url ?? null,
 })
 
 export const getPublishedPosts = cache(async () => {
@@ -160,6 +166,8 @@ export const getPublishedPostBySlug = cache(async (slug: string) => {
         published_at,
         seo_title,
         seo_description,
+        featured_image_url,
+        social_image_url,
         author_id,
         categories:categories(id, name, slug),
         post_tags:post_tags(tags(id, name, slug))

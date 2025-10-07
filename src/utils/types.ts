@@ -10,6 +10,12 @@ export interface CategoryOption {
   slug: string
 }
 
+export interface TagOption {
+  id: string
+  name: string
+  slug: string
+}
+
 export interface AdminPost {
   id: string
   title: string
@@ -20,6 +26,11 @@ export interface AdminPost {
   categoryName: string | null
   categorySlug: string | null
   accentColor: string | null
+  seoTitle: string | null
+  seoDescription: string | null
+  featuredImageUrl: string | null
+  socialImageUrl: string | null
+  tags: TagOption[]
   status: PostStatus
   views: number
   createdAt: string
@@ -36,6 +47,11 @@ export interface PostFormValues {
   content: string
   categoryId: string | null
   accentColor: string | null
+  seoTitle: string | null
+  seoDescription: string | null
+  featuredImageUrl: string | null
+  socialImageUrl: string | null
+  tagIds: string[]
   status: PostStatus
   publishedAt: string | null
   scheduledFor: string | null

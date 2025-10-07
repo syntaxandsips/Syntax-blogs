@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import {
@@ -153,6 +155,15 @@ export default function NewBlogPostClient({ post, relatedPosts }: BlogPostClient
                 </div>
               </div>
               <div className="p-6">
+                {post.featuredImageUrl && (
+                  <div className="mb-6 overflow-hidden rounded-md border-4 border-black/10">
+                    <img
+                      src={post.featuredImageUrl}
+                      alt={post.title}
+                      className="h-auto w-full object-cover"
+                    />
+                  </div>
+                )}
                 <NewMarkdownRenderer content={post.content} />
 
                 <div className="mt-10 space-y-4 border-t-4 border-dashed border-black/20 pt-6">

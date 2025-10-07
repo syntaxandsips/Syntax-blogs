@@ -118,6 +118,31 @@ export const getPublishedPosts = cache(async () => {
   }
 })
 
+export const getTrendingPosts = async (limit = 6) => {
+  const supabase = createServiceRoleClient()
+
+  try {
+    const { data, error } = await supabase
+      .from('posts')
+      .select(
+        `id, title, slug, excerpt, accent_color, views, published_at, categories:categories(id, name, slug)`,
+      )
+      .eq('status', 'published')
+      .order('views', { ascending: false, nullsFirst: false })
+      .limit(limit)
+
+    if (error) {
+      throw error
+    }
+
+    const rows = (data ?? []) as unknown as PostListRecord[]
+    return rows.map(mapListPost)
+  } catch (error) {
+    console.error('Unable to load trending posts:', error)
+    return []
+  }
+}
+
 export const getPublishedPostBySlug = cache(async (slug: string) => {
   const supabase = createServiceRoleClient()
 
@@ -172,6 +197,105 @@ export const getPublishedPostBySlug = cache(async (slug: string) => {
 
   return mapDetailPost(record, author)
 })
+
+export const searchPublishedPosts = async (query: string, limit = 12) => {
+  const supabase = createServiceRoleClient()
+
+  const normalizedQuery = query.trim()
+
+  if (!normalizedQuery) {
+    return []
+  }
+
+  try {
+    const ilikeQuery = `%${normalizedQuery.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`
+
+    const { data, error } = await supabase
+      .from('posts')
+      .select(
+        `id, title, slug, excerpt, accent_color, views, published_at, categories:categories(id, name, slug)`,
+      )
+      .eq('status', 'published')
+      .or(
+        [
+          `title.ilike.${ilikeQuery}`,
+          `excerpt.ilike.${ilikeQuery}`,
+          `content.ilike.${ilikeQuery}`,
+        ].join(','),
+      )
+      .order('published_at', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      throw error
+    }
+
+    const rows = (data ?? []) as unknown as PostListRecord[]
+    return rows.map(mapListPost)
+  } catch (error) {
+    console.error('Unable to search posts:', error)
+    return []
+  }
+}
+
+export const getRelatedPosts = async (postId: string, categorySlug: string | null, tagNames: string[], limit = 3) => {
+  const supabase = createServiceRoleClient()
+
+  try {
+    const { data, error } = await supabase
+      .from('posts')
+      .select(
+        `id, title, slug, excerpt, accent_color, views, published_at, categories:categories(id, name, slug), post_tags:post_tags(tags(name, slug))`,
+      )
+      .eq('status', 'published')
+      .neq('id', postId)
+      .order('published_at', { ascending: false })
+      .limit(30)
+
+    if (error) {
+      throw error
+    }
+
+    const rows = (data ?? []) as unknown as (PostListRecord & { post_tags?: TagRecord[] | null })[]
+    const normalizedTags = tagNames.map((tag) => tag.toLowerCase())
+
+    const related = rows
+      .map((row) => {
+        const tags = (row.post_tags ?? [])
+          .map((entry) => entry.tags?.name ?? null)
+          .filter((value): value is string => Boolean(value))
+
+        const sharedTags = tags.filter((tag) => normalizedTags.includes(tag.toLowerCase()))
+        const sameCategory = categorySlug && row.categories?.slug === categorySlug
+
+        const relevanceScore = sharedTags.length * 2 + (sameCategory ? 1 : 0)
+
+        return {
+          post: mapListPost(row),
+          relevanceScore,
+        }
+      })
+      .filter((entry) => entry.relevanceScore > 0)
+      .sort((a, b) => b.relevanceScore - a.relevanceScore || (new Date(b.post.publishedAt ?? 0).getTime() - new Date(a.post.publishedAt ?? 0).getTime()))
+      .slice(0, limit)
+      .map((entry) => entry.post)
+
+    if (related.length < limit) {
+      const fallback = rows
+        .map(mapListPost)
+        .filter((candidate) => !related.some((existing) => existing.id === candidate.id))
+        .filter((candidate) => (categorySlug ? candidate.category.slug === categorySlug : true))
+        .slice(0, limit - related.length)
+
+      return [...related, ...fallback]
+    }
+
+    return related
+  } catch (error) {
+    console.error('Unable to load related posts:', error)
+    return []
+  }
+}
 
 export const getPublishedSlugs = cache(async () => {
   const supabase = createServiceRoleClient()

@@ -5,6 +5,7 @@ import {
   Code,
   FileText,
   LayoutDashboard,
+  MessageCircle,
   LogOut,
   Settings,
   ShieldCheck,
@@ -89,6 +90,14 @@ export const Sidebar = ({
             isActive={currentView === 'posts'}
             onClick={() => onNavigate('posts')}
           />
+          {isAdmin && (
+            <SidebarLink
+              icon={<MessageCircle />}
+              label="Comments"
+              isActive={currentView === 'comments'}
+              onClick={() => onNavigate('comments')}
+            />
+          )}
           {isAdmin && (
             <SidebarLink
               icon={<Users />}

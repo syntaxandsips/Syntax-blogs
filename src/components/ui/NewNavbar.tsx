@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X, Coffee, Code } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { GlobalSearch } from './GlobalSearch';
 
 export const NewNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,7 +41,7 @@ export const NewNavbar = () => {
             </Link>
           </div>
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-6">
             <NavLink href="/" isActive={isActive('/')}>
               Home
             </NavLink>
@@ -53,6 +54,7 @@ export const NewNavbar = () => {
             <NavLink href="/changelog" isActive={isActive('/changelog')}>
               Changelogs
             </NavLink>
+            <GlobalSearch />
             <button
               type="button"
               className="bg-black text-white px-4 py-2 font-bold rounded-md transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(255,82,82)]"
@@ -85,6 +87,9 @@ export const NewNavbar = () => {
               <MobileNavLink href="/changelog" isActive={isActive('/changelog')}>
                 Changelogs
               </MobileNavLink>
+              <div className="md:hidden">
+                <GlobalSearch />
+              </div>
               <button
                 type="button"
                 className="bg-black text-white px-4 py-2 font-bold rounded-md w-full"

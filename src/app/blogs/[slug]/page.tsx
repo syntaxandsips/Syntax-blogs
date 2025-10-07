@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import NewBlogPostClient from '@/app/blogs/[slug]/NewBlogPostClient';
-import { getPublishedPostBySlug, getPublishedSlugs } from '@/lib/posts';
+import { getPublishedPostBySlug, getPublishedSlugs, getRelatedPosts } from '@/lib/posts';
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -43,5 +43,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
-  return <NewBlogPostClient post={post} />;
+  const relatedPosts = await getRelatedPosts(
+    post.id,
+    post.category.slug ?? null,
+    post.tags,
+  );
+
+  return <NewBlogPostClient post={post} relatedPosts={relatedPosts} />;
 }

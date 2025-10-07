@@ -1,11 +1,10 @@
 import React from 'react';
 import { NewBlogCard } from './NewBlogCard';
 
-interface BlogPost {
+export interface BlogGridItem {
   slug: string;
   title: string;
   excerpt: string;
-  categorySlug: string;
   categoryLabel: string;
   dateLabel: string;
   views: number;
@@ -13,19 +12,14 @@ interface BlogPost {
 }
 
 interface BlogGridProps {
-  categorySlug: string | null;
-  blogs: BlogPost[];
+  blogs: BlogGridItem[];
 }
 
-export function NewBlogGrid({ categorySlug, blogs }: BlogGridProps) {
-  const filteredBlogs = categorySlug
-    ? blogs.filter((blog) => blog.categorySlug === categorySlug)
-    : blogs;
-
+export function NewBlogGrid({ blogs }: BlogGridProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-      {filteredBlogs.length > 0 ? (
-        filteredBlogs.map((blog) => (
+    <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+      {blogs.length > 0 ? (
+        blogs.map((blog) => (
           <NewBlogCard
             key={blog.slug}
             title={blog.title}
@@ -38,9 +32,9 @@ export function NewBlogGrid({ categorySlug, blogs }: BlogGridProps) {
           />
         ))
       ) : (
-        <div className="col-span-2 text-center p-12 border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0)]">
+        <div className="col-span-2 rounded-xl border-4 border-black bg-white p-12 text-center shadow-[8px_8px_0px_0px_rgba(0,0,0)]">
           <p className="text-xl font-bold">No blog posts found.</p>
-          <p className="mt-2">Check back later for new content!</p>
+          <p className="mt-2 text-gray-600">Adjust your filters or check back later for new content.</p>
         </div>
       )}
     </div>

@@ -3,5 +3,11 @@ declare namespace NodeJS {
     NEXT_PUBLIC_SUPABASE_URL: string
     NEXT_PUBLIC_SUPABASE_ANON_KEY: string
     SUPABASE_SERVICE_ROLE_KEY: string
+    MAILTRAP_HOST?: string
+    MAILTRAP_PORT?: string
+    MAILTRAP_USER?: string
+    MAILTRAP_PASS?: string
+    MAILTRAP_FROM_EMAIL?: string
+    MAILTRAP_FROM_NAME?: string
   }
 }

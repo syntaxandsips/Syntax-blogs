@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createServerComponentClient } from '@/lib/supabase/server-client';
 import { OnboardingFlow } from '@/components/auth/OnboardingFlow';
+import { sanitizeRedirect } from '@/utils/sanitizeRedirect';
 import type { ProfileOnboardingJourney } from '@/utils/types';
 
 export const dynamic = 'force-dynamic';
@@ -8,21 +9,6 @@ export const dynamic = 'force-dynamic';
 interface OnboardingPageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }
-
-const sanitizeRedirect = (value: string | string[] | null | undefined) => {
-  const candidate = Array.isArray(value) ? value[0] : value;
-
-  if (!candidate || typeof candidate !== 'string') {
-    return '/account';
-  }
-
-  try {
-    const url = new URL(candidate, 'http://localhost');
-    return url.pathname.startsWith('/') ? url.pathname + url.search + url.hash : '/account';
-  } catch {
-    return candidate.startsWith('/') ? candidate : '/account';
-  }
-};
 
 export default async function OnboardingPage({ searchParams }: OnboardingPageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;

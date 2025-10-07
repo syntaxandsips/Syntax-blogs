@@ -45,10 +45,10 @@ function ensureHistoryPatched() {
   };
 }
 
-export function useClientPathname() {
+export function useClientPathname(initialPathname = "/") {
   const [pathname, setPathname] = useState<string>(() => {
     if (typeof window === "undefined") {
-      return "/";
+      return initialPathname;
     }
 
     return window.location.pathname;

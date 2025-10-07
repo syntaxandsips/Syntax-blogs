@@ -3,8 +3,14 @@
 import { useClientPathname } from "@/hooks/useClientPathname";
 import { NewNavbar } from "@/components/ui/NewNavbar";
 
-export default function ConditionalNavbar() {
-  const pathname = useClientPathname();
+type ConditionalNavbarProps = {
+  initialPathname?: string;
+};
+
+export default function ConditionalNavbar({
+  initialPathname,
+}: ConditionalNavbarProps) {
+  const pathname = useClientPathname(initialPathname);
 
   if (pathname === "/" || pathname.startsWith("/admin")) {
     return null;

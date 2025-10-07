@@ -11,6 +11,30 @@ import {
   createServiceRoleClient,
 } from '@/lib/supabase/server-client'
 
+const deriveOwnedObjectPath = (objectPath: string | null, userId: string): string | null => {
+  if (!objectPath) {
+    return null
+  }
+
+  const trimmed = objectPath.trim().replace(/^\/+/, '')
+  if (!trimmed) {
+    return null
+  }
+
+  const segments = trimmed.split('/')
+  if (segments.some((segment) => segment === '' || segment === '.' || segment === '..')) {
+    return null
+  }
+
+  const [ownerId, ...rest] = segments
+
+  if (ownerId !== userId || rest.length === 0) {
+    return null
+  }
+
+  return [ownerId, ...rest].join('/')
+}
+
 const ensureProfilePhotosBucket = async () => {
   const serviceClient = createServiceRoleClient()
   const { data: bucket, error } = await serviceClient.storage.getBucket(PROFILE_PHOTOS_BUCKET)
@@ -111,14 +135,6 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const previousPath = (() => {
-    const value = formData.get('previousPath')
-    if (typeof value === 'string' && value.trim().length > 0) {
-      return value.trim()
-    }
-    return null
-  })()
-
   let serviceClient
   try {
     serviceClient = await ensureProfilePhotosBucket()
@@ -148,10 +164,27 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  if (previousPath && previousPath !== objectPath) {
+  let existingAvatarPath: string | null = null
+  const {
+    data: existingProfile,
+    error: existingProfileError,
+  } = await supabase
+    .from('profiles')
+    .select('avatar_url')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (existingProfileError) {
+    console.error('Failed to fetch existing profile for avatar cleanup', existingProfileError)
+  } else if (existingProfile?.avatar_url) {
+    const derivedPath = getObjectPathFromPublicUrl(existingProfile.avatar_url)
+    existingAvatarPath = deriveOwnedObjectPath(derivedPath, user.id)
+  }
+
+  if (existingAvatarPath && existingAvatarPath !== objectPath) {
     const { error: removeError } = await serviceClient.storage
       .from(PROFILE_PHOTOS_BUCKET)
-      .remove([previousPath])
+      .remove([existingAvatarPath])
 
     if (removeError) {
       console.warn('Failed to remove previous avatar', removeError)
@@ -197,24 +230,64 @@ export async function DELETE(request: NextRequest) {
   }
 
   const avatarUrl = typeof payload.avatarUrl === 'string' ? payload.avatarUrl : null
-  const objectPath = avatarUrl ? getObjectPathFromPublicUrl(avatarUrl) : null
+  const requestedObjectPath = deriveOwnedObjectPath(
+    avatarUrl ? getObjectPathFromPublicUrl(avatarUrl) : null,
+    user.id,
+  )
 
-  let serviceClient
-  try {
-    serviceClient = await ensureProfilePhotosBucket()
-  } catch (error) {
-    console.error('Failed to prepare avatar bucket for removal', error)
+  const {
+    data: profile,
+    error: profileLookupError,
+  } = await supabase
+    .from('profiles')
+    .select('avatar_url')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (profileLookupError) {
+    console.error('Failed to load profile before avatar removal', profileLookupError)
     return NextResponse.json(
-      { error: 'Unable to prepare storage for profile photos. Please try again later.' },
+      { error: 'Unable to verify current profile photo. Please try again later.' },
       { status: 500 },
     )
   }
 
-  if (objectPath) {
-    const { error } = await serviceClient.storage.from(PROFILE_PHOTOS_BUCKET).remove([objectPath])
+  const storedObjectPath = deriveOwnedObjectPath(
+    profile?.avatar_url ? getObjectPathFromPublicUrl(profile.avatar_url) : null,
+    user.id,
+  )
+
+  let serviceClient
+  if (storedObjectPath) {
+    if (requestedObjectPath && requestedObjectPath !== storedObjectPath) {
+      console.warn('Ignoring mismatched avatar removal request', {
+        requestedObjectPath,
+        storedObjectPath,
+        userId: user.id,
+      })
+    }
+
+    try {
+      serviceClient = await ensureProfilePhotosBucket()
+    } catch (error) {
+      console.error('Failed to prepare avatar bucket for removal', error)
+      return NextResponse.json(
+        { error: 'Unable to prepare storage for profile photos. Please try again later.' },
+        { status: 500 },
+      )
+    }
+
+    const { error } = await serviceClient.storage
+      .from(PROFILE_PHOTOS_BUCKET)
+      .remove([storedObjectPath])
     if (error) {
       console.warn('Failed to remove avatar from storage', error)
     }
+  } else if (requestedObjectPath) {
+    console.warn('Ignoring avatar removal request without stored object path', {
+      requestedObjectPath,
+      userId: user.id,
+    })
   }
 
   const { error: profileError } = await supabase

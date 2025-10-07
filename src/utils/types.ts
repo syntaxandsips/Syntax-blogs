@@ -83,3 +83,21 @@ export interface UpdateAdminUserPayload {
   roleSlugs: string[]
   newPassword?: string | null
 }
+
+export enum CommentStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
+
+export interface AdminCommentSummary {
+  id: string
+  content: string
+  status: CommentStatus
+  createdAt: string
+  postId: string
+  postTitle: string
+  postSlug: string
+  authorDisplayName: string | null
+  authorProfileId: string | null
+}

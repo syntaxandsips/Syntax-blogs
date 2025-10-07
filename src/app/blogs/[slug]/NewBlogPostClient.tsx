@@ -17,6 +17,7 @@ import {
 import { NewMarkdownRenderer } from '@/components/ui/NewMarkdownRenderer';
 import { NewSummarizeButton } from '@/components/ui/NewSummarizeButton';
 import { SocialFollowItem } from '@/components/ui/SocialFollowItem';
+import { CommentsSection } from '@/components/ui/CommentsSection';
 import type { BlogListPost, BlogPostDetail } from '@/lib/posts';
 
 interface BlogPostClientProps {
@@ -234,6 +235,8 @@ export default function NewBlogPostClient({ post, relatedPosts }: BlogPostClient
                     </div>
                   </div>
                 )}
+
+                <CommentsSection postSlug={post.slug} />
               </div>
             </article>
           </div>

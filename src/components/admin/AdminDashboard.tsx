@@ -12,13 +12,16 @@ import { PostsTable } from './PostsTable'
 import { PostForm } from './PostForm'
 import { StatsSection } from './StatsSection'
 import { UserManagement } from './UserManagement'
+import { CommentsModeration } from './CommentsModeration'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { Menu } from 'lucide-react'
 import {
   AdminPost,
   AdminRole,
+  AdminCommentSummary,
   AdminUserSummary,
   CreateAdminUserPayload,
+  CommentStatus,
   CategoryOption,
   PostFormValues,
   PostStatus,
@@ -57,6 +60,10 @@ export const AdminDashboard = ({
   const [hasLoadedUsers, setHasLoadedUsers] = useState(false)
   const [isUserMutationInFlight, setIsUserMutationInFlight] = useState(false)
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  const [comments, setComments] = useState<AdminCommentSummary[]>([])
+  const [isLoadingComments, setIsLoadingComments] = useState(false)
+  const [hasLoadedComments, setHasLoadedComments] = useState(false)
+  const [commentsFilter, setCommentsFilter] = useState<CommentStatus | 'all'>('all')
 
   const mapPostsFromPayload = useCallback((data: AdminPost[]) => {
     setPosts(
@@ -310,6 +317,39 @@ export const AdminDashboard = ({
     }
   }, [currentView, fetchUsers, hasLoadedUsers, isLoadingUsers])
 
+  const fetchComments = useCallback(async () => {
+    setIsLoadingComments(true)
+    try {
+      const response = await fetch('/api/admin/comments', {
+        method: 'GET',
+        cache: 'no-store',
+      })
+
+      const payload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Unable to load comments.')
+      }
+
+      setComments((payload.comments ?? []) as AdminCommentSummary[])
+      setHasLoadedComments(true)
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message:
+          error instanceof Error ? error.message : 'Unable to load comments.',
+      })
+    } finally {
+      setIsLoadingComments(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (currentView === 'comments' && !hasLoadedComments && !isLoadingComments) {
+      void fetchComments()
+    }
+  }, [currentView, fetchComments, hasLoadedComments, isLoadingComments])
+
   const handleCreateUser = async (values: CreateAdminUserPayload) => {
     setIsUserMutationInFlight(true)
     setFeedback(null)
@@ -399,6 +439,92 @@ export const AdminDashboard = ({
     }
   }
 
+  const handleApproveComment = async (id: string) => {
+    try {
+      const response = await fetch(`/api/admin/comments/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: CommentStatus.APPROVED }),
+      })
+
+      const payload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Unable to approve comment.')
+      }
+
+      setComments((prev) =>
+        prev.map((comment) =>
+          comment.id === id
+            ? { ...comment, status: CommentStatus.APPROVED }
+            : comment,
+        ),
+      )
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message:
+          error instanceof Error ? error.message : 'Unable to approve comment.',
+      })
+    }
+  }
+
+  const handleRejectComment = async (id: string) => {
+    try {
+      const response = await fetch(`/api/admin/comments/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: CommentStatus.REJECTED }),
+      })
+
+      const payload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Unable to reject comment.')
+      }
+
+      setComments((prev) =>
+        prev.map((comment) =>
+          comment.id === id
+            ? { ...comment, status: CommentStatus.REJECTED }
+            : comment,
+        ),
+      )
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message:
+          error instanceof Error ? error.message : 'Unable to reject comment.',
+      })
+    }
+  }
+
+  const handleDeleteComment = async (id: string) => {
+    try {
+      const response = await fetch(`/api/admin/comments/${id}`, {
+        method: 'DELETE',
+      })
+
+      const payload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Unable to delete comment.')
+      }
+
+      setComments((prev) => prev.filter((comment) => comment.id !== id))
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message:
+          error instanceof Error ? error.message : 'Unable to delete comment.',
+      })
+    }
+  }
+
   const renderContent = () => {
     switch (currentView) {
       case 'overview':
@@ -450,6 +576,19 @@ export const AdminDashboard = ({
             onRefresh={fetchUsers}
             onCreateUser={handleCreateUser}
             onUpdateUser={handleUpdateUser}
+          />
+        )
+      case 'comments':
+        return (
+          <CommentsModeration
+            comments={comments}
+            isLoading={isLoadingComments}
+            activeFilter={commentsFilter}
+            onChangeFilter={setCommentsFilter}
+            onRefresh={fetchComments}
+            onApprove={handleApproveComment}
+            onReject={handleRejectComment}
+            onDelete={handleDeleteComment}
           />
         )
       case 'analytics':

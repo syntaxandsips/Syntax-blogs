@@ -134,17 +134,17 @@ export const AdminLoginForm = () => {
     {
       icon: ShieldCheck,
       title: 'Protected workspace',
-      description: 'Only profiles flagged as admins in Supabase can enter the dashboard.',
+      description: 'Only Supabase profiles with the admin flag see the dashboard.',
     },
     {
       icon: Activity,
       title: 'Live editorial metrics',
-      description: 'Monitor story performance and publishing cadence in real time.',
+      description: 'Track story performance and publishing cadence at a glance.',
     },
     {
       icon: KeyRound,
       title: 'Secure by design',
-      description: 'Audit-ready authentication powered by Supabase Auth and row-level security.',
+      description: 'Supabase Auth plus row-level security keeps newsroom data locked down.',
     },
   ];
 
@@ -168,7 +168,7 @@ export const AdminLoginForm = () => {
               </span>
               <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900">Welcome back, captain</h1>
               <p className="mt-2 text-sm font-medium text-slate-600">
-                Sign in with your admin credentials to orchestrate posts, manage contributors, and keep the roadmap aligned.
+                Sign in with your admin credentials to publish updates, review pitches, and keep Syntax &amp; Sips running smoothly.
               </p>
 
               {error && (
@@ -240,15 +240,17 @@ export const AdminLoginForm = () => {
                 </button>
               </form>
 
-              <div className="mt-6 space-y-3 rounded-2xl border-2 border-black bg-[#F2F5FF] p-4 text-xs font-semibold text-slate-700 shadow-[3px_3px_0_0_rgba(0,0,0,0.12)]">
-                <p className="flex items-start gap-2">
-                  <KeyRound className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#2563EB]" aria-hidden="true" />
-                  Use the Supabase credentials for your admin profile. Accounts must have <code className="rounded bg-white px-1 py-0.5 text-slate-900">is_admin</code> enabled in the <code className="rounded bg-white px-1 py-0.5 text-slate-900">profiles</code> table.
-                </p>
-                <p className="flex items-start gap-2">
-                  <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" aria-hidden="true" />
-                  Need a demo identity? Run <code className="rounded bg-white px-1 py-0.5 text-slate-900">npm run seed:test-user</code> to recreate <code className="rounded bg-white px-1 py-0.5 text-slate-900">test.admin@syntaxblogs.dev</code> with the default password.
-                </p>
+              <div className="mt-6 rounded-2xl border-2 border-black bg-[#F2F5FF] p-4 text-xs font-semibold text-slate-700 shadow-[3px_3px_0_0_rgba(0,0,0,0.12)]">
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-2">
+                    <KeyRound className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#2563EB]" aria-hidden="true" />
+                    Use your Supabase admin email and password. Confirm <code className="rounded bg-white px-1 py-0.5 text-slate-900">is_admin</code> is toggled on in <code className="rounded bg-white px-1 py-0.5 text-slate-900">profiles</code>.
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" aria-hidden="true" />
+                    Need a quick demo? Run <code className="rounded bg-white px-1 py-0.5 text-slate-900">npm run seed:test-user</code> to recreate <code className="rounded bg-white px-1 py-0.5 text-slate-900">test.admin@syntaxblogs.dev</code>.
+                  </li>
+                </ul>
               </div>
 
               <p className="mt-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -265,31 +267,24 @@ export const AdminLoginForm = () => {
               </span>
               <h2 className="mt-6 text-3xl font-black tracking-tight text-slate-900">Drive the Syntax &amp; Sips newsroom</h2>
               <p className="mt-3 text-sm font-medium text-slate-600">
-                Shape the editorial calendar, coach contributors, and publish updates the moment they’re ready for readers.
+                Keep the editorial engine humming with quick reviews and decisive publishing.
               </p>
             </div>
 
-            <div className="relative space-y-4 text-sm font-semibold text-slate-700">
-              {highlights.map(({ icon: Icon, title, description }) => (
-                <div
-                  key={title}
-                  className="flex gap-3 rounded-2xl border-2 border-black bg-white p-4 shadow-[5px_5px_0_0_rgba(0,0,0,0.2)]"
-                >
-                  <span className="mt-1 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-[#2563EB] bg-[#E8EEFF] text-[#2563EB]">
-                    <Icon className="h-5 w-5" aria-hidden="true" />
-                  </span>
-                  <div>
-                    <p className="text-base font-black text-slate-900">{title}</p>
-                    <p className="mt-1 text-xs font-medium text-slate-600">{description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="relative rounded-2xl border-2 border-black bg-white p-4 text-xs font-semibold text-slate-600 shadow-[4px_4px_0_0_rgba(0,0,0,0.18)]">
-              <p>
-                Deployment tip: ensure the <code className="rounded bg-[#E8EEFF] px-1 py-0.5 text-slate-900">profiles</code> table is migrated before seeding so the admin flag persists across environments.
-              </p>
+            <div className="relative rounded-2xl border-2 border-black bg-white p-5 text-sm font-semibold text-slate-700 shadow-[5px_5px_0_0_rgba(0,0,0,0.2)]">
+              <ul className="space-y-4">
+                {highlights.map(({ icon: Icon, title, description }) => (
+                  <li key={title} className="flex items-start gap-3">
+                    <span className="mt-1 inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 border-[#2563EB] bg-[#E8EEFF] text-[#2563EB]">
+                      <Icon className="h-5 w-5" aria-hidden="true" />
+                    </span>
+                    <div>
+                      <p className="text-base font-black text-slate-900">{title}</p>
+                      <p className="mt-1 text-xs font-medium text-slate-600">{description}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>

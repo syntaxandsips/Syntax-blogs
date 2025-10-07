@@ -110,13 +110,16 @@ const getAdminProfile = async (): Promise<
   return { profile }
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const result = await getAdminProfile()
   if ('response' in result) {
     return result.response
   }
 
-  const id = params.id
+  const { id } = await params
   if (!id) {
     return NextResponse.json({ error: 'Post id is required.' }, { status: 400 })
   }
@@ -222,16 +225,28 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     )
   }
 
-  return NextResponse.json({ post: mapPostRecord(data as PostRecord) })
+  if (!data) {
+    return NextResponse.json(
+      { error: 'Unable to update post: Post not found.' },
+      { status: 404 },
+    )
+  }
+
+  const record = data as unknown as PostRecord
+
+  return NextResponse.json({ post: mapPostRecord(record) })
 }
 
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const result = await getAdminProfile()
   if ('response' in result) {
     return result.response
   }
 
-  const id = params.id
+  const { id } = await params
   if (!id) {
     return NextResponse.json({ error: 'Post id is required.' }, { status: 400 })
   }

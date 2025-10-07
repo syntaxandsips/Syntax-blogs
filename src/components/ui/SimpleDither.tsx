@@ -1,14 +1,14 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { useTheme } from "next-themes";
 
 import './Dither.css';
 
 // Theme-specific color presets
-const themeColors = {
+const themeColors: Record<"light" | "dark", Record<"ts" | "tailwind", [number, number, number]>> = {
   light: {
     ts: [0.8, 0.5, 0.9], // Purple for light mode (TypeScript)
     tailwind: [0.6, 0.4, 0.8] // Purple for light mode (Tailwind)
@@ -121,6 +121,15 @@ const waveFragmentShader = `
   }
 `;
 
+interface WaveEffectProps {
+  waveSpeed: number
+  waveFrequency: number
+  waveAmplitude: number
+  waveColor: [number, number, number]
+  enableMouseInteraction: boolean
+  mouseRadius: number
+}
+
 function WaveEffect({
   waveSpeed,
   waveFrequency,
@@ -128,7 +137,7 @@ function WaveEffect({
   waveColor,
   enableMouseInteraction,
   mouseRadius
-}) {
+}: WaveEffectProps) {
   const mesh = useRef(null);
   const [, setMousePos] = useState(new THREE.Vector2(0, 0));
   const { viewport, size } = useThree();
@@ -164,7 +173,7 @@ function WaveEffect({
     }
   });
 
-  const handlePointerMove = (e) => {
+  const handlePointerMove = (e: ThreeEvent<PointerEvent>) => {
     if (!enableMouseInteraction) return;
 
     const x = e.clientX;
@@ -196,15 +205,23 @@ function WaveEffect({
 
 // Removed unused CodingSymbols component
 
+interface SimpleDitherProps {
+  waveSpeed?: number
+  waveFrequency?: number
+  waveAmplitude?: number
+  enableMouseInteraction?: boolean
+  mouseRadius?: number
+  colorTheme?: keyof (typeof themeColors)['light']
+}
+
 export default function SimpleDither({
   waveSpeed = 0.05,
   waveFrequency = 3,
   waveAmplitude = 0.3,
-  // Removed unused parameters
   enableMouseInteraction = true,
   mouseRadius = 0.3,
-  colorTheme = "ts" // 'ts' or 'tailwind'
-}) {
+  colorTheme = "ts"
+}: SimpleDitherProps) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 

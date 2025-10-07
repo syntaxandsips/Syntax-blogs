@@ -134,7 +134,9 @@ export async function GET() {
     )
   }
 
-  const posts = (data ?? []).map((record) => mapPostRecord(record as PostRecord))
+  const posts = (data ?? []).map((record) =>
+    mapPostRecord(record as unknown as PostRecord),
+  )
 
   return NextResponse.json({ posts })
 }
@@ -227,6 +229,6 @@ export async function POST(request: Request) {
     )
   }
 
-  const post = mapPostRecord(data as PostRecord)
+  const post = mapPostRecord(data as unknown as PostRecord)
   return NextResponse.json({ post }, { status: 201 })
 }

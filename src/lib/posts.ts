@@ -124,12 +124,51 @@ const isMissingOptionalImageColumnsError = (error: unknown) => {
 }
 
 const ensureOptionalImageColumns = (record: unknown): PostDetailRecord => {
-  const typedRecord = record as PostDetailRecord
+  const typedRecord = record as PostDetailRecord & {
+    post_tags?: ({
+      tags?: TagRecord['tags'] | TagRecord['tags'][] | null
+    } | null)[] | null
+  }
+
+  const normalizeTags = (raw: typeof typedRecord.post_tags): TagRecord[] | null => {
+    if (!raw) {
+      return null
+    }
+
+    if (!Array.isArray(raw)) {
+      return null
+    }
+
+    return raw.map((entry) => {
+      if (!entry || typeof entry !== 'object') {
+        return { tags: null }
+      }
+
+      const rawTags = (entry as { tags?: unknown }).tags
+
+      if (Array.isArray(rawTags)) {
+        const [first] = rawTags
+
+        if (!first || typeof first !== 'object') {
+          return { tags: null }
+        }
+
+        return { tags: first as TagRecord['tags'] }
+      }
+
+      if (!rawTags || typeof rawTags !== 'object') {
+        return { tags: null }
+      }
+
+      return { tags: rawTags as TagRecord['tags'] }
+    })
+  }
 
   return {
     ...typedRecord,
     featured_image_url: typedRecord?.featured_image_url ?? null,
     social_image_url: typedRecord?.social_image_url ?? null,
+    post_tags: normalizeTags(typedRecord.post_tags),
   }
 }
 
@@ -265,7 +304,7 @@ export const getPublishedPostBySlug = cache(async (slug: string) => {
         return null
       }
 
-      record = ensureOptionalImageColumns(legacyData as Partial<PostDetailRecord>)
+      record = ensureOptionalImageColumns(legacyData)
     } else {
       throw new Error(`Unable to load post ${slug}: ${error.message}`)
     }

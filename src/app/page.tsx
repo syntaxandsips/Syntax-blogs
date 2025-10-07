@@ -6,6 +6,7 @@ import { HeroSection } from '@/components/ui/HeroSection';
 import { TopicsSection } from '@/components/ui/TopicsSection';
 import { ContentPreview } from '@/components/ui/ContentPreview';
 import { NewsletterSection } from '@/components/ui/NewsletterSection';
+import { TrendingPosts } from '@/components/ui/TrendingPosts';
 import { NewFooter } from '@/components/ui/NewFooter';
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
       <main>
         <HeroSection />
         <TopicsSection />
+        <TrendingPosts />
         <ContentPreview />
         <NewsletterSection />
       </main>

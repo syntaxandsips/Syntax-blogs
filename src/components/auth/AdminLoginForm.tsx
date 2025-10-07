@@ -89,7 +89,7 @@ export const AdminLoginForm = () => {
     if (signInError) {
       const normalizedMessage = signInError.message.toLowerCase();
       const friendlyMessage = normalizedMessage.includes('invalid login')
-        ? 'Invalid login credentials. If you are using the bundled admin account, run `npm run seed:test-user` to (re)create it and confirm the profile is flagged as admin in Supabase.'
+        ? 'Invalid login credentials. Confirm the account exists in Supabase, reset the password from the dashboard if necessary, and ensure the profile has admin privileges.'
         : signInError.message;
       setError(friendlyMessage);
       setIsLoading(false);

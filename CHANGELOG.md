@@ -5,18 +5,24 @@ All notable changes to the SyntaxBlogs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.6] - 2025-02-20
+
+### Changed
+
+- Modernized the README with an expanded product overview, architecture summary, and setup guidance that omits legacy seed credentials.
+- Updated admin onboarding docs to reflect manual Supabase-managed account creation.
+
+### Removed
+
+- Deprecated the local test-user seeding script and scrubbed references to bundled credentials.
+
 ## [1.12.5] - 2025-02-16
-
-### Added
-
-- Supabase seeding script (`npm run seed:test-user`) for provisioning a reusable admin account
-- Documentation updates covering the new test credentials in the README and admin guide
 
 ### Changed
 
 - Replaced the React Spring blur animation with a Framer Motion implementation compatible with React 19
 - Made blog category filters and recommended topics derive from live Supabase data instead of hardcoded lists
-- Updated README instructions to clarify migration execution and highlight the seeded test user
+- Updated README instructions to clarify migration execution and Supabase setup steps
 
 ### Fixed
 

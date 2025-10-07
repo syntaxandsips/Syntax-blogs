@@ -8,6 +8,7 @@ import { createBrowserClient } from '@/lib/supabase/client';
 import { syncAuthState } from '@/lib/supabase/sync-auth-state';
 import { useSupabaseAuthSync } from '@/hooks/useSupabaseAuthSync';
 import '@/styles/neo-brutalism.css';
+import { getSiteUrl } from '@/lib/site-url';
 
 export const UserSignUpForm = () => {
   const router = useRouter();
@@ -38,6 +39,14 @@ export const UserSignUpForm = () => {
 
     setIsLoading(true);
 
+    const emailRedirectUrl = new URL('/login', getSiteUrl());
+
+    if (redirectTo) {
+      emailRedirectUrl.searchParams.set('redirect_to', redirectTo);
+    }
+
+    emailRedirectUrl.searchParams.set('email_confirmed', '1');
+
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -45,6 +54,7 @@ export const UserSignUpForm = () => {
         data: {
           display_name: displayName.trim() || null,
         },
+        emailRedirectTo: emailRedirectUrl.toString(),
       },
     });
 

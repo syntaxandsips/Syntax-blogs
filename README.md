@@ -12,6 +12,7 @@
 
 ## At a Glance
 
+- **Live deployment:** [https://www.syntax-blogs.prashant.sbs](https://www.syntax-blogs.prashant.sbs)
 - **Audience experience:** Multi-format content hubs with topic curation, inline code, AI-powered summaries, and rich media embeds. (`src/app`, `src/components/ui`).
 - **Editorial cockpit:** Authenticated admin workspace for analytics, publishing workflow, taxonomy stewardship, and community moderation. (`src/components/admin`).
 - **Modern foundations:** Next.js App Router, Supabase Auth, Edge Functions, and a component-driven design system ready for enterprise hardening. (`src/lib`, `supabase`).
@@ -127,10 +128,12 @@ Create a `.env.local` file in the project root and supply Supabase credentials (
 NEXT_PUBLIC_SUPABASE_URL=<your-supabase-url>
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-supabase-anon-key>
 SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
+NEXT_PUBLIC_SITE_URL=https://www.syntax-blogs.prashant.sbs
 ```
 
 - The `NEXT_PUBLIC_*` keys enable client-side session handling.
 - The service role key must remain on the server—load it via secure secrets management only.
+- `NEXT_PUBLIC_SITE_URL` should point at the fully qualified domain serving the app (include the protocol). The production deployment is hosted at `https://www.syntax-blogs.prashant.sbs`.
 - Mirror production locally with `supabase start` if you use the Supabase CLI.
 
 ### Database Setup
@@ -153,7 +156,7 @@ supabase db reset --force
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) for the reader experience and `/admin` for authenticated tooling once your admin account is prepared.
+Visit [http://localhost:3000](http://localhost:3000) for the local reader experience (or the deployed instance at [https://www.syntax-blogs.prashant.sbs](https://www.syntax-blogs.prashant.sbs)) and `/admin` for authenticated tooling once your admin account is prepared.
 
 ## Development Playbooks
 

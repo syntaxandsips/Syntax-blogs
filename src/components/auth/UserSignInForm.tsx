@@ -23,6 +23,19 @@ export const UserSignInForm = () => {
 
   const redirectTo = searchParams.get('redirect_to');
 
+  const emailConfirmed = searchParams.get('email_confirmed');
+  const authError = searchParams.get('error_description') ?? searchParams.get('error');
+
+  useEffect(() => {
+    if (emailConfirmed === '1') {
+      setInfo('Email confirmed! You can sign in now.');
+    }
+
+    if (authError) {
+      setError(authError);
+    }
+  }, [authError, emailConfirmed]);
+
   const syncSession = useCallback(async () => {
     const {
       data: { session },

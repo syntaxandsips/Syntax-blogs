@@ -82,6 +82,96 @@ const mapListPost = (record: PostListRecord): BlogListPost => ({
   views: record.views ?? 0,
 })
 
+const OPTIONAL_IMAGE_COLUMNS = ['featured_image_url', 'social_image_url'] as const
+
+const isMissingOptionalImageColumnsError = (error: unknown) => {
+  if (!error || typeof error !== 'object') {
+    return false
+  }
+
+  const readString = (value: unknown) => (typeof value === 'string' ? value : '')
+
+  const fallback = (() => {
+    try {
+      return String(error)
+    } catch {
+      return ''
+    }
+  })()
+
+  const fields = [
+    readString('message' in error ? (error as { message?: unknown }).message : ''),
+    readString('details' in error ? (error as { details?: unknown }).details : ''),
+    readString('hint' in error ? (error as { hint?: unknown }).hint : ''),
+    fallback,
+  ]
+
+  const combined = fields.filter(Boolean).join(' ')
+
+  if (OPTIONAL_IMAGE_COLUMNS.some((column) => combined.includes(column))) {
+    return true
+  }
+
+  const code = 'code' in error ? (error as { code?: unknown }).code : undefined
+
+  if (code === '42703') {
+    return OPTIONAL_IMAGE_COLUMNS.some((column) =>
+      combined.includes(column) || combined.includes(`posts.${column}`) || combined.includes(`"${column}"`),
+    )
+  }
+
+  return false
+}
+
+const ensureOptionalImageColumns = (record: unknown): PostDetailRecord => {
+  const typedRecord = record as PostDetailRecord & {
+    post_tags?: ({
+      tags?: TagRecord['tags'] | TagRecord['tags'][] | null
+    } | null)[] | null
+  }
+
+  const normalizeTags = (raw: typeof typedRecord.post_tags): TagRecord[] | null => {
+    if (!raw) {
+      return null
+    }
+
+    if (!Array.isArray(raw)) {
+      return null
+    }
+
+    return raw.map((entry) => {
+      if (!entry || typeof entry !== 'object') {
+        return { tags: null }
+      }
+
+      const rawTags = (entry as { tags?: unknown }).tags
+
+      if (Array.isArray(rawTags)) {
+        const [first] = rawTags
+
+        if (!first || typeof first !== 'object') {
+          return { tags: null }
+        }
+
+        return { tags: first as TagRecord['tags'] }
+      }
+
+      if (!rawTags || typeof rawTags !== 'object') {
+        return { tags: null }
+      }
+
+      return { tags: rawTags as TagRecord['tags'] }
+    })
+  }
+
+  return {
+    ...typedRecord,
+    featured_image_url: typedRecord?.featured_image_url ?? null,
+    social_image_url: typedRecord?.social_image_url ?? null,
+    post_tags: normalizeTags(typedRecord.post_tags),
+  }
+}
+
 const mapDetailPost = (record: PostDetailRecord, author: AuthorRecord | null): BlogPostDetail => ({
   ...mapListPost(record),
   content: record.content,
@@ -152,10 +242,7 @@ export const getTrendingPosts = async (limit = 6) => {
 export const getPublishedPostBySlug = cache(async (slug: string) => {
   const supabase = createServiceRoleClient()
 
-  const { data, error } = await supabase
-    .from('posts')
-    .select(
-      `
+  const detailSelect = `
         id,
         title,
         slug,
@@ -171,21 +258,65 @@ export const getPublishedPostBySlug = cache(async (slug: string) => {
         author_id,
         categories:categories(id, name, slug),
         post_tags:post_tags(tags(id, name, slug))
-      `,
+      `
+
+  const legacyDetailSelect = `
+        id,
+        title,
+        slug,
+        excerpt,
+        content,
+        accent_color,
+        views,
+        published_at,
+        seo_title,
+        seo_description,
+        author_id,
+        categories:categories(id, name, slug),
+        post_tags:post_tags(tags(id, name, slug))
+      `
+
+  let record: PostDetailRecord | null = null
+
+  const { data, error } = await supabase
+    .from('posts')
+    .select(
+      detailSelect,
     )
     .eq('status', 'published')
     .eq('slug', slug)
     .maybeSingle()
 
   if (error) {
-    throw new Error(`Unable to load post ${slug}: ${error.message}`)
+    if (isMissingOptionalImageColumnsError(error)) {
+      const { data: legacyData, error: legacyError } = await supabase
+        .from('posts')
+        .select(legacyDetailSelect)
+        .eq('status', 'published')
+        .eq('slug', slug)
+        .maybeSingle()
+
+      if (legacyError) {
+        throw new Error(`Unable to load post ${slug}: ${legacyError.message}`)
+      }
+
+      if (!legacyData) {
+        return null
+      }
+
+      record = ensureOptionalImageColumns(legacyData)
+    } else {
+      throw new Error(`Unable to load post ${slug}: ${error.message}`)
+    }
   }
 
-  if (!data) {
-    return null
-  }
+  if (!record) {
+    if (!data) {
+      return null
+    }
 
-  const record = data as unknown as PostDetailRecord
+    record = ensureOptionalImageColumns(data as PostDetailRecord)
+  }
 
   let author: AuthorRecord | null = null
 

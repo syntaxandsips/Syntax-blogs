@@ -43,11 +43,11 @@ export const Sidebar = ({
   return (
     <div
       className={cn(
-        'flex h-full min-h-full w-[280px] max-h-screen flex-col overflow-y-auto border-r-4 border-[#FF5252]/50 bg-[#2A2A2A] text-white shadow-xl',
+        'flex h-full max-h-screen w-[280px] flex-col overflow-hidden border-r-4 border-[#FF5252]/50 bg-[#2A2A2A] text-white shadow-xl lg:sticky lg:top-0 lg:h-screen',
         className,
       )}
     >
-      <div className="relative p-6 border-b border-white/10">
+      <div className="relative border-b border-white/10 p-6">
         {showCloseButton && (
           <button
             type="button"
@@ -77,64 +77,66 @@ export const Sidebar = ({
           </p>
         </div>
       </div>
-      <div className="p-6 flex-1">
-        <nav className="space-y-2">
-          <SidebarLink
-            icon={<LayoutDashboard />}
-            label="Overview"
-            isActive={currentView === 'overview'}
-            onClick={() => onNavigate('overview')}
-          />
-          <SidebarLink
-            icon={<FileText />}
-            label="Posts"
-            isActive={currentView === 'posts'}
-            onClick={() => onNavigate('posts')}
-          />
-          {isAdmin && (
+      <div className="flex-1 overflow-y-auto">
+        <div className="space-y-8 px-6 py-6">
+          <nav className="space-y-2">
             <SidebarLink
-              icon={<MessageCircle />}
-              label="Comments"
-              isActive={currentView === 'comments'}
-              onClick={() => onNavigate('comments')}
+              icon={<LayoutDashboard />}
+              label="Overview"
+              isActive={currentView === 'overview'}
+              onClick={() => onNavigate('overview')}
             />
-          )}
-          {isAdmin && (
             <SidebarLink
-              icon={<Users />}
-              label="Users"
-              isActive={currentView === 'users'}
-              onClick={() => onNavigate('users')}
+              icon={<FileText />}
+              label="Posts"
+              isActive={currentView === 'posts'}
+              onClick={() => onNavigate('posts')}
             />
-          )}
-          {isAdmin && (
+            {isAdmin && (
+              <SidebarLink
+                icon={<MessageCircle />}
+                label="Comments"
+                isActive={currentView === 'comments'}
+                onClick={() => onNavigate('comments')}
+              />
+            )}
+            {isAdmin && (
+              <SidebarLink
+                icon={<Users />}
+                label="Users"
+                isActive={currentView === 'users'}
+                onClick={() => onNavigate('users')}
+              />
+            )}
+            {isAdmin && (
+              <SidebarLink
+                icon={<Tag />}
+                label="Taxonomy"
+                isActive={currentView === 'taxonomy'}
+                onClick={() => onNavigate('taxonomy')}
+              />
+            )}
             <SidebarLink
-              icon={<Tag />}
-              label="Taxonomy"
-              isActive={currentView === 'taxonomy'}
-              onClick={() => onNavigate('taxonomy')}
+              icon={<BarChart />}
+              label="Analytics"
+              isActive={currentView === 'analytics'}
+              onClick={() => onNavigate('analytics')}
             />
-          )}
-          <SidebarLink
-            icon={<BarChart />}
-            label="Analytics"
-            isActive={currentView === 'analytics'}
-            onClick={() => onNavigate('analytics')}
-          />
-          <SidebarLink
-            icon={<Settings />}
-            label="Settings"
-            isActive={currentView === 'settings'}
-            onClick={() => onNavigate('settings')}
-          />
-        </nav>
-        <div className="mt-8">
-          <button
-            onClick={onCreatePost}
-            className="w-full rounded-md border-3 border-white/20 bg-gradient-to-r from-[#FF5252]/90 to-[#FF5252] px-4 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-200 hover:-translate-y-0.5"
-          >
-            + New Post
-          </button>
+            <SidebarLink
+              icon={<Settings />}
+              label="Settings"
+              isActive={currentView === 'settings'}
+              onClick={() => onNavigate('settings')}
+            />
+          </nav>
+          <div>
+            <button
+              onClick={onCreatePost}
+              className="w-full rounded-md border-3 border-white/20 bg-gradient-to-r from-[#FF5252]/90 to-[#FF5252] px-4 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-200 hover:-translate-y-0.5"
+            >
+              + New Post
+            </button>
+          </div>
         </div>
       </div>
       <div className="p-6 border-t border-white/10">

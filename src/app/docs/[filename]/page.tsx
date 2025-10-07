@@ -30,7 +30,7 @@ export default async function DocPage({
   params: Promise<{ filename: string }>;
 }) {
   const { filename } = await params;
-  
+
   try {
     // Construct the file path
     const filePath = path.join(process.cwd(), 'src', 'docs', filename);
@@ -42,6 +42,7 @@ export default async function DocPage({
     
     // Read the file content
     const fileContent = fs.readFileSync(filePath, 'utf8');
+
     const html = await renderMarkdown(fileContent);
 
     return (
@@ -71,3 +72,4 @@ async function renderMarkdown(markdown: string): Promise<string> {
 
   return processed.toString();
 }
+

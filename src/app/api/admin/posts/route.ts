@@ -12,6 +12,10 @@ const POST_SELECT = `
   excerpt,
   content,
   accent_color,
+  seo_title,
+  seo_description,
+  featured_image_url,
+  social_image_url,
   status,
   views,
   created_at,
@@ -19,7 +23,8 @@ const POST_SELECT = `
   scheduled_for,
   author_id,
   category_id,
-  categories:categories(id, name, slug)
+  categories:categories(id, name, slug),
+  post_tags:post_tags(tags(id, name, slug))
 `
 
 interface ProfileRecord {
@@ -34,6 +39,10 @@ interface PostRecord {
   excerpt: string | null
   content: string
   accent_color: string | null
+  seo_title: string | null
+  seo_description: string | null
+  featured_image_url: string | null
+  social_image_url: string | null
   status: string
   views: number | null
   created_at: string
@@ -42,6 +51,7 @@ interface PostRecord {
   author_id: string | null
   category_id: string | null
   categories: { id: string | null; name: string | null; slug: string | null } | null
+  post_tags: { tags: { id: string | null; name: string | null; slug: string | null } | null }[] | null
 }
 
 const mapPostRecord = (record: PostRecord): AdminPost => ({
@@ -51,6 +61,10 @@ const mapPostRecord = (record: PostRecord): AdminPost => ({
   excerpt: record.excerpt ?? null,
   content: record.content,
   accentColor: record.accent_color ?? null,
+  seoTitle: record.seo_title ?? null,
+  seoDescription: record.seo_description ?? null,
+  featuredImageUrl: record.featured_image_url ?? null,
+  socialImageUrl: record.social_image_url ?? null,
   status: record.status as PostStatus,
   views: record.views ?? 0,
   createdAt: record.created_at,
@@ -60,6 +74,18 @@ const mapPostRecord = (record: PostRecord): AdminPost => ({
   categoryId: record.category_id ?? null,
   categoryName: record.categories?.name ?? null,
   categorySlug: record.categories?.slug ?? null,
+  tags:
+    (record.post_tags ?? [])
+      .map((tag) => tag.tags)
+      .filter(
+        (tag): tag is { id: string | null; name: string | null; slug: string | null } =>
+          Boolean(tag?.id),
+      )
+      .map((tag) => ({
+        id: tag.id as string,
+        name: tag.name ?? 'Untitled',
+        slug: tag.slug ?? '',
+      })),
 })
 
 const allowedStatuses = new Set<string>([
@@ -160,10 +186,31 @@ export async function POST(request: Request) {
     typeof body.accentColor === 'string' && body.accentColor.trim().length > 0
       ? body.accentColor.trim()
       : null
+  const seoTitle =
+    typeof body.seoTitle === 'string' && body.seoTitle.trim().length > 0
+      ? body.seoTitle.trim()
+      : null
+  const seoDescription =
+    typeof body.seoDescription === 'string' && body.seoDescription.trim().length > 0
+      ? body.seoDescription.trim()
+      : null
+  const featuredImageUrl =
+    typeof body.featuredImageUrl === 'string' && body.featuredImageUrl.trim().length > 0
+      ? body.featuredImageUrl.trim()
+      : null
+  const socialImageUrl =
+    typeof body.socialImageUrl === 'string' && body.socialImageUrl.trim().length > 0
+      ? body.socialImageUrl.trim()
+      : featuredImageUrl
   const categoryId =
     typeof body.categoryId === 'string' && body.categoryId.trim().length > 0
       ? body.categoryId
       : null
+  const tagIds = Array.isArray(body.tagIds)
+    ? (body.tagIds as unknown[])
+        .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+        .map((value) => value.trim())
+    : []
   const requestedStatus = normalizeStatus(body.status as string | null | undefined)
   const authorId =
     typeof body.authorId === 'string' && body.authorId.trim().length > 0
@@ -213,6 +260,10 @@ export async function POST(request: Request) {
       content,
       excerpt,
       accent_color: accentColor,
+      seo_title: seoTitle,
+      seo_description: seoDescription,
+      featured_image_url: featuredImageUrl,
+      social_image_url: socialImageUrl,
       status: requestedStatus,
       published_at: publishedAt,
       scheduled_for: scheduledFor,
@@ -229,6 +280,26 @@ export async function POST(request: Request) {
     )
   }
 
-  const post = mapPostRecord(data as unknown as PostRecord)
+  const record = data as unknown as PostRecord
+
+  if (tagIds.length > 0) {
+    const insertPayload = tagIds.map((tagId) => ({
+      post_id: record.id,
+      tag_id: tagId,
+    }))
+
+    const { error: tagError } = await serviceClient
+      .from('post_tags')
+      .insert(insertPayload)
+
+    if (tagError) {
+      return NextResponse.json(
+        { error: `Post created but tags failed to save: ${tagError.message}` },
+        { status: 400 },
+      )
+    }
+  }
+
+  const post = mapPostRecord(record)
   return NextResponse.json({ post }, { status: 201 })
 }

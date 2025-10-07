@@ -9,6 +9,7 @@ import {
   LogOut,
   Settings,
   ShieldCheck,
+  Tag,
   Users,
   X,
 } from 'lucide-react'
@@ -104,6 +105,14 @@ export const Sidebar = ({
               label="Users"
               isActive={currentView === 'users'}
               onClick={() => onNavigate('users')}
+            />
+          )}
+          {isAdmin && (
+            <SidebarLink
+              icon={<Tag />}
+              label="Taxonomy"
+              isActive={currentView === 'taxonomy'}
+              onClick={() => onNavigate('taxonomy')}
             />
           )}
           <SidebarLink

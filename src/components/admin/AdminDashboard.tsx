@@ -13,6 +13,7 @@ import { PostForm } from './PostForm'
 import { StatsSection } from './StatsSection'
 import { UserManagement } from './UserManagement'
 import { CommentsModeration } from './CommentsModeration'
+import { TaxonomyManager } from './TaxonomyManager'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { Menu } from 'lucide-react'
 import {
@@ -23,6 +24,7 @@ import {
   CreateAdminUserPayload,
   CommentStatus,
   CategoryOption,
+  TagOption,
   PostFormValues,
   PostStatus,
   UpdateAdminUserPayload,
@@ -49,6 +51,7 @@ export const AdminDashboard = ({
   const [currentView, setCurrentView] = useState<string>('overview')
   const [posts, setPosts] = useState<AdminPost[]>([])
   const [categories, setCategories] = useState<CategoryOption[]>([])
+  const [tags, setTags] = useState<TagOption[]>([])
   const [editingPost, setEditingPost] = useState<AdminPost | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshingPosts, setIsRefreshingPosts] = useState(false)
@@ -74,6 +77,11 @@ export const AdminDashboard = ({
         categoryId: post.categoryId ?? null,
         categoryName: post.categoryName ?? null,
         categorySlug: post.categorySlug ?? null,
+        seoTitle: post.seoTitle ?? null,
+        seoDescription: post.seoDescription ?? null,
+        featuredImageUrl: post.featuredImageUrl ?? null,
+        socialImageUrl: post.socialImageUrl ?? null,
+        tags: post.tags ?? [],
         publishedAt: post.publishedAt ?? null,
         scheduledFor: post.scheduledFor ?? null,
         authorId: post.authorId ?? null,
@@ -107,9 +115,16 @@ export const AdminDashboard = ({
     setFeedback(null)
 
     try {
-      const [{ data: categoriesData, error: categoryError }] = await Promise.all([
+      const [
+        { data: categoriesData, error: categoryError },
+        { data: tagsData, error: tagsError },
+      ] = await Promise.all([
         supabase
           .from('categories')
+          .select('id, name, slug')
+          .order('name'),
+        supabase
+          .from('tags')
           .select('id, name, slug')
           .order('name'),
         fetchPosts().catch((error) => {
@@ -121,7 +136,12 @@ export const AdminDashboard = ({
         throw new Error(categoryError.message)
       }
 
+      if (tagsError) {
+        throw new Error(tagsError.message)
+      }
+
       setCategories((categoriesData ?? []) as CategoryOption[])
+      setTags((tagsData ?? []) as TagOption[])
     } catch (error) {
       setFeedback({
         type: 'error',
@@ -211,6 +231,231 @@ export const AdminDashboard = ({
       setIsPostSaving(false)
     }
   }
+
+  const refreshCategories = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, name, slug')
+      .order('name')
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    setCategories((data ?? []) as CategoryOption[])
+  }, [supabase])
+
+  const refreshTags = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('tags')
+      .select('id, name, slug')
+      .order('name')
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    setTags((data ?? []) as TagOption[])
+  }, [supabase])
+
+  const normalizeSlug = useCallback(
+    (value: string) =>
+      value
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-'),
+    [],
+  )
+
+  const handleCreateCategory = useCallback(async (name: string, slug?: string) => {
+    const sanitizedName = name.trim()
+    const normalizedSlug = normalizeSlug(slug && slug.trim().length > 0 ? slug : sanitizedName)
+
+    if (!sanitizedName || !normalizedSlug) {
+      throw new Error('Category name and slug are required.')
+    }
+
+    const { data, error } = await supabase
+      .from('categories')
+      .insert({ name: sanitizedName, slug: normalizedSlug })
+      .select('id, name, slug')
+      .single()
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    setCategories((prev) => [data as CategoryOption, ...prev])
+  }, [normalizeSlug, supabase])
+
+  const handleUpdateCategory = useCallback(
+    async (id: string, values: { name: string; slug: string }) => {
+      const sanitizedName = values.name.trim()
+      const normalizedSlug = normalizeSlug(values.slug)
+
+      if (!sanitizedName || !normalizedSlug) {
+        throw new Error('Category name and slug are required.')
+    }
+
+    const { data, error } = await supabase
+      .from('categories')
+      .update({ name: sanitizedName, slug: normalizedSlug })
+      .eq('id', id)
+      .select('id, name, slug')
+      .single()
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+      setCategories((prev) =>
+        prev.map((category) => (category.id === id ? (data as CategoryOption) : category)),
+      )
+    },
+    [normalizeSlug, supabase],
+  )
+
+  const handleDeleteCategory = useCallback(async (id: string) => {
+    const { error } = await supabase.from('categories').delete().eq('id', id)
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    setCategories((prev) => prev.filter((category) => category.id !== id))
+  }, [supabase])
+
+  const handleCreateTag = useCallback(async (name: string, slug?: string) => {
+    const sanitizedName = name.trim()
+    const normalizedSlug = normalizeSlug(slug && slug.trim().length > 0 ? slug : sanitizedName)
+
+    if (!sanitizedName || !normalizedSlug) {
+      throw new Error('Tag name and slug are required.')
+    }
+
+    const { data, error } = await supabase
+      .from('tags')
+      .insert({ name: sanitizedName, slug: normalizedSlug })
+      .select('id, name, slug')
+      .single()
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    setTags((prev) => [data as TagOption, ...prev])
+  }, [normalizeSlug, supabase])
+
+  const handleUpdateTag = useCallback(
+    async (id: string, values: { name: string; slug: string }) => {
+      const sanitizedName = values.name.trim()
+      const normalizedSlug = normalizeSlug(values.slug)
+
+      if (!sanitizedName || !normalizedSlug) {
+        throw new Error('Tag name and slug are required.')
+    }
+
+    const { data, error } = await supabase
+      .from('tags')
+      .update({ name: sanitizedName, slug: normalizedSlug })
+      .eq('id', id)
+      .select('id, name, slug')
+      .single()
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+      setTags((prev) => prev.map((tag) => (tag.id === id ? (data as TagOption) : tag)))
+    },
+    [normalizeSlug, supabase],
+  )
+
+  const handleDeleteTag = useCallback(async (id: string) => {
+    const { error } = await supabase.from('tags').delete().eq('id', id)
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    setTags((prev) => prev.filter((tag) => tag.id !== id))
+  }, [supabase])
+
+  const runTaxonomyAction = useCallback(
+    async (operation: () => Promise<void>, successMessage: string) => {
+      setFeedback(null)
+
+      try {
+        await operation()
+        setFeedback({ type: 'success', message: successMessage })
+        return true
+      } catch (error) {
+        setFeedback({
+          type: 'error',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Unable to update content taxonomy.',
+        })
+        return false
+      }
+    },
+    [],
+  )
+
+  const requestCreateCategory = useCallback(
+    (name: string, slug?: string) =>
+      runTaxonomyAction(
+        () => handleCreateCategory(name, slug),
+        'Category created successfully.',
+      ),
+    [handleCreateCategory, runTaxonomyAction],
+  )
+
+  const requestUpdateCategory = useCallback(
+    (id: string, values: { name: string; slug: string }) =>
+      runTaxonomyAction(
+        () => handleUpdateCategory(id, values),
+        'Category updated successfully.',
+      ),
+    [handleUpdateCategory, runTaxonomyAction],
+  )
+
+  const requestDeleteCategory = useCallback(
+    (id: string) =>
+      runTaxonomyAction(() => handleDeleteCategory(id), 'Category deleted successfully.'),
+    [handleDeleteCategory, runTaxonomyAction],
+  )
+
+  const requestCreateTag = useCallback(
+    (name: string, slug?: string) =>
+      runTaxonomyAction(() => handleCreateTag(name, slug), 'Tag created successfully.'),
+    [handleCreateTag, runTaxonomyAction],
+  )
+
+  const requestUpdateTag = useCallback(
+    (id: string, values: { name: string; slug: string }) =>
+      runTaxonomyAction(() => handleUpdateTag(id, values), 'Tag updated successfully.'),
+    [handleUpdateTag, runTaxonomyAction],
+  )
+
+  const requestDeleteTag = useCallback(
+    (id: string) =>
+      runTaxonomyAction(() => handleDeleteTag(id), 'Tag deleted successfully.'),
+    [handleDeleteTag, runTaxonomyAction],
+  )
+
+  const requestRefreshCategories = useCallback(
+    () => runTaxonomyAction(() => refreshCategories(), 'Categories refreshed.'),
+    [refreshCategories, runTaxonomyAction],
+  )
+
+  const requestRefreshTags = useCallback(
+    () => runTaxonomyAction(() => refreshTags(), 'Tags refreshed.'),
+    [refreshTags, runTaxonomyAction],
+  )
 
   const handleDeletePost = async (id: string) => {
     setFeedback(null)
@@ -561,9 +806,25 @@ export const AdminDashboard = ({
           <PostForm
             post={editingPost}
             categories={categories}
+            tags={tags}
             onSave={handleSavePost}
             onCancel={() => setCurrentView('posts')}
             isSaving={isPostSaving}
+          />
+        )
+      case 'taxonomy':
+        return (
+          <TaxonomyManager
+            categories={categories}
+            tags={tags}
+            onCreateCategory={requestCreateCategory}
+            onUpdateCategory={requestUpdateCategory}
+            onDeleteCategory={requestDeleteCategory}
+            onRefreshCategories={requestRefreshCategories}
+            onCreateTag={requestCreateTag}
+            onUpdateTag={requestUpdateTag}
+            onDeleteTag={requestDeleteTag}
+            onRefreshTags={requestRefreshTags}
           />
         )
       case 'users':

@@ -8,6 +8,7 @@ import { createBrowserClient } from '@/lib/supabase/client';
 import { syncAuthState } from '@/lib/supabase/sync-auth-state';
 import { useSupabaseAuthSync } from '@/hooks/useSupabaseAuthSync';
 import '@/styles/neo-brutalism.css';
+import type { AuthenticatedProfileSummary } from '@/utils/types';
 
 export const UserSignInForm = () => {
   const router = useRouter();
@@ -34,6 +35,31 @@ export const UserSignInForm = () => {
 
   useSupabaseAuthSync(supabase);
 
+  const navigateAfterSignIn = useCallback(async () => {
+    const destination = redirectTo ?? '/account';
+
+    try {
+      const response = await fetch('/api/auth/me', {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-store',
+      });
+
+      if (response.ok) {
+        const payload = (await response.json()) as { profile: AuthenticatedProfileSummary };
+
+        if (payload.profile?.onboarding?.status !== 'completed') {
+          router.replace(`/onboarding?redirect=${encodeURIComponent(destination)}`);
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Unable to resolve onboarding status after sign-in', error);
+    }
+
+    router.replace(destination);
+  }, [redirectTo, router]);
+
   useEffect(() => {
     const checkExistingSession = async () => {
       const {
@@ -42,12 +68,12 @@ export const UserSignInForm = () => {
 
       if (session) {
         await syncAuthState('SIGNED_IN', session);
-        router.replace(redirectTo ?? '/account');
+        await navigateAfterSignIn();
       }
     };
 
     void checkExistingSession();
-  }, [redirectTo, router, supabase]);
+  }, [navigateAfterSignIn, supabase]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -79,7 +105,7 @@ export const UserSignInForm = () => {
     }
 
     setInfo('Signed in successfully! Redirecting...');
-    router.replace(redirectTo ?? '/account');
+    await navigateAfterSignIn();
   };
 
   const features = [

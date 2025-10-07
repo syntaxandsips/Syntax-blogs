@@ -56,8 +56,10 @@ export const UserSignUpForm = () => {
 
     if (data.session) {
       await syncAuthState('SIGNED_IN', data.session);
-      setInfo('Account created! Redirecting to your account...');
-      router.replace(redirectTo ?? '/account');
+      setInfo('Account created! Let’s personalise your experience...');
+      const destination = redirectTo ?? '/account';
+      const onboardingRedirect = `/onboarding?redirect=${encodeURIComponent(destination)}`;
+      router.replace(onboardingRedirect);
       return;
     }
 

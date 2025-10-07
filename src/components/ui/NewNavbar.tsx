@@ -13,6 +13,7 @@ export const NewNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = useClientPathname();
   const { profile, isLoading } = useAuthenticatedProfile();
+  const needsOnboarding = Boolean(profile && profile.onboarding?.status !== 'completed');
 
   // Function to check if a path is active
   const isActive = (path: string) => {
@@ -121,6 +122,14 @@ export const NewNavbar = () => {
                     <UserRound className="h-4 w-4" aria-hidden="true" />
                     My profile
                   </Link>
+                  {needsOnboarding ? (
+                    <Link
+                      href="/onboarding?redirect=/account"
+                      className="inline-flex items-center justify-center rounded-md border-2 border-black bg-[#FF5252] px-4 py-2 text-xs font-extrabold uppercase tracking-wide text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,0.12)] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_0px_rgba(255,82,82,0.35)]"
+                    >
+                      Finish onboarding
+                    </Link>
+                  ) : null}
                   <Link
                     href="/account#contributions"
                     className="inline-flex items-center justify-center rounded-md border-2 border-dashed border-black/50 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wide text-black/70"
@@ -157,6 +166,11 @@ interface ProfileShortcutProps {
 }
 
 const ProfileShortcut = ({ profile }: ProfileShortcutProps) => {
+  const onboardingStatus = profile.onboarding?.status ?? 'pending';
+  const helperLabel = onboardingStatus === 'completed' ? 'Open dashboard' : 'Finish onboarding';
+  const helperTone = onboardingStatus === 'completed' ? 'text-[#6C63FF]' : 'text-[#FF5252]';
+  const hoverBadgeLabel = onboardingStatus === 'completed' ? 'View' : 'Resume';
+
   return (
     <Link
       href="/account"
@@ -174,17 +188,22 @@ const ProfileShortcut = ({ profile }: ProfileShortcutProps) => {
         ) : (
           <UserRound className="h-5 w-5" aria-hidden="true" />
         )}
+        {onboardingStatus !== 'completed' ? (
+          <span className="absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full border border-black bg-[#FF5252] text-[10px] font-black text-white">
+            !
+          </span>
+        ) : null}
       </span>
       <span className="hidden flex-col text-left xl:flex">
         <span className="text-sm font-extrabold leading-tight text-black">
           {profile.displayName}
         </span>
-        <span className="text-xs font-semibold uppercase tracking-wide text-[#6C63FF]">
-          Open dashboard
+        <span className={`text-xs font-semibold uppercase tracking-wide ${helperTone}`}>
+          {helperLabel}
         </span>
       </span>
       <span className="absolute -bottom-2 right-3 hidden rounded-full bg-[#6C63FF] px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)] group-hover:block">
-        View
+        {hoverBadgeLabel}
       </span>
       <span className="sr-only">Go to your profile</span>
     </Link>

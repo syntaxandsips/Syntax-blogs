@@ -9,11 +9,13 @@ import {
   AlertTriangle,
   ArrowRight,
   Award,
+  CalendarCheck2,
   CheckCircle2,
   Clock3,
   Compass,
   ExternalLink,
   FileText,
+  Goal,
   IdCard,
   LifeBuoy,
   MessageCircle,
@@ -22,11 +24,22 @@ import {
   Scale,
   ShieldCheck,
   Sparkles,
+  Target,
   UserRound,
   UsersRound,
 } from 'lucide-react'
 import type {
   AuthenticatedProfileSummary,
+  OnboardingAccountability,
+  OnboardingCommunication,
+  OnboardingContribution,
+  OnboardingExperienceLevel,
+  OnboardingGoal,
+  OnboardingLearningFormat,
+  OnboardingPersona,
+  OnboardingSupportPreference,
+  ProfileOnboardingJourney,
+  ProfileOnboardingResponses,
   UserCommentSummary,
   UserContributionSnapshot,
   UserPostSummary,
@@ -200,6 +213,111 @@ const buildActivity = (
     })
     .slice(0, 8)
 }
+
+const onboardingPersonaDictionary: Record<OnboardingPersona, { title: string; summary: string }> = {
+  'learning-explorer': {
+    title: 'Curious explorer',
+    summary: 'Scans emerging research, tools, and ideas to stay ahead of the curve.',
+  },
+  'hands-on-builder': {
+    title: 'Hands-on builder',
+    summary: 'Learns by prototyping quickly and sharing practical discoveries.',
+  },
+  'community-connector': {
+    title: 'Community connector',
+    summary: 'Curates resources, sparks conversations, and energises the community.',
+  },
+  'career-switcher': {
+    title: 'Career switcher',
+    summary: 'Pivoting into AI/ML with a need for guided pathways and peers.',
+  },
+  'team-enabler': {
+    title: 'Team enabler',
+    summary: 'Coaches squads and needs signal to guide and unblock the crew.',
+  },
+}
+
+const onboardingExperienceDictionary: Record<OnboardingExperienceLevel, string> = {
+  'early-career': 'Early career (0-2 years in AI/ML)',
+  'mid-level': 'Practicing contributor',
+  'senior-practitioner': 'Senior practitioner',
+  'strategic-leader': 'Strategic leader',
+}
+
+const onboardingGoalDictionary: Record<OnboardingGoal, string> = {
+  'publish-signature-series': 'Publish a signature series',
+  'grow-technical-voice': 'Grow your technical voice',
+  'level-up-ai-skills': 'Level up AI & ML skills',
+  'ship-side-projects': 'Ship side projects faster',
+  'find-peers': 'Meet collaborators & peers',
+  'transition-role': 'Transition into a new role',
+}
+
+const onboardingContributionDictionary: Record<OnboardingContribution, string> = {
+  'write-articles': 'Long-form articles',
+  'share-code-snippets': 'Code walkthroughs & repos',
+  'host-events': 'Live sessions & events',
+  'produce-videos': 'Video & podcast experiments',
+  'mentor-community': 'Mentorship & feedback',
+}
+
+const onboardingLearningDictionary: Record<OnboardingLearningFormat, string> = {
+  'deep-dives': 'Deep dives',
+  'quick-tips': 'Quick tips',
+  'live-builds': 'Live builds',
+  'case-studies': 'Case studies',
+  'audio-notes': 'Audio notes',
+}
+
+const onboardingSupportDictionary: Record<OnboardingSupportPreference, string> = {
+  'editorial-reviews': 'Editorial reviews',
+  'pair-programming': 'Pair programming jams',
+  'career-coaching': 'Career strategy chats',
+  'community-challenges': 'Community challenges',
+  'office-hours': 'Office hours & AMAs',
+}
+
+const onboardingCommunicationDictionary: Record<OnboardingCommunication, string> = {
+  'weekly-digest': 'Weekly digest',
+  'event-reminders': 'Event reminders',
+  'opportunity-alerts': 'Opportunities & collaborations',
+  'product-updates': 'Product updates & roadmap notes',
+}
+
+const onboardingAccountabilityDictionary: Record<OnboardingAccountability, string> = {
+  'progress-updates': 'Weekly progress pulses',
+  'quiet-focus': 'Heads-down focus',
+  'public-goals': 'Public goal setting',
+  'one-on-one': '1:1 accountability partner',
+}
+
+const onboardingStepProgress: Record<string, number> = {
+  persona: 0.2,
+  outcomes: 0.45,
+  enablement: 0.7,
+  support: 0.9,
+  summary: 1,
+}
+
+const computeOnboardingProgress = (journey: ProfileOnboardingJourney | null) => {
+  if (!journey) {
+    return 0
+  }
+
+  if (journey.status === 'completed') {
+    return 1
+  }
+
+  const weight = onboardingStepProgress[journey.currentStep ?? 'persona']
+  if (typeof weight === 'number') {
+    return weight
+  }
+
+  return 0
+}
+
+const formatOnboardingList = <T extends string>(values: T[], dictionary: Record<T, string>) =>
+  values.map((value) => dictionary[value] ?? value)
 
 const renderRuleBadge = (status: RuleStatus) => {
   if (status === 'complete') {
@@ -821,6 +939,55 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
     [contributions.comments, contributions.posts],
   )
 
+  const onboardingJourney = currentProfile.onboarding ?? null
+  const onboardingResponses: ProfileOnboardingResponses | null = onboardingJourney?.responses ?? null
+  const onboardingProgress = computeOnboardingProgress(onboardingJourney)
+  const onboardingProgressPercent = Math.round(onboardingProgress * 100)
+  const onboardingStatusLabel = onboardingJourney
+    ? onboardingJourney.status === 'completed'
+      ? 'Completed'
+      : onboardingJourney.status === 'in_progress'
+      ? 'In progress'
+      : 'Action needed'
+    : 'Not started'
+  const onboardingStatusTone = onboardingJourney
+    ? onboardingJourney.status === 'completed'
+      ? 'border-emerald-500 bg-emerald-100 text-emerald-700'
+      : onboardingJourney.status === 'in_progress'
+      ? 'border-[#FFB400] bg-[#FFE9B3] text-[#8C6F21]'
+      : 'border-[#FF7043] bg-[#FFD5CC] text-[#8C2F22]'
+    : 'border-gray-400 bg-gray-200 text-gray-600'
+  const onboardingLastTouch = onboardingJourney?.updatedAt ?? onboardingJourney?.completedAt ?? currentProfile.createdAt
+  const onboardingCtaLabel = onboardingJourney?.status === 'completed' ? 'Update preferences' : 'Resume onboarding'
+
+  const onboardingPersona = onboardingResponses?.persona
+    ? onboardingPersonaDictionary[onboardingResponses.persona]
+    : null
+  const onboardingExperienceLabel = onboardingResponses?.experienceLevel
+    ? onboardingExperienceDictionary[onboardingResponses.experienceLevel]
+    : null
+  const onboardingGoals = onboardingResponses
+    ? formatOnboardingList(onboardingResponses.motivations, onboardingGoalDictionary)
+    : []
+  const onboardingContributions = onboardingResponses
+    ? formatOnboardingList(onboardingResponses.focusAreas, onboardingContributionDictionary)
+    : []
+  const onboardingLearning = onboardingResponses
+    ? formatOnboardingList(onboardingResponses.preferredLearningFormats, onboardingLearningDictionary)
+    : []
+  const onboardingSupport = onboardingResponses
+    ? formatOnboardingList(onboardingResponses.supportPreferences, onboardingSupportDictionary)
+    : []
+  const onboardingCommunications = onboardingResponses
+    ? formatOnboardingList(
+        onboardingResponses.communicationPreferences,
+        onboardingCommunicationDictionary,
+      )
+    : []
+  const onboardingAccountability = onboardingResponses?.accountabilityStyle
+    ? onboardingAccountabilityDictionary[onboardingResponses.accountabilityStyle]
+    : null
+
   const requiredRules: RuleItem[] = [
     {
       title: 'Verified email address',
@@ -1057,6 +1224,173 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
                     </p>
                   )}
                 </div>
+              </div>
+            </div>
+
+            <div className="mt-8 grid gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+              <div className="rounded-3xl border-2 border-black bg-white p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.15)]">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.3em] text-gray-500">Onboarding status</p>
+                    <h3 className="text-xl font-black text-gray-900">Personalised orientation</h3>
+                  </div>
+                  <span
+                    className={`inline-flex items-center gap-2 rounded-full border-2 px-3 py-1 text-xs font-black uppercase tracking-wide ${onboardingStatusTone}`}
+                  >
+                    <Sparkles className="h-4 w-4" aria-hidden="true" />
+                    {onboardingStatusLabel}
+                  </span>
+                </div>
+                <p className="mt-3 text-sm font-medium text-gray-600">
+                  {onboardingJourney?.status === 'completed'
+                    ? 'You have unlocked the full account experience—update your answers anytime to keep recommendations sharp.'
+                    : 'Share a few details so we can tailor programs, invites, and editorial feedback to your goals.'}
+                </p>
+                <div className="mt-4">
+                  <div className="flex items-center justify-between text-xs font-black uppercase tracking-wide text-gray-500">
+                    <span>Progress</span>
+                    <span>{onboardingProgressPercent}%</span>
+                  </div>
+                  <div className="mt-2 h-3 rounded-full border-2 border-black bg-white">
+                    <div
+                      className="h-full rounded-full bg-[#6C63FF]"
+                      style={{ width: `${Math.min(onboardingProgressPercent, 100)}%` }}
+                    />
+                  </div>
+                </div>
+                <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Last updated {formatRelative(onboardingLastTouch)}
+                </p>
+                <Link
+                  href="/onboarding?redirect=/account"
+                  className="mt-4 inline-flex items-center gap-2 rounded-full border-2 border-black bg-[#FFD66B] px-4 py-2 text-xs font-black uppercase tracking-wide text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,0.15)] hover:-translate-y-[1px]"
+                >
+                  {onboardingCtaLabel}
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+
+              <div className="rounded-3xl border-2 border-black bg-white p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.15)]">
+                <p className="text-xs font-black uppercase tracking-[0.3em] text-gray-500">Member blueprint</p>
+                <h3 className="text-xl font-black text-gray-900">How we personalise your journey</h3>
+                {onboardingResponses ? (
+                  <div className="mt-4 space-y-4">
+                    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4">
+                      <div className="flex items-start gap-3">
+                        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-black bg-[#FFD66B]">
+                          <Sparkles className="h-4 w-4" aria-hidden="true" />
+                        </span>
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-wide text-gray-500">Primary persona</p>
+                          <p className="text-sm font-bold text-gray-900">
+                            {onboardingPersona?.title ?? 'Let’s capture your persona'}
+                          </p>
+                          <p className="text-xs font-semibold text-gray-600">
+                            {onboardingPersona?.summary ?? 'Complete onboarding to personalise your dashboard.'}
+                          </p>
+                          {onboardingExperienceLabel ? (
+                            <p className="mt-2 inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-600">
+                              <ShieldCheck className="h-3.5 w-3.5 text-[#6C63FF]" aria-hidden="true" />
+                              {onboardingExperienceLabel}
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-2xl border-2 border-black bg-[#F8F7FF] p-4">
+                        <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-[#6C63FF]">
+                          <Goal className="h-3.5 w-3.5" aria-hidden="true" /> Priority outcomes
+                        </h4>
+                        {onboardingGoals.length > 0 ? (
+                          <ul className="mt-2 space-y-1 text-sm font-semibold text-gray-700">
+                            {onboardingGoals.map((goal) => (
+                              <li key={goal} className="flex items-center gap-2">
+                                <CheckCircle2 className="h-3.5 w-3.5 text-[#6C63FF]" aria-hidden="true" />
+                                {goal}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="mt-2 text-xs font-semibold text-gray-500">
+                            Share the outcomes you are chasing to tailor your updates.
+                          </p>
+                        )}
+                      </div>
+                      <div className="rounded-2xl border-2 border-black bg-[#FFF5F1] p-4">
+                        <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-[#FF8A65]">
+                          <NotebookPen className="h-3.5 w-3.5" aria-hidden="true" /> Planned contributions
+                        </h4>
+                        {onboardingContributions.length > 0 ? (
+                          <ul className="mt-2 space-y-1 text-sm font-semibold text-gray-700">
+                            {onboardingContributions.map((item) => (
+                              <li key={item} className="flex items-center gap-2">
+                                <NotebookPen className="h-3.5 w-3.5 text-[#FF8A65]" aria-hidden="true" />
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="mt-2 text-xs font-semibold text-gray-500">
+                            Tell us how you want to contribute so we can line up opportunities.
+                          </p>
+                        )}
+                        <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                          Formats you love:{' '}
+                          {onboardingLearning.length > 0
+                            ? onboardingLearning.join(', ')
+                            : 'Choose at least one learning style'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border-2 border-black bg-[#E8F8FF] p-4">
+                      <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-[#2E7D32]">
+                        <Target className="h-3.5 w-3.5" aria-hidden="true" /> Support &amp; check-ins
+                      </h4>
+                      {onboardingSupport.length > 0 ? (
+                        <ul className="mt-2 space-y-1 text-sm font-semibold text-gray-700">
+                          {onboardingSupport.map((item) => (
+                            <li key={item} className="flex items-center gap-2">
+                              <Target className="h-3.5 w-3.5 text-[#2E7D32]" aria-hidden="true" />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="mt-2 text-xs font-semibold text-gray-500">
+                          Flag the support you want so we can coordinate the right experiences.
+                        </p>
+                      )}
+                      <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        Accountability style:{' '}
+                        {onboardingAccountability ?? 'Pick what keeps you motivated'}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {onboardingCommunications.length > 0 ? (
+                          onboardingCommunications.map((item) => (
+                            <span
+                              key={item}
+                              className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-600"
+                            >
+                              <CalendarCheck2 className="h-3.5 w-3.5 text-[#6C63FF]" aria-hidden="true" />
+                              {item}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs font-semibold text-gray-500">
+                            Choose how we should keep in touch.
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-4 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-5 text-sm font-semibold text-gray-600">
+                    Complete onboarding to see your personalised goals, contribution plan, and support preferences here.
+                  </div>
+                )}
               </div>
             </div>
 

@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server-client'
-import type { AdminUserRole, AuthenticatedProfileSummary } from '@/utils/types'
+import type {
+  AdminUserRole,
+  AuthenticatedProfileSummary,
+  ProfileOnboardingJourney,
+} from '@/utils/types'
 
 export async function GET() {
   const supabase = createServerClient()
@@ -44,25 +48,60 @@ export async function GET() {
       return NextResponse.json({ error: 'Profile not found.' }, { status: 404 })
     }
 
-    const roles: AdminUserRole[] =
-      profile.profile_roles
-        ?.map((entry) => entry.role)
-        .filter((role): role is {
-          id: string
-          slug: string
-          name: string
-          description: string | null
-          priority: number
-        } => !!role)
-        .map((role) => ({
-          id: role.id,
-          slug: role.slug,
-          name: role.name,
-          description: role.description,
-          priority: role.priority,
-        })) ?? []
+    const rawRoles = Array.isArray(profile.profile_roles) ? profile.profile_roles : []
+    const roles: AdminUserRole[] = []
+
+    for (const entry of rawRoles) {
+      const role = entry?.role
+
+      if (!role || typeof role !== 'object') {
+        continue
+      }
+
+      const idValue = (role as { id?: unknown }).id
+      const slugValue = (role as { slug?: unknown }).slug
+      const nameValue = (role as { name?: unknown }).name
+      const descriptionValue = (role as { description?: unknown }).description
+      const priorityValue = (role as { priority?: unknown }).priority
+
+      if (typeof idValue !== 'string' || typeof slugValue !== 'string' || typeof nameValue !== 'string') {
+        continue
+      }
+
+      const description = typeof descriptionValue === 'string' ? descriptionValue : null
+      const priority = typeof priorityValue === 'number' ? priorityValue : Number(priorityValue ?? 0)
+
+      roles.push({
+        id: idValue,
+        slug: slugValue,
+        name: nameValue,
+        description,
+        priority,
+      })
+    }
 
     roles.sort((a, b) => a.priority - b.priority)
+
+    const { data: onboardingRecord, error: onboardingError } = await supabase
+      .from('profile_onboarding_journeys')
+      .select('status, current_step, completed_at, updated_at, version, responses')
+      .eq('profile_id', profile.id)
+      .maybeSingle()
+
+    if (onboardingError) {
+      console.error('Unable to load onboarding journey for authenticated user', onboardingError)
+    }
+
+    const onboarding: ProfileOnboardingJourney | null = onboardingRecord
+      ? {
+          status: onboardingRecord.status ?? 'pending',
+          currentStep: onboardingRecord.current_step ?? null,
+          completedAt: onboardingRecord.completed_at ?? null,
+          updatedAt: onboardingRecord.updated_at ?? null,
+          version: onboardingRecord.version ?? null,
+          responses: (onboardingRecord.responses as ProfileOnboardingJourney['responses']) ?? null,
+        }
+      : null
 
     const payload: AuthenticatedProfileSummary = {
       userId: user.id,
@@ -75,6 +114,7 @@ export async function GET() {
       emailConfirmedAt: user.email_confirmed_at ?? null,
       primaryRoleId: profile.primary_role_id ?? null,
       roles,
+      onboarding,
     }
 
     return NextResponse.json({ profile: payload })

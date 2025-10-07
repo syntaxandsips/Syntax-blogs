@@ -4,6 +4,7 @@ import { UserAccountPanel } from '@/components/auth/UserAccountPanel';
 import type {
   AdminUserRole,
   AuthenticatedProfileSummary,
+  ProfileOnboardingJourney,
   UserCommentSummary,
   UserContributionSnapshot,
   UserPostSummary,
@@ -39,17 +40,37 @@ export default async function AccountPage() {
     throw new Error('Profile not found.');
   }
 
-  const roles: AdminUserRole[] =
-    profileRecord.profile_roles
-      ?.map((entry) => entry.role)
-      .filter((role): role is { id: string; slug: string; name: string; description: string | null; priority: number } => !!role)
-      .map((role) => ({
-        id: role.id,
-        slug: role.slug,
-        name: role.name,
-        description: role.description,
-        priority: role.priority,
-      })) ?? [];
+  const rawRoles = Array.isArray(profileRecord.profile_roles) ? profileRecord.profile_roles : [];
+  const roles: AdminUserRole[] = [];
+
+  for (const entry of rawRoles) {
+    const role = entry?.role;
+
+    if (!role || typeof role !== 'object') {
+      continue;
+    }
+
+    const idValue = (role as { id?: unknown }).id;
+    const slugValue = (role as { slug?: unknown }).slug;
+    const nameValue = (role as { name?: unknown }).name;
+    const descriptionValue = (role as { description?: unknown }).description;
+    const priorityValue = (role as { priority?: unknown }).priority;
+
+    if (typeof idValue !== 'string' || typeof slugValue !== 'string' || typeof nameValue !== 'string') {
+      continue;
+    }
+
+    const description = typeof descriptionValue === 'string' ? descriptionValue : null;
+    const priority = typeof priorityValue === 'number' ? priorityValue : Number(priorityValue ?? 0);
+
+    roles.push({
+      id: idValue,
+      slug: slugValue,
+      name: nameValue,
+      description,
+      priority,
+    });
+  }
 
   roles.sort((a, b) => a.priority - b.priority);
 
@@ -88,8 +109,14 @@ export default async function AccountPage() {
     content: (comment.content as string) ?? '',
     status: (comment.status as CommentStatus) ?? CommentStatus.PENDING,
     createdAt: comment.created_at as string,
-    postTitle: (comment.posts?.title as string | null) ?? null,
-    postSlug: (comment.posts?.slug as string | null) ?? null,
+    postTitle: (() => {
+      const postEntry = Array.isArray(comment.posts) ? comment.posts[0] : comment.posts;
+      return (postEntry?.title as string | null) ?? null;
+    })(),
+    postSlug: (() => {
+      const postEntry = Array.isArray(comment.posts) ? comment.posts[0] : comment.posts;
+      return (postEntry?.slug as string | null) ?? null;
+    })(),
   }));
 
   const totals = {
@@ -104,6 +131,27 @@ export default async function AccountPage() {
     rejectedComments: comments.filter((comment) => comment.status === CommentStatus.REJECTED).length,
   } satisfies UserContributionSnapshot['totals'];
 
+  const { data: onboardingRecord, error: onboardingError } = await supabase
+    .from('profile_onboarding_journeys')
+    .select('status, current_step, completed_at, updated_at, version, responses')
+    .eq('profile_id', profileRecord.id)
+    .maybeSingle();
+
+  if (onboardingError) {
+    console.error('Unable to load onboarding journey for profile', onboardingError);
+  }
+
+  const onboarding: ProfileOnboardingJourney | null = onboardingRecord
+    ? {
+        status: (onboardingRecord.status as ProfileOnboardingJourney['status']) ?? 'pending',
+        currentStep: (onboardingRecord.current_step as string | null) ?? null,
+        completedAt: (onboardingRecord.completed_at as string | null) ?? null,
+        updatedAt: (onboardingRecord.updated_at as string | null) ?? null,
+        version: (onboardingRecord.version as string | null) ?? null,
+        responses: (onboardingRecord.responses as ProfileOnboardingJourney['responses']) ?? null,
+      }
+    : null;
+
   const profileSummary: AuthenticatedProfileSummary = {
     userId: user.id,
     email: user.email ?? '',
@@ -115,6 +163,7 @@ export default async function AccountPage() {
     emailConfirmedAt: user.email_confirmed_at ?? null,
     primaryRoleId: (profileRecord.primary_role_id as string | null) ?? null,
     roles,
+    onboarding,
   };
 
   const contributions: UserContributionSnapshot = {

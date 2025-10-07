@@ -1,79 +1,84 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { createMailtrapTransport, newsletterFromAddress } from '@/lib/mailtrap'
+import { saveSubscriber } from '@/lib/newsletter'
 
-if (!supabaseUrl) {
-  throw new Error('NEXT_PUBLIC_SUPABASE_URL is not configured.');
-}
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-if (!supabaseServiceRoleKey) {
-  throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured.');
-}
+export const runtime = 'nodejs'
 
-const FUNCTION_ENDPOINT = `${supabaseUrl.replace(/\/$/, '')}/functions/v1/newsletter-subscribe`;
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const buildConfirmationEmail = (recipient: string, confirmationUrl: URL) => ({
+  from: newsletterFromAddress,
+  to: recipient,
+  subject: 'Confirm your Syntax & Sips subscription',
+  html: `
+    <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 640px; margin: 0 auto;">
+      <div style="padding: 24px; border-radius: 12px; border: 1px solid #e3e3e3;">
+        <h1 style="color: #1a1a1a; font-size: 24px; margin-bottom: 16px;">One more step to stay in the loop</h1>
+        <p style="color: #4a4a4a; font-size: 16px; line-height: 24px;">
+          Thanks for subscribing to <strong>Syntax & Sips</strong>! Please confirm your email address so we can start sending you fresh
+          stories, tutorials, and behind-the-scenes updates.
+        </p>
+        <p style="text-align: center; margin: 32px 0;">
+          <a href="${confirmationUrl.toString()}" style="background-color: #6c63ff; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">
+            Confirm my email
+          </a>
+        </p>
+        <p style="color: #4a4a4a; font-size: 14px; line-height: 20px;">
+          This confirmation link will expire in 48 hours. If you didn’t try to join the newsletter, you can safely ignore this message.
+        </p>
+        <hr style="margin: 32px 0; border: none; border-top: 1px solid #e3e3e3;" />
+        <p style="color: #8a8a8a; font-size: 12px; line-height: 18px;">
+          Syntax & Sips · Weekly insights on AI, engineering craft, and leadership.<br />
+          You can update your preferences or unsubscribe at any time.
+        </p>
+      </div>
+    </div>
+  `,
+})
 
 export async function POST(request: Request) {
   const { email } = (await request.json().catch(() => ({}))) as {
-    email?: string;
-  };
+    email?: string
+  }
 
   if (!email || !emailRegex.test(email)) {
     return NextResponse.json(
       { error: 'Please provide a valid email address.' },
       { status: 422 },
-    );
+    )
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
-
   try {
-    const requestUrl = new URL(request.url);
+    const requestUrl = new URL(request.url)
+    const source = requestUrl.searchParams.get('source') ?? 'web'
 
-    const response = await fetch(FUNCTION_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${supabaseServiceRoleKey}`,
-      },
-      body: JSON.stringify({
-        email,
-        source: requestUrl.searchParams.get('source') ?? 'web',
-        metadata: {
-          userAgent: request.headers.get('user-agent'),
-          referer: request.headers.get('referer'),
-        },
-      }),
-      signal: controller.signal,
-    });
+    const { token, wasResent } = await saveSubscriber(email, source, {
+      referer: request.headers.get('referer'),
+      userAgent: request.headers.get('user-agent'),
+    })
 
-    clearTimeout(timeout);
+    const confirmationUrl = new URL('/api/newsletter/confirm', requestUrl.origin)
+    confirmationUrl.searchParams.set('token', token)
+    confirmationUrl.searchParams.set('email', email)
 
-    const payload = (await response.json().catch(() => null)) ?? {
-      error: 'Unexpected error subscribing to newsletter.',
-    };
+    const transporter = createMailtrapTransport()
 
-    if (!response.ok) {
-      return NextResponse.json(payload, { status: response.status });
-    }
+    await transporter.sendMail(buildConfirmationEmail(email, confirmationUrl))
 
-    return NextResponse.json(payload, { status: 200 });
+    return NextResponse.json({
+      message: wasResent
+        ? 'Welcome back! Please check your inbox to confirm your subscription.'
+        : 'Almost there! Please check your inbox to confirm your subscription.',
+    })
   } catch (error) {
-    clearTimeout(timeout);
-
-    if (error instanceof Error && error.name === 'AbortError') {
-      return NextResponse.json(
-        { error: 'Request timed out. Please try again.' },
-        { status: 504 },
-      );
-    }
-
+    console.error('Newsletter subscription error:', error)
     return NextResponse.json(
-      { error: 'Unable to subscribe at this time. Please try again later.' },
+      {
+        error:
+          'We could not complete your subscription right now. Please try again in a few minutes.',
+      },
       { status: 500 },
-    );
+    )
   }
 }

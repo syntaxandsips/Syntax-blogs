@@ -9,7 +9,9 @@ import {
   Settings,
   ShieldCheck,
   Users,
+  X,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface SidebarProps {
   currentView: string
@@ -18,6 +20,9 @@ interface SidebarProps {
   onSignOut: () => Promise<void> | void
   displayName: string
   isAdmin: boolean
+  className?: string
+  showCloseButton?: boolean
+  onClose?: () => void
 }
 
 export const Sidebar = ({
@@ -27,12 +32,30 @@ export const Sidebar = ({
   onSignOut,
   displayName,
   isAdmin,
+  className,
+  showCloseButton = false,
+  onClose,
 }: SidebarProps) => {
   const roleLabel = isAdmin ? 'Administrator' : 'Author'
 
   return (
-    <div className="w-[280px] bg-[#2A2A2A] text-white border-r-4 border-[#FF5252]/50 h-full flex flex-col">
-      <div className="p-6 border-b border-white/10">
+    <div
+      className={cn(
+        'flex h-full min-h-full w-[280px] max-h-screen flex-col overflow-y-auto border-r-4 border-[#FF5252]/50 bg-[#2A2A2A] text-white shadow-xl',
+        className,
+      )}
+    >
+      <div className="relative p-6 border-b border-white/10">
+        {showCloseButton && (
+          <button
+            type="button"
+            onClick={() => onClose?.()}
+            className="absolute right-4 top-4 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 p-1.5 text-white transition hover:bg-white/10"
+            aria-label="Close sidebar"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
         <div className="flex items-center gap-2 mb-2">
           <Coffee className="h-8 w-8 text-[#FF5252]" />
           <Code className="h-8 w-8 text-[#6C63FF]" />
@@ -90,7 +113,7 @@ export const Sidebar = ({
         <div className="mt-8">
           <button
             onClick={onCreatePost}
-            className="w-full bg-gradient-to-r from-[#FF5252]/90 to-[#FF5252] text-white font-bold py-3 px-4 border-3 border-white/20 rounded-md shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] hover:translate-y-[-2px] transition-all duration-200"
+            className="w-full rounded-md border-3 border-white/20 bg-gradient-to-r from-[#FF5252]/90 to-[#FF5252] px-4 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-200 hover:-translate-y-0.5"
           >
             + New Post
           </button>
@@ -122,7 +145,7 @@ const SidebarLink = ({ icon, label, isActive, onClick }: SidebarLinkProps) => {
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 p-3 rounded-md font-bold text-lg transition-all duration-200 ${isActive ? 'bg-white/10 text-white transform -rotate-1 border-2 border-white/20 shadow-[3px_3px_0px_0px_rgba(255,255,255,0.1)]' : 'text-white/70 hover:text-white hover:bg-white/5'}`}
+      className={`flex w-full items-center gap-3 rounded-md p-3 text-lg font-bold transition-all duration-200 ${isActive ? 'transform -rotate-1 border-2 border-white/20 bg-white/10 text-white shadow-[3px_3px_0px_0px_rgba(255,255,255,0.1)]' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}
     >
       {icon}
       {label}

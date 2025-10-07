@@ -1,72 +1,108 @@
 # Syntax & Sips
 
-A fully featured editorial platform for AI, machine learning, and deep learning stories. Syntax & Sips combines a bold neo-brutalist aesthetic with a production-ready CMS, Supabase-backed authentication, rich media storytelling tools, and an analytics-focused admin workspace.
+<p align="center"><strong>An editorial platform that fuses AI storytelling, human craftsmanship, and a bold neo-brutalist aesthetic.</strong></p>
+
+<p align="center">
+  <a href="https://nextjs.org/">Next.js 15</a> ·
+  <a href="https://supabase.com/">Supabase</a> ·
+  <a href="https://tailwindcss.com/">Tailwind CSS</a> ·
+  <a href="https://www.framer.com/motion/">Framer Motion</a> ·
+  <a href="https://playwright.dev/">Playwright</a>
+</p>
+
+## At a Glance
+
+- **Audience experience:** Multi-format content hubs with topic curation, inline code, AI-powered summaries, and rich media embeds. (`src/app`, `src/components/ui`).
+- **Editorial cockpit:** Authenticated admin workspace for analytics, publishing workflow, taxonomy stewardship, and community moderation. (`src/components/admin`).
+- **Modern foundations:** Next.js App Router, Supabase Auth, Edge Functions, and a component-driven design system ready for enterprise hardening. (`src/lib`, `supabase`).
 
 ## Table of Contents
 
-- [Product Overview](#product-overview)
+- [Product Narrative](#product-narrative)
 - [Feature Highlights](#feature-highlights)
-- [System Architecture](#system-architecture)
-- [User Experience](#user-experience)
+- [Architecture & Tech Stack](#architecture--tech-stack)
+- [Data Model Snapshot](#data-model-snapshot)
+- [Experience Walkthrough](#experience-walkthrough)
 - [Getting Started](#getting-started)
-- [Admin Access and Permissions](#admin-access-and-permissions)
-- [Quality and Tooling](#quality-and-tooling)
-- [Deployment Guide](#deployment-guide)
+- [Development Playbooks](#development-playbooks)
+- [Testing & Quality](#testing--quality)
+- [Security & Compliance](#security--compliance)
+- [Deployment & Operations](#deployment--operations)
 - [Project Structure](#project-structure)
 - [Contributing](#contributing)
 - [License](#license)
 
-## Product Overview
+## Product Narrative
 
-Syntax & Sips is built with the Next.js App Router and offers a modular content strategy that spans blogs, tutorials, podcasts, videos, newsletters, and resource libraries. Supabase powers authentication, row-level security, scheduled publishing, and editorial metadata. The front end embraces the brand identity with heavy strokes, expressive typography, and animated accents while remaining fully responsive.
+Syntax & Sips is a fully featured editorial stack for teams telling stories about AI, machine learning, and deep tech. The public site celebrates content with oversized typography, kinetic micro-interactions, and accessible color palettes. Behind the scenes, editors gain a unified workspace to manage content velocity, audience growth, and governance in one place. Supabase anchors authentication, data access, and automation so the platform scales from prototype to production-ready deployment.
+
+<div align="center">
+  <img src=".github/images/Hero.png" alt="Syntax & Sips hero layout" width="100%" />
+</div>
 
 ## Feature Highlights
 
-### Editorial Experiences
+### Reader Experience
 
-- **Multi-channel publishing:** Dedicated sections for blogs, tutorials, podcasts, resources, newsletters, and videos, each tuned for the target medium. (`src/app/blogs`, `src/app/podcasts`, `src/app/videos`, `src/app/tutorials`, `src/app/resources`).
-- **Rich article presentation:** Code samples, inline callouts, AI summaries, video embeds, and topic spotlights elevate long-form posts. (`src/components/ui/NewSummarizeButton.tsx`, `src/components/ui/CodeBlock.tsx`, `src/components/ui/VideoEmbed.tsx`).
-- **Dynamic topic curation:** Recommended categories and tag filters are sourced from Supabase so the reading experience stays in sync with editorial planning. (`src/app/topics/page.tsx`, `src/lib/supabase`).
-- **Reader trust signals:** Dedicated legal, privacy, cookies, disclaimer, and changelog pages surface governance and transparency content. (`src/app/privacy`, `src/app/cookies`, `src/app/disclaimer`, `src/app/changelog`).
+- **Multi-channel storytelling:** Dedicated routes for blogs, tutorials, podcasts, videos, newsletters, and resource libraries to tailor each medium. (`src/app/blogs`, `src/app/podcasts`, `src/app/videos`, `src/app/tutorials`, `src/app/resources`).
+- **Rich article presentation:** Markdown, code snippets, callouts, and video embeds keep long-form content readable and actionable. (`src/components/ui/CodeBlock.tsx`, `src/components/ui/VideoEmbed.tsx`).
+- **AI-assisted recaps:** One-click summarization leans on Supabase functions to distill articles into shareable insights. (`src/components/ui/NewSummarizeButton.tsx`).
+- **Audience journeys:** Topic explorers, recommended reads, and changelog transparency build trust with returning readers. (`src/app/topics/page.tsx`, `src/app/changelog/page.tsx`).
 
-### Admin Workspace
+### Editorial Operations
 
-- **Secure admin authentication:** Supabase Auth with server-side guards ensures only elevated profiles can reach the dashboard. (`src/app/admin/page.tsx`, `src/components/auth/AdminLoginForm.tsx`).
-- **Dashboard overview:** Editors land on performance metrics, content velocity, and editorial health indicators. (`src/components/admin/DashboardOverview.tsx`, `src/components/admin/AnalyticsPanel.tsx`).
-- **Visual post management:** Filterable tables, search, and inline status chips streamline day-to-day publishing. (`src/components/admin/PostsTable.tsx`).
-- **Powerful post editor:** Create and edit content with scheduling, tagging, SEO metadata, social imagery, and accent color controls. (`src/components/admin/PostForm.tsx`).
-- **Audience and role management:** Manage user accounts, roles, and permissions from a dedicated panel backed by Supabase RPCs. (`src/components/admin/UserManagement.tsx`).
-- **Community moderation:** Review, approve, and triage reader feedback in real time through the comments workflow. (`src/components/admin/CommentsModeration.tsx`).
-- **Structured taxonomy:** Maintain categories, tags, and topic relationships with guard rails to keep the site navigation cohesive. (`src/components/admin/TaxonomyManager.tsx`).
+- **Secure admin authentication:** Supabase Auth + server checks guard the `/admin` routes. (`src/app/admin/page.tsx`, `src/components/auth/AdminLoginForm.tsx`).
+- **Dashboard intelligence:** Analytics cards and trend visualizations surface readership health at a glance. (`src/components/admin/DashboardOverview.tsx`, `src/components/admin/AnalyticsPanel.tsx`).
+- **Visual content workflow:** Filterable tables, inline status chips, and post detail drawers streamline publishing operations. (`src/components/admin/PostsTable.tsx`, `src/components/admin/PostForm.tsx`).
+- **Community moderation:** Review, approve, or archive reader comments from a live queue. (`src/components/admin/CommentsModeration.tsx`).
+- **Role-aware management:** Update profiles, roles, and permissions without leaving the console. (`src/components/admin/UserManagement.tsx`).
 
-### Platform Capabilities
+### Platform Intelligence
 
-- **AI-assisted tools:** Trigger Supabase edge functions to summarize long-form content with a single click for each article. (`src/components/ui/NewSummarizeButton.tsx`).
-- **Email capture and lifecycle:** Newsletter subscription flow is powered by Supabase functions and transactional mailers. (`src/app/newsletter`, `supabase/functions/newsletter-subscribe`).
-- **Theming and accessibility:** Global neo-brutalist style sheet, theme provider, and focus-aware components maintain consistent visuals and accessible contrast ratios. (`src/styles/neo-brutalism.css`, `src/components/theme-provider.tsx`).
-- **Animations and depth:** Framer Motion micro-interactions, animated hero blocks, and 3D elements enhance storytelling without sacrificing performance. (`src/components/magicui`, `src/app/page.tsx`).
-- **Testing and observability:** Playwright integration tests and API-level checks keep key flows guarded during releases. (`tests/auth.spec.ts`, `playwright.config.ts`).
+- **Supabase Edge Functions:** Power newsletter lifecycle events and AI integrations with serverless functions. (`supabase/functions/newsletter-subscribe`).
+- **Neo-brutalist design system:** Shared components and theming utilities keep UX cohesive across surfaces. (`src/components/ui`, `src/components/theme-provider.tsx`).
+- **Performance-minded animations:** Framer Motion micro-interactions layer delight without sacrificing Core Web Vitals. (`src/components/magicui`, `src/app/page.tsx`).
 
-## System Architecture
+## Architecture & Tech Stack
 
-| Layer | Responsibility | Key Modules |
+### Core Stack
+
+| Layer | Technologies | Key Modules |
 | --- | --- | --- |
-| Presentation | Next.js App Router routes, shared layout, and Tailwind-powered UI components | `src/app`, `src/components/ui`, `src/app/layout.tsx` |
-| Authentication & Authorization | Supabase Auth session helpers, client/server wrappers, and admin guards | `src/lib/supabase`, `src/components/auth`, `src/middleware.ts` |
-| Content Services | Route handlers expose CRUD APIs for posts, comments, taxonomies, and analytics dashboards | `src/app/api/admin`, `src/utils/types.ts` |
-| Data Layer | Supabase migrations, SQL helpers, and edge functions for newsletter automation | `supabase/migrations`, `supabase/functions` |
-| Tooling | Build scripts, webpack chunk syncing, linting, formatting, and testing harnesses | `scripts/sync-webpack-chunks.js`, `eslint.config.mjs`, `playwright.config.ts` |
+| Presentation | Next.js App Router, Tailwind CSS, Lucide icons | `src/app`, `src/components/ui`, `src/styles` |
+| Interaction | Framer Motion, custom hooks, Radix Primitives | `src/components/magicui`, `src/hooks` |
+| Authentication | Supabase Auth, SSR helpers, middleware guards | `src/lib/supabase`, `src/middleware.ts` |
+| Data & APIs | Next.js route handlers, Supabase RPC, nodemailer | `src/app/api`, `supabase/functions` |
+| Tooling | Webpack chunk sync, ESLint, Playwright | `scripts/sync-webpack-chunks.js`, `eslint.config.mjs`, `playwright.config.ts` |
 
-## User Experience
+### Service Topology
 
-<div align="center">
-  <img src=".github/images/Hero.png" alt="Syntax and Sips Hero" width="100%">
-</div>
+- **Client:** Progressive enhancement with SSR, streamed routes, and suspense boundaries.
+- **Server:** Next.js API routes orchestrate CRUD for posts, taxonomy, comments, and newsletter management. (`src/app/api/admin`).
+- **Database:** Supabase Postgres with row level security, migrations, and SQL helpers. (`supabase/migrations`).
+- **Automation:** Supabase Edge Functions handle newsletter subscribe events and AI summarization triggers. (`supabase/functions`).
 
-- **Neo-brutalist aesthetic:** Bold outlines, offset shadows, and confident color blocking give the site its distinctive personality.
-- **Responsive from mobile to desktop:** Layouts collapse gracefully, preserving scannability and tap targets on smaller screens.
-- **Audience-centric journeys:** Content hubs, topic filters, and curated follow modules guide readers to their next story.
-- **Inclusive interactions:** Keyboard-friendly components, descriptive ARIA labels, and consistent focus rings support accessibility.
+## Data Model Snapshot
+
+| Domain | Key Tables / Views | Purpose |
+| --- | --- | --- |
+| Content | `posts`, `post_tags`, `categories`, `tags` | Authoring, categorization, scheduling |
+| Editorial Workflow | `profiles`, `roles`, `profile_roles` | Admin access, hierarchy, and permissions |
+| Engagement | `comments`, `newsletter_subscribers` | Reader participation and lifecycle programs |
+| Configuration | `site_settings` | Global branding, navigation, and operational toggles |
+
+> Review `supabase/migrations` for the authoritative schema and business logic, including triggers and RLS policies.
+
+## Experience Walkthrough
+
+1. **Discover stories:** Readers land on the home page hero with animated headlines and quick access to trending categories. (`src/app/page.tsx`).
+2. **Navigate content hubs:** Dedicated routes for each medium showcase curated content with tailored layouts. (`src/app/blogs`, `src/app/resources`).
+3. **Dive into detail:** Article pages stitch together markdown, code blocks, video embeds, and AI summary toggles. (`src/app/blogs/[slug]/page.tsx`, `src/app/blogs/[slug]/NewBlogPostClient.tsx`).
+4. **Engage and subscribe:** Newsletter capture and comment sections invite deeper community participation. (`src/app/newsletter/page.tsx`, `src/components/ui/CommentsSection.tsx`).
+5. **Admin login:** Authorized team members authenticate via `/admin/login` with Supabase-backed credentials. (`src/components/auth/AdminLoginForm.tsx`).
+6. **Manage the newsroom:** Editors monitor analytics, publish or edit posts, manage media, and adjust taxonomy settings from the admin dashboard. (`src/components/admin/AdminDashboard.tsx`, `src/components/admin/TaxonomyManager.tsx`, `src/components/admin/MediaLibraryDialog.tsx`).
+
+Additional hero and dashboard visuals live under `.github/images` for reference.
 
 ## Getting Started
 
@@ -74,8 +110,8 @@ Syntax & Sips is built with the Next.js App Router and offers a modular content 
 
 - Node.js 20+
 - npm 10+
-- A Supabase project with the SQL schema deployed
-- (Optional) Supabase CLI for local database emulation
+- Supabase project with the Syntax & Sips schema deployed
+- (Optional) Supabase CLI for local Postgres + auth emulation
 
 ### Installation
 
@@ -85,7 +121,7 @@ npm install
 
 ### Environment Variables
 
-Create a `.env.local` file in the project root and provide the credentials from your Supabase project. Do **not** commit this file.
+Create a `.env.local` file in the project root and supply Supabase credentials (never commit this file):
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=<your-supabase-url>
@@ -93,19 +129,19 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-supabase-anon-key>
 SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
 ```
 
-- The `NEXT_PUBLIC_*` keys are required for client-side rendering and the authentication handshake.
-- The service role key must remain on the server—store it in secure secrets management only.
-- If you are mirroring production locally, run `supabase start` from the Supabase CLI to provision the Postgres + auth stack.
+- The `NEXT_PUBLIC_*` keys enable client-side session handling.
+- The service role key must remain on the server—load it via secure secrets management only.
+- Mirror production locally with `supabase start` if you use the Supabase CLI.
 
 ### Database Setup
 
-Run the migrations in order to build the required schema, enums, triggers, and policies:
+Deploy migrations to your Supabase instance:
 
 ```bash
 supabase db push
 ```
 
-For a pristine local database you can reset and reseed from scratch:
+For a clean slate during development you can reset the local database:
 
 ```bash
 supabase db reset --force
@@ -117,28 +153,29 @@ supabase db reset --force
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to explore the reader experience, and head to `/admin` after creating an authorized account.
+Visit [http://localhost:3000](http://localhost:3000) for the reader experience and `/admin` for authenticated tooling once your admin account is prepared.
 
-## Admin Access and Permissions
+## Development Playbooks
 
-1. Create a user in the Supabase Auth dashboard or via the Admin API.
-2. Insert a matching profile in the `profiles` table with `is_admin` set to `true` (and optionally assign a `primary_role_id`).
-3. Sign in at `/admin/login` using that account. The app double-checks the `profiles.is_admin` flag before granting access. (`src/app/admin/page.tsx`).
-4. Manage additional roles and team members from the **User Management** panel inside the dashboard. (`src/components/admin/UserManagement.tsx`).
-
-No default credentials are bundled with the project; create and rotate admin accounts according to your security policies.
-
-## Quality and Tooling
-
-| Command | Description |
+| Scenario | Command |
 | --- | --- |
-| `npm run lint` | Runs Next.js + ESLint rules across the project. |
-| `npm run test` | Executes the Playwright test suite in headless mode. |
-| `npm run test:headed` | Opens the Playwright runner with a headed browser for debugging. |
-| `npm run build` | Generates an optimized production build. |
-| `npm run start` | Serves the production build locally. |
+| Start development server with chunk sync | `npm run dev` |
+| Compile production assets | `npm run build` |
+| Serve the production build locally | `npm run start` |
+| Lint codebase | `npm run lint` |
+| Execute Playwright tests in headless mode | `npm run test` |
+| Debug Playwright suites with UI runner | `npm run test:ui` |
+| Run headed browser tests | `npm run test:headed` |
 
-To enable the authenticated Playwright flows, provide the following environment variables when running tests:
+### Debugging Tips
+
+- Next.js route handlers in `src/app/api` log useful context for Supabase queries; wire up `console` output or structured logging as needed.
+- Keep `scripts/sync-webpack-chunks.js` running during development to align generated chunk manifests with the Next.js build. (`scripts/sync-webpack-chunks.js`).
+- Supabase logs are accessible from the dashboard when evaluating row level security rules or cron triggers.
+
+## Testing & Quality
+
+Playwright safeguards critical user journeys from login to publishing. Provide credentials via environment variables before running end-to-end suites:
 
 ```bash
 PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 \
@@ -147,39 +184,51 @@ PLAYWRIGHT_E2E_PASSWORD=<admin-password> \
 npm run test
 ```
 
-## Deployment Guide
+Linting is configured through `eslint.config.mjs`, and TypeScript types are enforced project-wide via `tsconfig.json`.
 
-Syntax & Sips is ready for platforms such as Vercel, Netlify, or any environment that supports Next.js 15.
+Refer to `QA_PRODUCTION_READINESS.md` for manual verification checklists prior to launching new environments.
 
-1. Ensure migrations are deployed and environment variables are configured.
-2. Deploy the `newsletter-subscribe` Supabase Edge Function if you rely on the newsletter flow. (`supabase/functions/newsletter-subscribe`).
-3. Run `npm run build` to verify the production bundle locally.
-4. Publish using your hosting provider of choice (Vercel, Netlify, or a containerized setup).
+## Security & Compliance
+
+- Admin access requires Supabase-managed accounts with the `profiles.is_admin` flag set to `true`. (`src/app/admin/page.tsx`).
+- Secrets live only in environment variables; never bundle credentials in the repository.
+- Row Level Security and Supabase policies gate access to reader data—review migrations before altering schemas. (`supabase/migrations`).
+- Communicate privacy, legal, cookies, and disclaimer obligations through dedicated content pages. (`src/app/privacy/page.tsx`, `src/app/cookies/page.tsx`, `src/app/disclaimer/page.tsx`).
+
+## Deployment & Operations
+
+Syntax & Sips deploys cleanly to Vercel, Netlify, or containerized infrastructure that supports Next.js 15.
+
+1. Configure environment variables for your target environment (Supabase URL, anon key, service role key).
+2. Apply database migrations and confirm the `newsletter-subscribe` Edge Function is deployed if you rely on email capture. (`supabase/functions/newsletter-subscribe`).
+3. Run `npm run build` locally to validate the production bundle.
+4. Ship the build via your hosting provider and monitor Supabase logs plus application analytics for the first 24 hours.
 
 ## Project Structure
 
 ```
 .
 ├── src
-│   ├── app              # Next.js App Router routes for every audience touch point
-│   ├── components       # Shared UI, admin tooling, authentication, and design system pieces
-│   ├── hooks            # Custom hooks for Supabase sync and UI behavior
-│   ├── lib              # Supabase client helpers, utilities, and configuration
-│   └── utils            # Shared types, constants, and formatting helpers
-├── supabase             # SQL migrations, seed data, and edge functions
-├── scripts              # Build and operational scripts (webpack sync, migrations)
-├── tests                # Playwright end-to-end and API tests
-└── public               # Static assets, fonts, and Open Graph imagery
+│   ├── app              # Next.js routes for readers, admin, marketing, and legal pages
+│   ├── components       # UI primitives, admin tooling, and design system modules
+│   ├── hooks            # Custom React hooks for session management and UI behavior
+│   ├── lib              # Supabase clients, helpers, and configuration glue
+│   └── utils            # Shared types, formatters, and constants
+├── supabase             # SQL migrations, seed references, and edge functions
+├── scripts              # Build-time helpers (webpack chunk sync, tooling)
+├── tests                # Playwright end-to-end suites and fixtures
+├── public               # Static assets, fonts, and Open Graph imagery
+└── .github/images       # Marketing and documentation visuals
 ```
 
 ## Contributing
 
 1. Fork the repository.
 2. Create a feature branch: `git checkout -b feature/amazing-feature`.
-3. Commit your changes: `git commit -m "Add amazing feature"`.
-4. Push to the branch: `git push origin feature/amazing-feature`.
-5. Open a Pull Request and describe the user-facing impact.
+3. Commit changes: `git commit -m "Add amazing feature"`.
+4. Push to your fork: `git push origin feature/amazing-feature`.
+5. Open a Pull Request describing the user impact and validation.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Licensed under the MIT License. See [LICENSE](LICENSE) for full terms.

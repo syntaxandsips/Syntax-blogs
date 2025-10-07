@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import React, {
   useCallback,
@@ -30,7 +30,7 @@ import {
   UpdateAdminUserPayload,
 } from '@/utils/types'
 
-interface AdminDashboardProps {
+export interface AdminDashboardProps {
   profileId: string
   displayName: string
   isAdmin: boolean
@@ -41,7 +41,7 @@ interface FeedbackState {
   message: string
 }
 
-export const AdminDashboard = ({
+const AdminDashboard = ({
   profileId,
   displayName,
   isAdmin,
@@ -958,3 +958,5 @@ export const AdminDashboard = ({
     </div>
   )
 }
+
+export default AdminDashboard

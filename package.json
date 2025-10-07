@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "node scripts/sync-webpack-chunks.js --watch -- next dev",
+    "build": "node scripts/sync-webpack-chunks.js -- next build",
+    "start": "node scripts/sync-webpack-chunks.js && next start",
     "lint": "next lint",
     "test": "playwright test",
     "test:ui": "playwright test --ui",

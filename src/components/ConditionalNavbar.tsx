@@ -1,13 +1,17 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useClientPathname } from "@/hooks/useClientPathname";
 import { NewNavbar } from "@/components/ui/NewNavbar";
 
-export default function ConditionalNavbar() {
-  const pathname = usePathname();
+type ConditionalNavbarProps = {
+  initialPathname?: string;
+};
 
-  // Don't render navbar on the home page or admin page
-  // We now include the navbar directly in the home page component
+export default function ConditionalNavbar({
+  initialPathname,
+}: ConditionalNavbarProps) {
+  const pathname = useClientPathname(initialPathname);
+
   if (pathname === "/" || pathname.startsWith("/admin")) {
     return null;
   }

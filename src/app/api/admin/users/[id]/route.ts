@@ -152,3 +152,59 @@ export async function PATCH(
     return NextResponse.json({ error: message }, { status })
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const result = await getAdminProfile()
+  if ('response' in result) {
+    return result.response
+  }
+
+  const { id: currentProfileId } = result.profile
+
+  const { id: profileId } = await params
+  if (!profileId) {
+    return NextResponse.json({ error: 'Profile id is required.' }, { status: 400 })
+  }
+
+  if (profileId === currentProfileId) {
+    return NextResponse.json(
+      { error: 'You cannot delete your own account.' },
+      { status: 400 },
+    )
+  }
+
+  const serviceClient = createServiceRoleClient()
+
+  try {
+    const profileRecord = await fetchProfileById(serviceClient, profileId)
+
+    const { error: authDeleteError } = await serviceClient.auth.admin.deleteUser(
+      profileRecord.user_id,
+    )
+
+    if (authDeleteError) {
+      throw new Error(`Unable to delete auth user: ${authDeleteError.message}`)
+    }
+
+    const { error: profileDeleteError } = await serviceClient
+      .from('profiles')
+      .delete()
+      .eq('id', profileId)
+
+    if (profileDeleteError) {
+      throw new Error(`Unable to delete profile: ${profileDeleteError.message}`)
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to delete user.'
+    let status = 500
+    if (error instanceof Error && message.includes('Profile not found')) {
+      status = 404
+    }
+    return NextResponse.json({ error: message }, { status })
+  }
+}

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from 'react'
+import { Pencil, RefreshCw, Trash2, UserPlus } from 'lucide-react'
 import {
   AdminRole,
   AdminUserSummary,
@@ -13,9 +14,11 @@ interface UserManagementProps {
   roles: AdminRole[]
   isLoading: boolean
   isSaving: boolean
+  currentProfileId: string
   onRefresh: () => Promise<void> | void
   onCreateUser: (payload: CreateAdminUserPayload) => Promise<boolean>
   onUpdateUser: (profileId: string, payload: UpdateAdminUserPayload) => Promise<boolean>
+  onDeleteUser: (profileId: string) => Promise<boolean>
 }
 
 type FormMode = 'create' | 'edit'
@@ -27,9 +30,11 @@ export const UserManagement = ({
   roles,
   isLoading,
   isSaving,
+  currentProfileId,
   onRefresh,
   onCreateUser,
   onUpdateUser,
+  onDeleteUser,
 }: UserManagementProps) => {
   const [mode, setMode] = useState<FormMode>('create')
   const [selectedUser, setSelectedUser] = useState<AdminUserSummary | null>(null)
@@ -152,6 +157,28 @@ export const UserManagement = ({
     setMode('edit')
   }
 
+  const handleDeleteClick = async (user: AdminUserSummary) => {
+    if (isSaving || user.profileId === currentProfileId) {
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Delete ${user.displayName || user.email}? This action cannot be undone.`,
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    const success = await onDeleteUser(user.profileId)
+
+    if (success) {
+      if (selectedUser?.profileId === user.profileId) {
+        resetToCreateMode()
+      }
+    }
+  }
+
   const renderRoleSelector = () => (
     <div className="space-y-2">
       <p className="text-sm font-semibold text-gray-700">Roles</p>
@@ -212,8 +239,11 @@ export const UserManagement = ({
             className={`inline-flex w-full items-center justify-center rounded-md border-2 border-black bg-black px-4 py-2 font-bold uppercase tracking-wide text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.18)] transition hover:-translate-y-[2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.18)] sm:w-auto ${
               mode === 'create' ? 'ring-2 ring-offset-2 ring-[#FFD166]' : ''
             }`}
+            title="Create user"
+            aria-label="Create user"
           >
-            + New User
+            <UserPlus className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">Create user</span>
           </button>
           <button
             type="button"
@@ -222,8 +252,11 @@ export const UserManagement = ({
             }}
             className="inline-flex w-full items-center justify-center rounded-md border-2 border-black bg-black px-4 py-2 font-bold uppercase tracking-wide text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.18)] transition hover:-translate-y-[2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.18)] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             disabled={isLoading}
+            title="Refresh users"
+            aria-label="Refresh users"
           >
-            Refresh
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">Refresh users</span>
           </button>
         </div>
       </div>
@@ -277,14 +310,32 @@ export const UserManagement = ({
                         )}
                       </div>
                       <div className="flex flex-wrap gap-2 pt-1">
-                        <button
-                          type="button"
-                          onClick={() => handleEditClick(user)}
-                          className="neo-button w-full px-3 py-2 text-xs font-bold bg-white text-[#2A2A2A] sm:w-auto"
-                          disabled={isSaving && selectedUser?.profileId === user.profileId}
-                        >
-                          Edit User
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleEditClick(user)}
+                            className="neo-button px-3 py-2 text-xs font-bold bg-white text-[#2A2A2A]"
+                            disabled={isSaving && selectedUser?.profileId === user.profileId}
+                            title="Edit user"
+                            aria-label="Edit user"
+                          >
+                            <Pencil className="h-4 w-4" aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteClick(user)}
+                            className="neo-button px-3 py-2 text-xs font-bold bg-white text-[#FF5252]"
+                            disabled={isSaving || user.profileId === currentProfileId}
+                            title={
+                              user.profileId === currentProfileId
+                                ? 'You cannot delete your own account'
+                                : 'Delete user'
+                            }
+                            aria-label="Delete user"
+                          >
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </article>
@@ -330,14 +381,32 @@ export const UserManagement = ({
                             )}
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <button
-                              type="button"
-                              onClick={() => handleEditClick(user)}
-                              className="neo-button px-3 py-1 text-xs font-bold bg-white text-[#2A2A2A]"
-                              disabled={isSaving && selectedUser?.profileId === user.profileId}
-                            >
-                              Edit
-                            </button>
+                            <div className="flex justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleEditClick(user)}
+                                className="neo-button px-3 py-2 text-xs font-bold bg-white text-[#2A2A2A]"
+                                disabled={isSaving && selectedUser?.profileId === user.profileId}
+                                title="Edit user"
+                                aria-label="Edit user"
+                              >
+                                <Pencil className="h-4 w-4" aria-hidden="true" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteClick(user)}
+                                className="neo-button px-3 py-2 text-xs font-bold bg-white text-[#FF5252]"
+                                disabled={isSaving || user.profileId === currentProfileId}
+                                title={
+                                  user.profileId === currentProfileId
+                                    ? 'You cannot delete your own account'
+                                    : 'Delete user'
+                                }
+                                aria-label="Delete user"
+                              >
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}

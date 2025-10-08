@@ -708,6 +708,48 @@ const AdminDashboard = ({
     }
   }
 
+  const handleDeleteUser = async (targetProfileId: string) => {
+    if (targetProfileId === profileId) {
+      setFeedback({
+        type: 'error',
+        message: 'You cannot delete your own account.',
+      })
+      return false
+    }
+
+    setIsUserMutationInFlight(true)
+    setFeedback(null)
+
+    try {
+      const response = await fetch(`/api/admin/users/${targetProfileId}`, {
+        method: 'DELETE',
+      })
+
+      const payload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Unable to delete user.')
+      }
+
+      setUsers((prev) => prev.filter((user) => user.profileId !== targetProfileId))
+
+      setFeedback({
+        type: 'success',
+        message: 'User deleted successfully.',
+      })
+      return true
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message:
+          error instanceof Error ? error.message : 'Unable to delete user.',
+      })
+      return false
+    } finally {
+      setIsUserMutationInFlight(false)
+    }
+  }
+
   const handleApproveComment = async (id: string) => {
     try {
       const response = await fetch(`/api/admin/comments/${id}`, {
@@ -869,9 +911,11 @@ const AdminDashboard = ({
             roles={roles}
             isLoading={isLoadingUsers}
             isSaving={isUserMutationInFlight}
+            currentProfileId={profileId}
             onRefresh={fetchUsers}
             onCreateUser={handleCreateUser}
             onUpdateUser={handleUpdateUser}
+            onDeleteUser={handleDeleteUser}
           />
         )
       case 'comments':

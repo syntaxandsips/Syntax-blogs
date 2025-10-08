@@ -61,9 +61,10 @@ export const NewsletterSection = () => {
             <div className="absolute -top-6 -left-6 w-12 h-12 bg-[#FFD166] border-4 border-black rounded-full" aria-hidden="true"></div>
             <div className="absolute -bottom-6 -right-6 w-12 h-12 bg-[#FF5252] border-4 border-black" aria-hidden="true"></div>
             <div className="text-center mb-6">
-              <h2 className="text-3xl font-black mb-2">Get launch emails</h2>
+              <h2 className="text-3xl font-black mb-2">Stay in the Loop</h2>
               <p className="text-lg">
-                We only email when something new ships. Add your address below to hear about releases first.
+                Get the latest articles, tutorials, and updates delivered
+                straight to your inbox.
               </p>
             </div>
             <form className="flex flex-col sm:flex-row gap-3" onSubmit={handleSubmit}>
@@ -103,7 +104,7 @@ export const NewsletterSection = () => {
               role={state === 'error' || state === 'success' ? 'status' : undefined}
               aria-live={state === 'error' || state === 'success' ? 'polite' : undefined}
             >
-              {message || 'No spam, just occasional build notes. Unsubscribe whenever you like.'}
+              {message || 'We respect your privacy. Unsubscribe at any time.'}
             </p>
           </div>
         </div>

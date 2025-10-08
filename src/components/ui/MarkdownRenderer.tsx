@@ -14,8 +14,6 @@ interface MarkdownRendererProps {
 }
 
 export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
-  // Log content length to verify it's being passed correctly
-  console.log('MarkdownRenderer received content length:', content?.length || 0);
 
   if (!content) {
     return (

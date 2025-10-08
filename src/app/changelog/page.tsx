@@ -15,8 +15,10 @@ export default async function ChangelogPage() {
     const changelogPath = path.join(process.cwd(), 'CHANGELOG.md');
     const changelogContent = fs.readFileSync(changelogPath, 'utf8');
 
-    // Log the first 100 characters to verify content is being read
-    console.log('Changelog content (first 100 chars):', changelogContent.substring(0, 100));
+    if (process.env.NODE_ENV !== 'production') {
+      // Log the first 100 characters to verify content is being read during development
+      console.info('Changelog content (first 100 chars):', changelogContent.substring(0, 100));
+    }
 
     // Ensure the content is a string and not empty
     if (!changelogContent || typeof changelogContent !== 'string') {

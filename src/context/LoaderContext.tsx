@@ -35,7 +35,9 @@ export function LoaderProvider({ children }: { children: ReactNode }) {
 
     // Set a safety timeout to prevent infinite loading
     timeoutRef.current = setTimeout(() => {
-      console.log('Safety timeout triggered in LoaderContext');
+      if (process.env.NODE_ENV !== 'production') {
+        console.info('LoaderContext safety timeout triggered');
+      }
       setIsLoading(false);
       setLoaderType('none');
     }, 8000); // 8 seconds max loading time

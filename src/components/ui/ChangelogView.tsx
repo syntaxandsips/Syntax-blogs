@@ -10,25 +10,32 @@ interface ChangelogViewProps {
 
 export default function ChangelogView({ content }: ChangelogViewProps) {
   const [viewMode, setViewMode] = useState<'timeline' | 'original'>('timeline');
+  const isDev = process.env.NODE_ENV !== 'production';
 
   // Make sure content is properly passed
   const processedContent = content || '';
 
-  // Log content length to verify it's being passed correctly
-  console.log('ChangelogView received content length:', processedContent.length);
-  console.log('ChangelogView content first 100 chars:', processedContent.substring(0, 100));
+  if (isDev) {
+    // Log content length to verify it's being passed correctly
+    console.info('ChangelogView received content length:', processedContent.length);
+    console.info('ChangelogView content preview:', processedContent.substring(0, 100));
+  }
 
   // Force view mode to original if there's an issue with the content
   useEffect(() => {
     if (processedContent.length > 0 && !processedContent.includes('## [')) {
-      console.log('Content does not contain version headers, switching to original view');
+      if (isDev) {
+        console.info('Content does not contain version headers, switching to original view');
+      }
       setViewMode('original');
     }
-  }, [processedContent]);
+  }, [isDev, processedContent]);
 
   // Handle view mode toggle
   const handleViewModeToggle = (mode: 'timeline' | 'original') => {
-    console.log('Switching to view mode:', mode);
+    if (isDev) {
+      console.info('Switching to view mode:', mode);
+    }
     setViewMode(mode);
   };
 

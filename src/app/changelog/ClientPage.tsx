@@ -13,9 +13,11 @@ export default function ClientPage({ content }: ClientPageProps) {
   // Make sure content is properly passed
   const processedContent = content || '';
 
-  // Log content length to verify it's being passed correctly
-  console.log('ClientPage received content length:', processedContent.length);
-  console.log('ClientPage content first 100 chars:', processedContent.substring(0, 100));
+  if (process.env.NODE_ENV !== 'production') {
+    // Log content length to verify it's being passed correctly during development
+    console.info('ClientPage received content length:', processedContent.length);
+    console.info('ClientPage content preview:', processedContent.substring(0, 100));
+  }
 
   return (
     <div className="container mx-auto px-6 py-8 min-h-screen">

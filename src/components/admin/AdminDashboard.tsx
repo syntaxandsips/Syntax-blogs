@@ -16,7 +16,11 @@ import { TaxonomyManager } from './TaxonomyManager'
 import { DashboardOverview } from './DashboardOverview'
 import { AnalyticsPanel } from './AnalyticsPanel'
 import { SettingsPanel } from './SettingsPanel'
-import { GamificationPanel } from './GamificationPanel'
+import {
+  CommunityQueueApplication,
+  CommunityQueueSubmission,
+  CommunityReviewQueue,
+} from './CommunityReviewQueue'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { Menu } from 'lucide-react'
 import {
@@ -71,6 +75,9 @@ const AdminDashboard = ({
   const [hasLoadedComments, setHasLoadedComments] = useState(false)
   const [commentsFilter, setCommentsFilter] = useState<CommentStatus | 'all'>('all')
   const [recentComments, setRecentComments] = useState<AdminCommentSummary[]>([])
+  const [communityApplications, setCommunityApplications] = useState<CommunityQueueApplication[]>([])
+  const [communitySubmissions, setCommunitySubmissions] = useState<CommunityQueueSubmission[]>([])
+  const [isLoadingCommunityQueue, setIsLoadingCommunityQueue] = useState(false)
 
   const mapPostsFromPayload = useCallback((data: AdminPost[]) => {
     return data.map((post) => ({
@@ -129,6 +136,28 @@ const AdminDashboard = ({
     return (payload.comments ?? []) as AdminCommentSummary[]
   }, [])
 
+  const fetchCommunityQueue = useCallback(async () => {
+    setIsLoadingCommunityQueue(true)
+
+    try {
+      const response = await fetch('/api/admin/community/queue', {
+        method: 'GET',
+        cache: 'no-store',
+      })
+
+      const payload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Unable to load community queue.')
+      }
+
+      setCommunityApplications((payload.applications ?? []) as CommunityQueueApplication[])
+      setCommunitySubmissions((payload.submissions ?? []) as CommunityQueueSubmission[])
+    } finally {
+      setIsLoadingCommunityQueue(false)
+    }
+  }, [])
+
   const loadInitialData = useCallback(async () => {
     setIsLoading(true)
     setFeedback(null)
@@ -151,6 +180,8 @@ const AdminDashboard = ({
         fetchPosts(),
         fetchRecentComments().catch(() => [] as AdminCommentSummary[]),
       ])
+
+      await fetchCommunityQueue().catch(() => undefined)
 
       if (categoryError) {
         throw new Error(categoryError.message)
@@ -177,11 +208,17 @@ const AdminDashboard = ({
     } finally {
       setIsLoading(false)
     }
-  }, [fetchPosts, fetchRecentComments, supabase])
+  }, [fetchPosts, fetchRecentComments, fetchCommunityQueue, supabase])
 
   useEffect(() => {
     void loadInitialData()
   }, [loadInitialData])
+
+  useEffect(() => {
+    if (currentView === 'community') {
+      void fetchCommunityQueue()
+    }
+  }, [currentView, fetchCommunityQueue])
 
   const handleRefreshPosts = useCallback(async () => {
     setFeedback(null)
@@ -406,6 +443,58 @@ const AdminDashboard = ({
 
     setTags((prev) => prev.filter((tag) => tag.id !== id))
   }, [supabase])
+
+  const handleApplicationDecision = useCallback(
+    async (applicationId: string, action: 'approve' | 'decline' | 'needs_more_info', notes?: string) => {
+      const response = await fetch('/api/admin/community/queue', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          entityType: 'application',
+          applicationId,
+          action,
+          notes,
+        }),
+      })
+
+      const payload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Unable to update application.')
+      }
+
+      return payload
+    },
+    [],
+  )
+
+  const handleSubmissionDecision = useCallback(
+    async (submissionId: string, action: 'approve' | 'decline' | 'feedback', notes?: string) => {
+      const response = await fetch('/api/admin/community/queue', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          entityType: 'submission',
+          submissionId,
+          action,
+          notes,
+        }),
+      })
+
+      const payload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Unable to update submission.')
+      }
+
+      return payload
+    },
+    [],
+  )
 
   const runTaxonomyAction = useCallback(
     async (operation: () => Promise<void>, successMessage: string) => {
@@ -932,8 +1021,17 @@ const AdminDashboard = ({
             onDelete={handleDeleteComment}
           />
         )
-      case 'gamification':
-        return <GamificationPanel />
+      case 'community':
+        return (
+          <CommunityReviewQueue
+            applications={communityApplications}
+            submissions={communitySubmissions}
+            isLoading={isLoadingCommunityQueue}
+            onRefresh={fetchCommunityQueue}
+            onApplicationAction={handleApplicationDecision}
+            onSubmissionAction={handleSubmissionDecision}
+          />
+        )
       case 'analytics':
         return <AnalyticsPanel posts={posts} recentComments={recentComments} />
       case 'settings':

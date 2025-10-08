@@ -7,8 +7,10 @@ type Tone = 'neutral' | 'primary' | 'success' | 'warning'
 type Elevation = 'flat' | 'raised'
 type Rotation = 'none' | 'left' | 'right'
 
+type CardElementTag = 'article' | 'aside' | 'div' | 'main' | 'section'
+
 export interface NeobrutalCardProps extends HTMLAttributes<HTMLElement> {
-  as?: keyof JSX.IntrinsicElements
+  as?: CardElementTag
   tone?: Tone
   elevation?: Elevation
   rotate?: Rotation

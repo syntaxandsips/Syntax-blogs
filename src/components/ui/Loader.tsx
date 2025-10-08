@@ -15,7 +15,9 @@ export function Loader() {
     // Add a safety timeout to hide the loader if it gets stuck
     const safetyTimeout = setTimeout(() => {
       if (isLoading) {
-        console.log('Loader safety timeout triggered');
+        if (process.env.NODE_ENV !== 'production') {
+          console.info('Loader safety timeout triggered');
+        }
         setFadeOut(true);
 
         // Give time for fade out animation before completely removing

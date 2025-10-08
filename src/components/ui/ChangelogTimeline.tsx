@@ -17,15 +17,21 @@ interface ChangelogTimelineProps {
 }
 
 export default function ChangelogTimeline({ content }: ChangelogTimelineProps) {
-  // Log content length to verify it's being passed correctly
-  console.log('ChangelogTimeline received content length:', content.length);
-  console.log('ChangelogTimeline content first 100 chars:', content.substring(0, 100));
+  const isDev = process.env.NODE_ENV !== 'production';
+
+  if (isDev) {
+    // Log content length to verify it's being passed correctly
+    console.info('ChangelogTimeline received content length:', content.length);
+    console.info('ChangelogTimeline content preview:', content.substring(0, 100));
+  }
 
   // Parse the markdown content to extract changelog entries
   const entries = parseChangelogContent(content);
 
-  // Log parsed entries
-  console.log('Parsed entries count:', entries.length);
+  if (isDev) {
+    // Log parsed entries
+    console.info('Parsed entries count:', entries.length);
+  }
 
   if (entries.length === 0) {
     return (
@@ -95,6 +101,8 @@ function getSectionIcon(title: string) {
 
 // Parse the markdown content to extract changelog entries
 function parseChangelogContent(content: string): ChangelogEntry[] {
+  const isDev = process.env.NODE_ENV !== 'production';
+
   if (!content || typeof content !== 'string') {
     console.error('Invalid content passed to parseChangelogContent:', content);
     return [];
@@ -106,16 +114,20 @@ function parseChangelogContent(content: string): ChangelogEntry[] {
     // Normalize line endings to ensure consistent regex matching
     const normalizedContent = content.replace(/\r\n/g, '\n');
 
-    // Log the raw content for debugging
-    console.log('Content starts with:', normalizedContent.substring(0, 50).replace(/\n/g, '\\n'));
-    console.log('Content includes version headers:', normalizedContent.includes('## ['));
+    if (isDev) {
+      // Log the raw content for debugging
+      console.info('Content starts with:', normalizedContent.substring(0, 50).replace(/\n/g, '\\n'));
+      console.info('Content includes version headers:', normalizedContent.includes('## ['));
+    }
 
     // Find all version blocks using regex
     // This pattern matches "## [version] - date" and captures everything until the next version header
     const versionRegex = new RegExp('## \\[(.*?)\\] - ([^\\n]+)', 'g');
     const versionMatches = [...normalizedContent.matchAll(versionRegex)];
 
-    console.log('Found version matches:', versionMatches.length);
+    if (isDev) {
+      console.info('Found version matches:', versionMatches.length);
+    }
 
     if (versionMatches.length === 0) {
       console.error('No version matches found in content. Content sample:', normalizedContent.substring(0, 200));
@@ -133,8 +145,10 @@ function parseChangelogContent(content: string): ChangelogEntry[] {
 
       const fullBlock = normalizedContent.substring(versionHeaderPos, nextVersionHeaderPos);
 
-      console.log(`Processing version ${version} from ${date}`);
-      console.log(`Full block length: ${fullBlock.length} characters`);
+      if (isDev) {
+        console.info(`Processing version ${version} from ${date}`);
+        console.info(`Full block length: ${fullBlock.length} characters`);
+      }
 
       // Find all sections within this version block
       const sections: { title: string; items: string[] }[] = [];
@@ -144,13 +158,17 @@ function parseChangelogContent(content: string): ChangelogEntry[] {
       const sectionRegex = new RegExp('### ([^\\n]+)\\n\\n([\\s\\S]*?)(?=\\n### |$)', 'g');
       const sectionMatches = [...fullBlock.matchAll(sectionRegex)];
 
-      console.log(`Found ${sectionMatches.length} sections in version ${version}`);
+      if (isDev) {
+        console.info(`Found ${sectionMatches.length} sections in version ${version}`);
+      }
 
       for (const sectionMatch of sectionMatches) {
         const title = sectionMatch[1].trim();
         const itemsText = sectionMatch[2];
 
-        console.log(`  Found section: ${title}`);
+        if (isDev) {
+          console.info(`  Found section: ${title}`);
+        }
 
         // Extract list items - be more precise with the regex to handle various formats
         const items = itemsText
@@ -164,10 +182,14 @@ function parseChangelogContent(content: string): ChangelogEntry[] {
             return cleanedItem;
           });
 
-        console.log(`  Section "${title}" has ${items.length} items`);
+        if (isDev) {
+          console.info(`  Section "${title}" has ${items.length} items`);
+        }
 
         if (items.length > 0) {
-          console.log(`    Found ${items.length} items`);
+          if (isDev) {
+            console.info(`    Found ${items.length} items`);
+          }
           sections.push({
             title,
             items
@@ -182,7 +204,9 @@ function parseChangelogContent(content: string): ChangelogEntry[] {
           sections
         });
       } else {
-        console.log(`  No sections found for version ${version}`);
+        if (isDev) {
+          console.info(`  No sections found for version ${version}`);
+        }
       }
     }
 

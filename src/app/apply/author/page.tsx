@@ -58,14 +58,46 @@ export default async function AuthorApplyPage() {
     redirect('/login?redirect=/apply/author')
   }
 
-  const { data: profile, error: profileError } = await supabase
+  const profileResponse = await supabase
     .from('profiles')
     .select('id, display_name, pronouns')
     .eq('user_id', user.id)
     .maybeSingle()
 
-  if (profileError) {
-    throw new Error(`Unable to load profile: ${profileError.message}`)
+  type ProfileRecord = {
+    id: string
+    display_name: string | null
+    pronouns?: string | null
+  }
+
+  let profile = profileResponse.data as ProfileRecord | null
+
+  if (profileResponse.error) {
+    const missingPronounsColumn =
+      profileResponse.error.code === '42703' ||
+      Boolean(
+        profileResponse.error.message
+          ?.toLowerCase()
+          .includes('profiles.pronouns'),
+      )
+
+    if (!missingPronounsColumn) {
+      throw new Error(`Unable to load profile: ${profileResponse.error.message}`)
+    }
+
+    const fallbackResponse = await supabase
+      .from('profiles')
+      .select('id, display_name')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (fallbackResponse.error) {
+      throw new Error(`Unable to load profile: ${fallbackResponse.error.message}`)
+    }
+
+    profile = fallbackResponse.data
+      ? ({ ...fallbackResponse.data, pronouns: null } as ProfileRecord)
+      : null
   }
 
   if (!profile) {

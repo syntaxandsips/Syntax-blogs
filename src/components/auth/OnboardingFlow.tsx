@@ -23,11 +23,6 @@ import {
 import { createBrowserClient } from '@/lib/supabase/client';
 import { useAuthenticatedProfile } from '@/hooks/useAuthenticatedProfile';
 import { cn } from '@/lib/utils';
-import {
-  NeobrutalAlert,
-  NeobrutalAlertDescription,
-  NeobrutalAlertTitle,
-} from '@/components/neobrutal/alert';
 import type {
   OnboardingAccountability,
   OnboardingCommunication,
@@ -1030,17 +1025,15 @@ export const OnboardingFlow = ({ profile, initialJourney, defaultRedirect }: Onb
             </div>
 
             {error ? (
-              <NeobrutalAlert tone="danger">
-                <NeobrutalAlertTitle>We could not save your answers</NeobrutalAlertTitle>
-                <NeobrutalAlertDescription>{error}</NeobrutalAlertDescription>
-              </NeobrutalAlert>
+              <div className="rounded-2xl border-2 border-red-500 bg-red-100 p-4 text-sm font-semibold text-red-700" role="alert">
+                {error}
+              </div>
             ) : null}
 
             {successMessage ? (
-              <NeobrutalAlert tone="success" role="status">
-                <NeobrutalAlertTitle>Progress saved</NeobrutalAlertTitle>
-                <NeobrutalAlertDescription>{successMessage}</NeobrutalAlertDescription>
-              </NeobrutalAlert>
+              <div className="rounded-2xl border-2 border-emerald-500 bg-emerald-100 p-4 text-sm font-semibold text-emerald-700" role="status">
+                {successMessage}
+              </div>
             ) : null}
 
             <div>

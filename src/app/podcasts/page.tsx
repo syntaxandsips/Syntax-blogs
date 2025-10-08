@@ -1,40 +1,74 @@
 import { Metadata } from 'next';
-import { Mic, NotebookPen } from 'lucide-react';
+import { Headphones, Mic, Radio } from 'lucide-react';
 import { PageShell, PageHero, ContentSection, CtaButton } from '@/components/ui/PageLayout';
 
-const availableResources = [
+const podcastSeries = [
   {
-    title: 'Read the build log',
-    description:
-      'We document our progress in long-form articles while we learn what format the podcast should take.',
-    href: '/blogs',
+    title: 'Syntax Shots',
+    description: 'Quick, actionable insights on modern web tooling, frameworks, and developer productivity in under 15 minutes.',
+    cadence: 'New episodes every Tuesday',
+    focus: 'Front-end deep dives & DX tips',
   },
   {
-    title: 'Follow the changelog',
-    description: 'Every time we ship a notable update we capture it in the public changelog.',
-    href: '/changelog',
+    title: 'Café Conversations',
+    description: 'Fireside chats with engineers, designers, and community builders who are shaping the web ecosystem.',
+    cadence: 'Long-form interviews every other Thursday',
+    focus: 'Career growth, leadership, and tech culture',
+  },
+  {
+    title: 'Release Radar',
+    description: 'A round-up of the most important releases, changelog highlights, and experimental projects to try.',
+    cadence: 'Weekend recap every Sunday',
+    focus: 'Open source & platform updates',
   },
 ];
 
-const preparationSteps = [
+const upcomingEpisodes = [
   {
-    title: 'Recording workflow',
-    description: 'Dialing in the equipment, editing pipeline, and publishing checklist so episodes ship consistently.',
+    title: 'Shipping faster with design systems',
+    guest: 'Amina Khan, Principal Engineer @ Loom',
+    release: 'Tuesday, March 18',
+    takeaway: 'How to balance design consistency with rapid experimentation across squads.',
   },
   {
-    title: 'Story backlog',
-    description: 'Collecting questions and topic requests from the community before we hit record.',
+    title: 'Edge runtime best practices',
+    guest: 'Miguel Oliveira, Solutions Architect @ Vercel',
+    release: 'Thursday, March 27',
+    takeaway: 'Deploying resilient edge functions, cold starts, and observability strategies.',
   },
   {
-    title: 'Distribution plan',
-    description: 'Testing hosting providers and RSS tooling to make sure subscribing will be painless on day one.',
+    title: 'Community-sourced developer UX wins',
+    guest: 'Panel of Syntax & Sips community contributors',
+    release: 'Sunday, April 6',
+    takeaway: 'The small quality-of-life updates that made the biggest impact this quarter.',
+  },
+];
+
+const listeningPlatforms = [
+  {
+    title: 'Listen your way',
+    description:
+      'Stream directly in your browser, queue episodes on mobile, or add us to your podcast player of choice with a private RSS feed.',
+    icon: Headphones,
+  },
+  {
+    title: 'Stay in sync',
+    description:
+      'Enable notifications in the Syntax & Sips app to get alerts for fresh drops, transcripts, and exclusive bonus segments.',
+    icon: Radio,
+  },
+  {
+    title: 'Read while you listen',
+    description:
+      'Every episode ships with a detailed companion note, resource list, and code samples so you can follow along at your own pace.',
+    icon: Mic,
   },
 ];
 
 export const metadata: Metadata = {
-  title: 'Podcasts status | Syntax & Sips',
+  title: 'Podcasts | Syntax & Sips',
   description:
-    'Get an honest update on the Syntax & Sips podcast roadmap. No episodes are live yet—we are still preparing the format.',
+    'Explore all Syntax & Sips podcast series, upcoming episodes, and ways to listen across your favorite platforms.',
 };
 
 export default function PodcastsPage() {
@@ -42,14 +76,14 @@ export default function PodcastsPage() {
     <PageShell
       hero={
         <PageHero
-          eyebrow="In development"
-          title="Podcasts are still in pre-production"
-          description="We have not released any audio episodes yet. This page explains what we are working on and how to follow along."
+          eyebrow="Podcast Hub"
+          title="Sip, learn, and ship with our developer-first podcasts"
+          description="Fresh conversations, practical deep dives, and real stories from builders on the front lines of the modern web."
           actions={
             <>
-              <CtaButton href="/blogs">Read the latest updates</CtaButton>
-              <CtaButton href="/newsletter" variant="secondary">
-                Join the interest list
+              <CtaButton href="/newsletter">Get episode alerts</CtaButton>
+              <CtaButton href="/rss" variant="secondary">
+                Listen via RSS
               </CtaButton>
             </>
           }
@@ -57,80 +91,110 @@ export default function PodcastsPage() {
       }
     >
       <ContentSection
-        eyebrow="What exists today"
-        title="You can still follow the work in progress"
-        description="While the podcast feed is empty, these resources cover the same themes we plan to explore on mic."
+        eyebrow="Featured series"
+        title="Pick a vibe and start listening"
+        description="We curate each show around a unique cadence, so you always know what to expect when you press play."
       >
-        <div className="grid gap-6 md:grid-cols-2">
-          {availableResources.map((resource) => (
-            <article
-              key={resource.title}
-              className="flex h-full flex-col justify-between gap-4 rounded-2xl border-2 border-black bg-white/80 p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.08)]"
-            >
-              <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.2em] text-black/60">
-                <NotebookPen className="h-5 w-5 text-[#6C63FF]" aria-hidden="true" />
-                {resource.title}
-              </div>
-              <p className="text-sm text-black/70 leading-relaxed">{resource.description}</p>
-              <CtaButton href={resource.href}>Open</CtaButton>
-            </article>
-          ))}
-        </div>
+        {podcastSeries.length > 0 ? (
+          <div className="grid gap-8 md:grid-cols-3">
+            {podcastSeries.map((series) => (
+              <article
+                key={series.title}
+                className="flex h-full flex-col gap-4 rounded-2xl border-2 border-black bg-white/80 p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.08)] transition-transform duration-200 hover:-translate-y-1"
+              >
+                <h3 className="text-xl font-black">{series.title}</h3>
+                <p className="text-sm text-black/70 leading-relaxed">{series.description}</p>
+                <dl className="mt-auto space-y-2 text-sm font-semibold">
+                  <div className="flex items-center justify-between gap-2">
+                    <dt className="uppercase tracking-[0.15em] text-black/60">Cadence</dt>
+                    <dd>{series.cadence}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <dt className="uppercase tracking-[0.15em] text-black/60">Focus</dt>
+                    <dd>{series.focus}</dd>
+                  </div>
+                </dl>
+              </article>
+            ))}
+          </div>
+        ) : null}
       </ContentSection>
 
       <ContentSection
-        eyebrow="What we are tackling"
-        title="Pre-production checklist"
-        description="Here is the honest list of tasks we are wrapping up before episode one ships."
+        eyebrow="Next up"
+        title="Upcoming conversations"
+        description="Mark your calendar and send us your questions—every episode features community prompts."
         tone="lavender"
       >
-        <div className="grid gap-4 md:grid-cols-3">
-          {preparationSteps.map((step) => (
-            <article
-              key={step.title}
-              className="flex flex-col gap-3 rounded-2xl border-2 border-dashed border-black/30 bg-white/70 p-6"
-            >
-              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-[#6C63FF]">
-                <Mic className="h-4 w-4" aria-hidden="true" />
-                In progress
-              </div>
-              <h3 className="text-lg font-black text-black">{step.title}</h3>
-              <p className="text-sm text-black/70 leading-relaxed">{step.description}</p>
-            </article>
-          ))}
-        </div>
+        {upcomingEpisodes.length > 0 ? (
+          <div className="grid gap-6">
+            {upcomingEpisodes.map((episode) => (
+              <article
+                key={`${episode.title}-${episode.release}`}
+                className="flex flex-col gap-3 rounded-2xl border-2 border-dashed border-black/40 bg-white/80 p-6 md:flex-row md:items-center md:justify-between"
+              >
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#6C63FF]">{episode.release}</p>
+                  <h3 className="text-xl font-black">{episode.title}</h3>
+                  <p className="text-sm text-black/70">Featuring {episode.guest}</p>
+                </div>
+                <p className="text-sm max-w-lg text-black/80 md:text-right">{episode.takeaway}</p>
+              </article>
+            ))}
+          </div>
+        ) : null}
       </ContentSection>
 
       <ContentSection
-        eyebrow="Where updates will land"
-        title="Stay in the loop"
-        description="We will announce the feed, guests, and schedule the moment everything is ready."
+        eyebrow="Listening experience"
+        title="Meet listeners where they already are"
+        description="Whether you tune in between standups or during deep focus time, Syntax & Sips is ready when you are."
         tone="peach"
+        align="center"
+      >
+        {listeningPlatforms.length > 0 ? (
+          <div className="grid gap-8 md:grid-cols-3">
+            {listeningPlatforms.map((platform) => (
+              <article
+                key={platform.title}
+                className="flex flex-col items-center gap-4 rounded-2xl border-2 border-black bg-white/70 p-6 text-center"
+              >
+                <platform.icon className="h-12 w-12 text-[#FF5252]" aria-hidden="true" />
+                <h3 className="text-lg font-black">{platform.title}</h3>
+                <p className="text-sm text-black/70 leading-relaxed">{platform.description}</p>
+              </article>
+            ))}
+          </div>
+        ) : null}
+      </ContentSection>
+
+      <ContentSection
+        eyebrow="Bonus content"
+        title="Prefer reading to listening?"
+        description="Every podcast has an accompanying blog post. You can skim the highlights, copy the snippets, and share the takeaways."
         footerContent={
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <p className="text-sm text-black/70">
-              Prefer RSS? We will publish the feed URL here first once recording begins.
-            </p>
-            <CtaButton href="/newsletter" variant="secondary">
-              Get notified
+            <p className="text-sm text-black/70">Download transcripts, request topics, and submit your own lightning questions.</p>
+            <CtaButton href="/blogs" variant="secondary">
+              Explore companion posts
             </CtaButton>
           </div>
         }
       >
-        <div className="rounded-2xl border-2 border-black bg-white/70 p-6 text-sm text-black/70 leading-relaxed">
-          <p>
-            No teaser clips, transcripts, or subscription links exist yet. When those are ready this section will list them—until
-            then, the best place for updates is our newsletter or the changelog.
-          </p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border-2 border-black bg-white/70 p-6">
+            <h3 className="text-lg font-black">Transcripts & key moments</h3>
+            <p className="text-sm text-black/70 leading-relaxed">
+              Access searchable transcripts with timestamps so you can jump right to the answers you need.
+            </p>
+          </div>
+          <div className="rounded-2xl border-2 border-black bg-white/70 p-6">
+            <h3 className="text-lg font-black">Community AMA sessions</h3>
+            <p className="text-sm text-black/70 leading-relaxed">
+              Join the Syntax & Sips Discord for live recordings, behind-the-scenes notes, and after-hours Q&A sessions.
+            </p>
+          </div>
         </div>
-      </ContentSection>
-
-      <ContentSection
-        eyebrow="Launch details"
-        title="Podcast feed"
-        description="As soon as the podcast is published, you will see links here."
-      >
-        {null}
       </ContentSection>
     </PageShell>
   );

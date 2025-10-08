@@ -5,15 +5,6 @@ import Link from 'next/link';
 import { MoreHorizontal, Calendar, Clock } from 'lucide-react';
 
 import { NeobrutalCard } from '@/components/neobrutal/card';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/neobrutal/alert-dialog';
 
 interface BlogCardProps {
   title: string;
@@ -53,8 +44,6 @@ export function NewBlogCard({
 }: BlogCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dialogContent, setDialogContent] = useState({ title: '', description: '' });
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -68,65 +57,32 @@ export function NewBlogCard({
     };
   }, []);
 
-  const openDialog = (title: string, description: string) => {
-    setDialogContent({ title, description });
-    setIsDialogOpen(true);
-  };
-
   const handleShare = () => {
     if (navigator.share) {
-      navigator
-        .share({
-          title,
-          text: excerpt,
-          url: `${window.location.origin}/blogs/${slug}`,
-        })
-        .catch((shareError) => {
-          console.error('Native share failed', shareError);
-          openDialog(
-            'Unable to open the native share dialog',
-            'Copy the link manually or use the copy shortcut in your browser while we improve this flow.',
-          );
-        });
+      navigator.share({
+        title: title,
+        text: excerpt,
+        url: window.location.origin + '/blogs/' + slug,
+      }).catch(console.error);
     } else {
-      const shareUrl = `${window.location.origin}/blogs/${slug}`;
-
-      if (navigator.clipboard?.writeText) {
-        navigator.clipboard
-          .writeText(shareUrl)
-          .then(() => {
-            openDialog('Link copied to your clipboard', 'Paste it anywhere to share this post.');
-          })
-          .catch((clipboardError) => {
-            console.error('Clipboard copy failed', clipboardError);
-            openDialog(
-              'Copying is not supported here',
-              'Please highlight the URL from your address bar and copy it manually.',
-            );
-          });
-      } else {
-        openDialog(
-          'Copying is not available in this browser',
-          'Please copy the link from your address bar to share the article.',
-        );
-      }
+      // Fallback for browsers that don't support the Web Share API
+      navigator.clipboard.writeText(window.location.origin + '/blogs/' + slug)
+        .then(() => alert('Link copied to clipboard!'))
+        .catch(console.error);
     }
     setMenuOpen(false);
   };
 
   const handleGenerateWithAI = () => {
-    openDialog(
-      'AI drafting is still on the roadmap',
-      'We are testing assisted writing workflows internally and will announce a beta once it is ready.',
-    );
+    // This would be implemented with your AI generation functionality
+    alert('Generate with AI functionality would go here');
     setMenuOpen(false);
   };
 
   const badgeColor = accentColor ?? getFallbackColor(categoryLabel);
 
   return (
-    <>
-      <NeobrutalCard as="article" className="overflow-hidden p-0">
+    <NeobrutalCard as="article" className="overflow-hidden p-0">
       <div className="space-y-4 p-6">
         <div className="flex justify-between items-start mb-4">
           <span
@@ -187,19 +143,6 @@ export function NewBlogCard({
           </Link>
         </div>
       </div>
-      </NeobrutalCard>
-
-      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{dialogContent.title}</AlertDialogTitle>
-            <AlertDialogDescription>{dialogContent.description}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setIsDialogOpen(false)}>Close</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    </NeobrutalCard>
   );
 }

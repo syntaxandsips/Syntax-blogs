@@ -16,37 +16,39 @@ export const HeroSection = () => {
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col items-center text-center mb-10">
             <div className="inline-block bg-[#FF5252] text-white px-4 py-1 text-sm font-bold mb-6 transform -rotate-2">
-              Build log in progress
+              Welcome to the digital brew
             </div>
             <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight">
               Where{' '}
               <span className="bg-[#6C63FF] text-white px-2 py-1 inline-block transform rotate-1">
-                Syntax
+                Code
               </span>{' '}
               Meets{' '}
               <span className="bg-[#FF5252] text-white px-2 py-1 inline-block transform -rotate-1">
-                Candor
+                Conversation
               </span>
             </h1>
             <h2 className="text-2xl md:text-3xl font-extrabold uppercase tracking-wider text-gray-700 mb-6">
-              Build updates · Documentation · Release notes
+              Machine Learning Tutorials · Data Science Playbooks · Quantum Computing Deep Dives
             </h2>
             <p className="text-xl md:text-2xl mb-10 max-w-2xl">
-              Syntax &amp; Sips is an open journal about building our editorial platform. Read honest progress
-              updates, peek at the docs we&apos;re writing, and see what ships in real time.
+              From applied AI walkthroughs and coding tutorials to product reviews and creator conversations, we brew content
+              that&apos;s both educational and entertaining.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
               <Link
                 href="/blogs"
                 className="bg-black text-white px-6 py-3 text-lg font-bold rounded-md transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(108,99,255)] text-center"
               >
-                Read the latest post
+                Read Latest Blog
               </Link>
               <Link
-                href="/changelog"
+                href="https://youtube.com/@syntaxandsips"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="border-4 border-black bg-white px-6 py-3 text-lg font-bold rounded-md flex items-center justify-center gap-2 transform transition hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_rgba(255,82,82)]"
               >
-                View the changelog <ArrowRight className="w-5 h-5" />
+                Watch on YouTube <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
           </div>

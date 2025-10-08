@@ -21,16 +21,16 @@ Welcome to **Syntax & Sips**, a Next.js 15 + Supabase editorial platform featuri
 
 ## 2. Development Environment Setup
 - **Package Management**:
-  - Install dependencies: `pnpm install`
-  - Add a dependency: `pnpm add <package>`
-  - Remove a dependency: `pnpm remove <package>`
-  - After editing `package.json`, re-run `pnpm install` to sync lockfiles.
+  - Install dependencies: `npm install`
+  - Add a dependency: `npm install <package>`
+  - Remove a dependency: `npm uninstall <package>`
+  - After editing `package.json`, re-run `npm install` to refresh `package-lock.json`.
 - **Core Scripts**:
-  - Local development server: `pnpm dev`
-  - Production build: `pnpm build`
-  - TypeScript type checking: `pnpm type-check`
-  - Linting: `pnpm lint`
-  - Formatting: `pnpm format`
+  - Local development server: `npm run dev`
+  - Production build: `npm run build`
+  - TypeScript type checking: `npm run type-check` (define in `package.json` as `tsc --noEmit` if not present).
+  - Linting: `npm run lint`
+  - Formatting: `npm run format` (add a Prettier script targeting the codebase if missing).
 - Ensure Node version aligns with `.nvmrc`/CI configuration (if missing, default to Active LTS). Use Volta or nvm to pin versions.
 - Configure Supabase environment variables locally (`.env.local`) using team-provided secrets. Never commit secrets.
 
@@ -63,10 +63,10 @@ Welcome to **Syntax & Sips**, a Next.js 15 + Supabase editorial platform featuri
 ## 4. Testing Requirements
 - **Framework**: Vitest (unit/integration), Playwright (E2E) if configured under `tests/`.
 - **Commands**:
-  - Run all tests: `pnpm test`
-  - Watch mode: `pnpm test:watch`
-  - Coverage report: `pnpm test:coverage`
-  - End-to-end tests: `pnpm test:e2e`
+  - Run all tests: `npm test`
+  - Component/unit watch mode: add `"test:watch": "vitest --watch"` to `package.json` and run `npm run test:watch` when needed.
+  - Coverage report: `npx vitest run --coverage` (expose via `npm run test:coverage` script for consistency).
+  - End-to-end tests: `npm run test:ui` for interactive mode or `npm run test:headed` for visual debugging; create `test:e2e` script aliasing `playwright test` if additional flags are required.
 - **Standards**:
   - Every new feature/bugfix requires automated tests. Maintain ≥80% coverage—monitor `coverage/` reports.
   - Cover happy paths, failure modes, boundary conditions.
@@ -169,14 +169,14 @@ Welcome to **Syntax & Sips**, a Next.js 15 + Supabase editorial platform featuri
 - **Pull Requests**:
   - Provide summary, motivation, testing evidence, and linked issues.
   - Attach screenshots or recordings for UI updates (desktop + mobile) when feasible.
-  - Ensure `pnpm lint`, `pnpm type-check`, and `pnpm test` pass before requesting review.
+  - Ensure `npm run lint`, `npm run type-check`, and `npm test` pass before requesting review.
   - Seek review from at least one teammate; address feedback promptly.
 
 ---
 
 ## 11. Build & Deployment
 - **Build Steps**:
-  - Run `pnpm lint` and `pnpm test` before `pnpm build` to catch regressions early.
+  - Run `npm run lint` and `npm test` before `npm run build` to catch regressions early.
   - Generate source maps for production debugging; ensure CI artifacts capture them securely.
   - Optimize assets (SVG minification, font subsetting in `fonts/`).
 - **Environment Management**:

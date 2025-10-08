@@ -89,12 +89,13 @@ export const navigationCategories: NavigationCategory[] = [
         items: [
           {
             label: 'Creator Program',
-            href: '/creator',
-            description: 'Partner with Syntax & Sips to publish long-form pieces and shows.',
+            href: '/creator/workspace',
+            description:
+              'Partner with Syntax & Sips to publish long-form pieces and shows once you join the contributor roster.',
           },
           {
             label: 'Apply as a Contributor',
-            href: '/apply',
+            href: '/apply/author',
             description: 'Pitch story ideas and join the editorial contributor roster.',
           },
           {
@@ -121,52 +122,6 @@ export const navigationCategories: NavigationCategory[] = [
       },
     ],
   },
-  {
-    label: 'Support',
-    description: 'Stay informed about policies, account access, and platform health.',
-    sections: [
-      {
-        title: 'Policy Center',
-        items: [
-          {
-            label: 'Privacy Policy',
-            href: '/privacy',
-            description: 'Understand how we safeguard and process your personal data.',
-          },
-          {
-            label: 'Terms of Use',
-            href: '/terms',
-            description: 'Review the participation guidelines for the Syntax & Sips community.',
-          },
-          {
-            label: 'Cookie Policy',
-            href: '/cookies',
-            description: 'Learn how tracking works and adjust your preference center.',
-          },
-          {
-            label: 'Editorial Disclaimer',
-            href: '/disclaimer',
-            description: 'Read the scope and limitations of our tutorials and commentary.',
-          },
-        ],
-      },
-      {
-        title: 'Account',
-        items: [
-          {
-            label: 'Sign in',
-            href: '/login',
-            description: 'Access your dashboard, badges, and personalized recommendations.',
-          },
-          {
-            label: 'Create an account',
-            href: '/signup',
-            description: 'Join Syntax & Sips to earn XP, submit ideas, and save progress.',
-          },
-        ],
-      },
-    ],
-  },
 ]
 
 export const siteNavigationItems: NavigationItem[] = Array.from(
@@ -177,3 +132,23 @@ export const siteNavigationItems: NavigationItem[] = Array.from(
     ]),
   ).values(),
 )
+
+export const navigationSupportingPaths = [
+  '/login',
+  '/signup',
+  '/account',
+  '/me',
+  '/onboarding',
+  '/newsletter',
+  '/newsletter-confirmed',
+  '/newsletter-unsubscribed',
+  '/creator/workspace',
+  '/apply/author',
+  '/privacy',
+  '/terms',
+  '/cookies',
+  '/disclaimer',
+  '/admin',
+  '/admin/login',
+  '/admin/create',
+]

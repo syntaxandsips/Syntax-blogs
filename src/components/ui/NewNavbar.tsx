@@ -20,7 +20,7 @@ export const NewNavbar = () => {
   const [openCategory, setOpenCategory] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const pathname = useClientPathname();
-  const { profile, isLoading } = useAuthenticatedProfile();
+  const { profile } = useAuthenticatedProfile();
   const needsOnboarding = Boolean(profile && profile.onboarding?.status !== 'completed');
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -101,9 +101,7 @@ export const NewNavbar = () => {
             ))}
             <GlobalSearch />
             <div className="flex items-center gap-3">
-              {isLoading ? (
-                <span className="h-10 w-10 rounded-full border-2 border-dashed border-black/40 bg-white animate-pulse" aria-hidden />
-              ) : profile ? (
+              {profile ? (
                 <ProfileShortcut profile={profile} />
               ) : (
                 <>
@@ -128,6 +126,7 @@ export const NewNavbar = () => {
             <button
               type="button"
               onClick={() => {
+                setIsOpen(false);
                 window.dispatchEvent(new Event('global-search:open'));
               }}
               className="inline-flex items-center justify-center rounded-md border-2 border-black bg-white p-2 text-sm font-semibold text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px]"
@@ -173,11 +172,7 @@ export const NewNavbar = () => {
                   isPathActive={isPathActive}
                 />
               ))}
-              {isLoading ? (
-                <div className="grid grid-cols-1">
-                  <span className="h-10 rounded-lg border-2 border-dashed border-black/40 bg-white animate-pulse" aria-hidden />
-                </div>
-              ) : profile ? (
+              {profile ? (
                 <div className="flex flex-col space-y-3">
                   <Link
                     href="/account"

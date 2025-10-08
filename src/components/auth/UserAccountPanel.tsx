@@ -56,6 +56,13 @@ import {
 } from '@/lib/storage/profile-photos'
 import { useAuthenticatedProfile } from '@/hooks/useAuthenticatedProfile'
 import '@/styles/neo-brutalism.css'
+import { GamificationSummary } from '@/components/gamification/GamificationSummary'
+import { BadgeShowcase } from '@/components/gamification/BadgeShowcase'
+import { ChallengeList } from '@/components/gamification/ChallengeList'
+import { LeaderboardPanel } from '@/components/gamification/LeaderboardPanel'
+import { GamificationSettingsCard } from '@/components/gamification/GamificationSettingsCard'
+import { useGamificationProfile } from '@/hooks/useGamificationProfile'
+import { useLeaderboard } from '@/hooks/useLeaderboard'
 
 interface UserAccountPanelProps {
   profile: AuthenticatedProfileSummary
@@ -1014,6 +1021,20 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
   const [isSigningOut, setIsSigningOut] = useState(false)
   const [signOutError, setSignOutError] = useState<string | null>(null)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const gamificationSettingsRef = useRef<HTMLDivElement | null>(null)
+  const {
+    data: gamificationData,
+    error: gamificationError,
+    isLoading: isGamificationLoading,
+    refresh: refreshGamification,
+  } = useGamificationProfile()
+  const {
+    entries: leaderboardEntries,
+    error: leaderboardError,
+    isLoading: isLeaderboardLoading,
+    scope: leaderboardScope,
+    refresh: refreshLeaderboard,
+  } = useLeaderboard('global')
 
   useEffect(() => {
     setCurrentProfile(profile)
@@ -1259,6 +1280,21 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
 
   const handleToggleSidebar = useCallback(() => {
     setIsSidebarCollapsed((previous) => !previous)
+  }, [])
+
+  const handleLeaderboardScopeChange = useCallback(
+    (nextScope: 'global' | 'weekly' | 'monthly' | 'seasonal') => {
+      void refreshLeaderboard(nextScope)
+    },
+    [refreshLeaderboard],
+  )
+
+  const handleGamificationSettingsUpdated = useCallback(() => {
+    void refreshGamification()
+  }, [refreshGamification])
+
+  const handleOpenGamificationSettings = useCallback(() => {
+    gamificationSettingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [])
 
   return (
@@ -1553,6 +1589,55 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
                 accent="rgba(255, 82, 82, 0.35)"
                 helper="Conversations you have sparked"
               />
+            </div>
+
+            <div className="space-y-6">
+              {gamificationError ? (
+                <div className="rounded-3xl border-2 border-red-400 bg-red-50 p-4 text-sm font-semibold text-red-700">
+                  {gamificationError}
+                </div>
+              ) : null}
+              {isGamificationLoading ? (
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {[0, 1].map((item) => (
+                    <div
+                      key={`gamification-skeleton-${item}`}
+                      className="h-64 animate-pulse rounded-3xl border-2 border-black/10 bg-white/70"
+                    />
+                  ))}
+                </div>
+              ) : gamificationData ? (
+                <>
+                  <GamificationSummary data={gamificationData} onOpenSettings={handleOpenGamificationSettings} />
+                  <BadgeShowcase badges={gamificationData.badges} />
+                  <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+                    <ChallengeList challenges={gamificationData.challengeProgress} />
+                    <div className="space-y-6">
+                      <LeaderboardPanel
+                        entries={isLeaderboardLoading ? [] : leaderboardEntries}
+                        scope={leaderboardScope}
+                        onScopeChange={handleLeaderboardScopeChange}
+                        isLoading={isLeaderboardLoading}
+                      />
+                      {leaderboardError ? (
+                        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">
+                          {leaderboardError}
+                        </p>
+                      ) : null}
+                      <div ref={gamificationSettingsRef}>
+                        <GamificationSettingsCard
+                          profile={gamificationData.profile}
+                          onUpdated={handleGamificationSettingsUpdated}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="rounded-3xl border-2 border-dashed border-gray-400 bg-white p-6 text-sm font-semibold text-gray-600">
+                  Opt into gamification from your profile settings to unlock points, badges, and seasonal quests.
+                </div>
+              )}
             </div>
           </section>
 

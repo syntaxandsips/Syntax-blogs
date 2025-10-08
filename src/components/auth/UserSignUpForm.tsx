@@ -23,6 +23,8 @@ export const UserSignUpForm = () => {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [gamificationOptIn, setGamificationOptIn] = useState(true);
 
   const redirectTo = sanitizeRedirect(searchParams.get('redirect_to'), { defaultValue: null });
 
@@ -35,6 +37,11 @@ export const UserSignUpForm = () => {
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
+      return;
+    }
+
+    if (!ageConfirmed) {
+      setError('You need to confirm that you are at least 13 years old to create an account.');
       return;
     }
 
@@ -54,6 +61,7 @@ export const UserSignUpForm = () => {
       options: {
         data: {
           display_name: displayName.trim() || null,
+          gamification_opt_in: gamificationOptIn,
         },
         emailRedirectTo: emailRedirectUrl.toString(),
       },
@@ -203,6 +211,32 @@ export const UserSignUpForm = () => {
                       onChange={(event) => setConfirmPassword(event.target.value)}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-3 rounded-xl border-2 border-black bg-[#FFF7E1] p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.12)]">
+                  <label className="flex items-start gap-3 text-xs font-semibold uppercase tracking-wide text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={ageConfirmed}
+                      onChange={(event) => setAgeConfirmed(event.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-2 border-black text-[#FF5252] focus:ring-[#FF5252]"
+                      required
+                    />
+                    <span>
+                      I confirm that I am at least 13 years old. Syntax &amp; Sips does not collect gamification data for users under this age.
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-3 text-xs font-semibold uppercase tracking-wide text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={gamificationOptIn}
+                      onChange={(event) => setGamificationOptIn(event.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-2 border-black text-[#6C63FF] focus:ring-[#6C63FF]"
+                    />
+                    <span>
+                      Count me in for points, levels, and badge tracking. I can update these settings anytime from my profile dashboard.
+                    </span>
+                  </label>
                 </div>
 
                 <button

@@ -21,8 +21,8 @@ const privacySections = [
     title: 'Information we collect',
     description: 'We gather the minimum data required to deliver a personalized experience and improve our products.',
     bullets: [
-      'Account details you share when signing up—name, email, and profile preferences.',
-      'Content metadata like drafts, publication timestamps, and engagement metrics.',
+      'Account details you share when signing up—name, email, profile preferences, and age confirmation.',
+      'Content metadata like drafts, publication timestamps, engagement metrics, and voluntary gamification actions.',
       'Technical diagnostics such as browser information and anonymized usage analytics.',
     ],
   },
@@ -31,6 +31,7 @@ const privacySections = [
     description: 'Your information powers the features you rely on and helps us respond to issues quickly.',
     bullets: [
       'Authenticating your account and syncing data across devices.',
+      'Awarding points, levels, and badges when you opt into gamification—complete with transparent ledgers and audit logs.',
       'Sending product updates, newsletters, and transactional emails you opt into.',
       'Monitoring performance, preventing abuse, and improving accessibility.',
     ],
@@ -40,6 +41,7 @@ const privacySections = [
     description: 'You stay in control of what you share and how we communicate with you.',
     bullets: [
       'Update your preferences or delete your account at any time from your profile settings.',
+      'Toggle gamification participation, leaderboard visibility, and notification preferences independently.',
       'Request a copy of your data or ask us to export it in a portable format.',
       'Opt out of marketing emails with a single click—transactional emails will still be delivered when necessary.',
     ],
@@ -124,6 +126,21 @@ export default function PrivacyPage() {
       </ContentSection>
 
       <ContentSection
+        eyebrow={<span role="img" aria-label="trophy">🏆</span>}
+        title="Gamification transparency"
+        description="Participation in Syntax &amp; Sips quests, streaks, and badges is optional. Your opt-in status, XP totals, and badge collection are visible only to you and admins unless you enable public showcases."
+      >
+        <div className="space-y-4">
+          <p className="text-sm leading-relaxed text-gray-700">
+            You can download or delete your gamification data from account settings. Seasonal leaderboards store pseudonymised IDs and expire after 90 days. Manual adjustments are tracked in our immutable audit log.
+          </p>
+          <p className="text-sm leading-relaxed text-gray-700">
+            Questions about gamification privacy? Email <a className="font-semibold underline" href="mailto:privacy@syntaxandsips.com">privacy@syntaxandsips.com</a> and reference the gamification DPIA for a same-week response.
+          </p>
+        </div>
+      </ContentSection>
+
+      <ContentSection
         eyebrow={<span role="img" aria-label="envelope">✉️</span>}
         title="Need more details?"
         description="Reach out and we will walk you through our privacy practices or update this policy based on your feedback."
@@ -132,7 +149,7 @@ export default function PrivacyPage() {
           <p className="text-sm leading-relaxed text-gray-700">
             Email <a className="font-semibold underline" href="mailto:privacy@syntaxandsips.com">privacy@syntaxandsips.com</a> or contact us from your account dashboard. We respond to every request within 72 hours.
           </p>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-black/60">Last updated: March 1, 2025</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-black/60">Last updated: March 18, 2025</p>
         </div>
       </ContentSection>
     </ContentPageLayout>

@@ -5,6 +5,18 @@ All notable changes to the SyntaxBlogs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.8] - 2025-02-26
+
+### Added
+
+- Introduced a documentation index along with dedicated setup, testing, and API reference guides under `docs/` to centralize onboarding resources.
+- Added TSDoc comments to Supabase helpers and utilities to clarify parameters, return values, and error handling expectations.
+
+### Changed
+
+- Reorganized the hero README with a full table of contents, expanded setup instructions, and direct links to supporting guides.
+- Updated changelog to reflect the documentation overhaul.
+
 ## [1.12.7] - 2025-02-22
 
 ### Changed

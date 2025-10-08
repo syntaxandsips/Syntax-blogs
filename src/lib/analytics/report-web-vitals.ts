@@ -2,6 +2,14 @@ import type { NextWebVitalsMetric } from 'next/app'
 
 const roundToFourDecimals = (value: number) => Math.round(value * 10000) / 10000
 
+/**
+ * Forward Next.js Web Vitals metrics to analytics providers.
+ *
+ * Prefers Google Analytics (`gtag`) but gracefully falls back to pushing events into
+ * a generic `dataLayer` when available.
+ *
+ * @param {NextWebVitalsMetric} metric Metric payload emitted by Next.js.
+ */
 export const sendToAnalytics = (metric: NextWebVitalsMetric) => {
   if (typeof window === 'undefined') {
     return

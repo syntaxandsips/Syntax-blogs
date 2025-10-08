@@ -31,6 +31,17 @@ export type SaveSubscriberResult = {
   wasResent: boolean
 }
 
+/**
+ * Upsert a newsletter subscriber and return a confirmation token.
+ *
+ * Existing subscribers are refreshed with a new confirmation token and metadata snapshot.
+ *
+ * @param {string} email Email address supplied by the user.
+ * @param {string} source Marketing attribution source (e.g., `web`, `footer`).
+ * @param {UpsertMetadata} [metadata] Optional metadata including user agent and referer information.
+ * @returns {Promise<SaveSubscriberResult>} Confirmation token and whether the record already existed.
+ * @throws {Error} When Supabase queries or mutations fail.
+ */
 export const saveSubscriber = async (
   email: string,
   source: string,
@@ -102,6 +113,14 @@ export const saveSubscriber = async (
 
 type ConfirmSubscriberResult = 'confirmed' | 'expired' | 'not-found'
 
+/**
+ * Confirm a pending subscriber using the emailed token.
+ *
+ * @param {string} email Email address associated with the subscription.
+ * @param {string} token Confirmation token provided in the confirmation link.
+ * @returns {Promise<ConfirmSubscriberResult>} `'confirmed'`, `'expired'`, or `'not-found'` to indicate outcome.
+ * @throws {Error} When Supabase operations fail unexpectedly.
+ */
 export const confirmSubscriber = async (
   email: string,
   token: string,
@@ -162,6 +181,13 @@ export const confirmSubscriber = async (
 
 type UnsubscribeResult = 'ok' | 'missing'
 
+/**
+ * Mark a subscriber as unsubscribed.
+ *
+ * @param {string} email Email address to unsubscribe.
+ * @returns {Promise<UnsubscribeResult>} `'ok'` on success or `'missing'` when the email has no record.
+ * @throws {Error} When Supabase queries or updates fail.
+ */
 export const unsubscribeSubscriber = async (
   email: string,
 ): Promise<UnsubscribeResult> => {

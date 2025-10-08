@@ -21,6 +21,13 @@ export interface RateLimitResult {
   reset: number
 }
 
+/**
+ * Track the number of invocations per key within a sliding time window.
+ *
+ * @param {string} key Unique identifier for the limiter (e.g., `route:userId:ip`).
+ * @param {RateLimitOptions} [options] Optional limit configuration (default: 5 requests per 60s).
+ * @returns {RateLimitResult} Result containing success flag, remaining allowance, and reset timestamp.
+ */
 export const rateLimit = (
   key: string,
   { windowMs = 60_000, limit = 5 }: RateLimitOptions = {}

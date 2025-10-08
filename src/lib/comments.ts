@@ -24,6 +24,12 @@ interface CommentRecord {
   } | null
 }
 
+/**
+ * Fetch approved comments for a specific post.
+ *
+ * @param {string} postId Identifier of the post whose comments should be returned.
+ * @returns {Promise<PostComment[]>} Chronologically ordered comments with author metadata.
+ */
 export const getApprovedCommentsForPost = async (postId: string): Promise<PostComment[]> => {
   const supabase = createServiceRoleClient()
 

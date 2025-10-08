@@ -23,6 +23,7 @@ import {
 
 const PROFILE_CACHE_TTL_SECONDS = 60
 const LEADERBOARD_CACHE_TTL_SECONDS = 30
+const LEADERBOARD_SNAPSHOT_TTL_SECONDS = 120
 
 const mapProfileRow = (
   row: Database['public']['Tables']['gamification_profiles']['Row'],
@@ -198,6 +199,154 @@ interface LeaderboardPayload {
   capturedAt: string
 }
 
+const buildSnapshotScopeKey = (filters: LeaderboardFilters) =>
+  buildCacheKey('leaderboard', filters.scope, filters.category ?? 'all')
+
+const purgeExpiredSnapshots = async (supabase: SupabaseClient) => {
+  const nowIso = new Date().toISOString()
+  const { error } = await supabase
+    .from('leaderboard_snapshots')
+    .delete()
+    .lte('expires_at', nowIso)
+
+  if (error) {
+    console.error('Unable to purge expired leaderboard snapshots', error)
+  }
+}
+
+const normalizeSnapshotEntry = (entry: unknown, index: number): LeaderboardEntry | null => {
+  if (!isRecordLike(entry)) {
+    return null
+  }
+
+  const profileId = typeof entry.profileId === 'string' ? entry.profileId : null
+  if (!profileId) {
+    return null
+  }
+
+  const displayName =
+    typeof entry.displayName === 'string' && entry.displayName.trim().length
+      ? entry.displayName
+      : 'Community member'
+  const avatarUrl = typeof entry.avatarUrl === 'string' ? entry.avatarUrl : null
+  const level = Math.max(1, Math.round(toNumber(entry.level, 1)))
+  const xp = Math.max(0, Math.round(toNumber(entry.xp, 0)))
+  const streak = Math.max(0, Math.round(toNumber(entry.streak, 0)))
+  const badges = Array.isArray(entry.badges)
+    ? entry.badges.filter((badge): badge is string => typeof badge === 'string')
+    : []
+  const rank = Math.max(1, Math.round(toNumber(entry.rank, index + 1)))
+
+  return {
+    profileId,
+    displayName,
+    avatarUrl,
+    level,
+    xp,
+    rank,
+    badges,
+    streak,
+  }
+}
+
+const normalizeSnapshotPayload = (
+  payload: unknown,
+  capturedAtFallback: string,
+): LeaderboardPayload | null => {
+  if (!isRecordLike(payload)) {
+    return null
+  }
+
+  const entriesSource = Array.isArray(payload.entries) ? payload.entries : []
+  const entries = entriesSource
+    .map((entry, index) => normalizeSnapshotEntry(entry, index))
+    .filter((value): value is LeaderboardEntry => Boolean(value))
+
+  const capturedAt =
+    typeof payload.capturedAt === 'string' ? payload.capturedAt : capturedAtFallback
+
+  return {
+    entries,
+    capturedAt,
+  }
+}
+
+const loadLeaderboardSnapshot = async (
+  supabase: SupabaseClient,
+  scope: string,
+): Promise<LeaderboardPayload | null> => {
+  const { data, error } = await supabase
+    .from('leaderboard_snapshots')
+    .select('payload, captured_at, expires_at')
+    .eq('scope', scope)
+    .order('captured_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    console.error('Unable to load leaderboard snapshot', error)
+    return null
+  }
+
+  if (!data) {
+    return null
+  }
+
+  const expiresAt = data.expires_at ? Date.parse(data.expires_at) : null
+  if (expiresAt && expiresAt <= Date.now()) {
+    return null
+  }
+
+  return normalizeSnapshotPayload(data.payload, data.captured_at ?? new Date().toISOString())
+}
+
+const storeLeaderboardSnapshot = async (
+  supabase: SupabaseClient,
+  scope: string,
+  payload: LeaderboardPayload,
+) => {
+  const sanitizedEntries = payload.entries.map((entry, index) => ({
+    profileId: entry.profileId,
+    displayName: entry.displayName,
+    avatarUrl: entry.avatarUrl,
+    level: entry.level,
+    xp: entry.xp,
+    rank: index + 1,
+    badges: entry.badges,
+    streak: entry.streak,
+  }))
+
+  const snapshotPayload = {
+    entries: sanitizedEntries,
+    capturedAt: payload.capturedAt,
+  }
+
+  const expiresAt = new Date(Date.now() + LEADERBOARD_SNAPSHOT_TTL_SECONDS * 1000).toISOString()
+
+  const { data, error } = await supabase
+    .from('leaderboard_snapshots')
+    .insert({ scope, expires_at: expiresAt, payload: snapshotPayload })
+    .select('id')
+    .maybeSingle()
+
+  if (error) {
+    console.error('Unable to persist leaderboard snapshot', error)
+    return
+  }
+
+  if (data?.id) {
+    const { error: cleanupError } = await supabase
+      .from('leaderboard_snapshots')
+      .delete()
+      .eq('scope', scope)
+      .neq('id', data.id)
+
+    if (cleanupError) {
+      console.error('Unable to prune historical leaderboard snapshots', cleanupError)
+    }
+  }
+}
+
 const mapLeaderboardEntries = (rows: unknown[]): LeaderboardEntry[] =>
   rows
     .map((row, index) => {
@@ -246,6 +395,7 @@ export const fetchLeaderboard = async (
   client: SupabaseClient = createServiceRoleClient(),
 ): Promise<LeaderboardPayload> => {
   const cacheKey = buildCacheKey('gamification', 'leaderboard', filters.scope, filters.category ?? 'all')
+  const snapshotScope = buildSnapshotScopeKey(filters)
   const cached = await cacheGet<LeaderboardPayload>(cacheKey)
 
   if (cached) {
@@ -253,6 +403,14 @@ export const fetchLeaderboard = async (
   }
 
   const supabase = client
+  await purgeExpiredSnapshots(supabase)
+
+  const snapshot = await loadLeaderboardSnapshot(supabase, snapshotScope)
+  if (snapshot) {
+    await cacheSet(cacheKey, snapshot, LEADERBOARD_CACHE_TTL_SECONDS)
+    return snapshot
+  }
+
   const { data, error } = await supabase
     .from('gamification_profiles')
     .select('profile_id, xp_total, level, current_streak, profiles:profile_id (display_name, avatar_url), badges:profile_badges!left (slug)')
@@ -268,6 +426,7 @@ export const fetchLeaderboard = async (
     capturedAt: new Date().toISOString(),
   }
 
+  await storeLeaderboardSnapshot(supabase, snapshotScope, payload)
   await cacheSet(cacheKey, payload, LEADERBOARD_CACHE_TTL_SECONDS)
 
   return payload

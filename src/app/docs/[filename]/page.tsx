@@ -30,33 +30,67 @@ export const metadata: Metadata = {
   description: 'Documentation and guides for Syntax and Sips blog platform',
 };
 
+const allowedExtensions = new Set(['.md', '.mdx']);
+
+const docsDirectory = path.join(process.cwd(), 'src', 'docs');
+
+const stripExtension = (filename: string): string => {
+  for (const extension of allowedExtensions) {
+    if (filename.endsWith(extension)) {
+      return filename.slice(0, -extension.length);
+    }
+  }
+
+  return filename;
+};
+
+const resolveDocumentFilename = (rawFilename: string): string | null => {
+  const sanitized = path.basename(rawFilename);
+  const baseName = stripExtension(sanitized);
+
+  if (!baseName) {
+    return null;
+  }
+
+  for (const extension of allowedExtensions) {
+    const candidate = `${baseName}${extension}`;
+    const candidatePath = path.join(docsDirectory, candidate);
+
+    if (fs.existsSync(candidatePath)) {
+      return candidate;
+    }
+  }
+
+  return null;
+};
+
 // Generate static params for known documentation files
 export function generateStaticParams() {
-  return [
-    { filename: 'markdown-guide.md' },
-    { filename: 'admin-code-guide.md' },
-  ];
+  try {
+    const entries = fs.readdirSync(docsDirectory, { withFileTypes: true });
+
+    return entries
+      .filter((entry) => entry.isFile() && allowedExtensions.has(path.extname(entry.name)))
+      .map((entry) => ({ filename: stripExtension(entry.name) }));
+  } catch (error) {
+    console.error('Unable to build static params for documentation pages', error);
+    return [];
+  }
 }
 
 type DocsPageParams = { filename: string };
 
 async function DocPageImpl({ params }: { params: DocsPageParams }) {
-  const { filename } = params;
+  const { filename: rawFilename } = params;
 
   try {
-    const safeFilename = path.basename(filename);
-    if (!safeFilename || path.extname(safeFilename) !== '.md') {
-      return notFound();
-    }
-    const docsDirectory = path.join(process.cwd(), 'src', 'docs');
-    const filePath = path.join(docsDirectory, safeFilename);
+    const resolvedFilename = resolveDocumentFilename(rawFilename);
 
-    // Check if the file exists
-    if (!fs.existsSync(filePath)) {
+    if (!resolvedFilename) {
       return notFound();
     }
-    
-    // Read the file content
+
+    const filePath = path.join(docsDirectory, resolvedFilename);
     const fileContent = fs.readFileSync(filePath, 'utf8');
 
     const html = await renderMarkdown(fileContent);

@@ -16,6 +16,7 @@ import { TaxonomyManager } from './TaxonomyManager'
 import { DashboardOverview } from './DashboardOverview'
 import { AnalyticsPanel } from './AnalyticsPanel'
 import { SettingsPanel } from './SettingsPanel'
+import { GamificationPanel } from './GamificationPanel'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { Menu } from 'lucide-react'
 import {
@@ -931,6 +932,8 @@ const AdminDashboard = ({
             onDelete={handleDeleteComment}
           />
         )
+      case 'gamification':
+        return <GamificationPanel />
       case 'analytics':
         return <AnalyticsPanel posts={posts} recentComments={recentComments} />
       case 'settings':

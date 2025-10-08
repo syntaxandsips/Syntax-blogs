@@ -158,6 +158,7 @@ export default async function AccountPage() {
       : user.email ?? 'Community friend';
 
   const profileSummary: AuthenticatedProfileSummary = {
+    profileId: profileRecord.id as string,
     userId: user.id,
     email: user.email ?? '',
     displayName: resolvedDisplayName,

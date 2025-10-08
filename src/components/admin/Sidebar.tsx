@@ -9,6 +9,7 @@ import {
   LogOut,
   Settings,
   ShieldCheck,
+  Sparkles,
   Tag,
   Users,
   X,
@@ -114,6 +115,14 @@ export const Sidebar = ({
                 label="Taxonomy"
                 isActive={currentView === 'taxonomy'}
                 onClick={() => onNavigate('taxonomy')}
+              />
+            )}
+            {isAdmin && (
+              <SidebarLink
+                icon={<Sparkles />}
+                label="Gamification"
+                isActive={currentView === 'gamification'}
+                onClick={() => onNavigate('gamification')}
               />
             )}
             <SidebarLink

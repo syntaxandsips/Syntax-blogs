@@ -145,6 +145,7 @@ export async function GET() {
         : user.email ?? ''
 
     const payload: AuthenticatedProfileSummary = {
+      profileId: profile.id,
       userId: user.id,
       email: user.email ?? '',
       displayName: preferredDisplayName,

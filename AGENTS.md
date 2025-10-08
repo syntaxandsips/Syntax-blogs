@@ -153,6 +153,10 @@ Welcome to **Syntax & Sips**, a Next.js 15 + Supabase editorial platform featuri
   - Maintain API specs (OpenAPI/Markdown) under `docs/api/`.
   - Document deployment runbooks and Supabase migrations in `docs/operations/`.
   - Provide troubleshooting FAQs for local setup, testing, and Supabase connectivity.
+- **README.md Formatting**:
+  - Preserve the hero layout that uses Tabler icon imagery pulled from `https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/*.svg`.
+  - Section headings should include inline Tabler icons sized 22px to maintain consistency with the professional branding.
+  - Keep tone executive-ready: concise paragraphs, bulleted highlights, and updated module references when features evolve.
 - **Inline Comments**:
   - Explain *why* decisions were made; remove obsolete comments promptly.
   - Avoid obvious comments (e.g., `// increment i`).

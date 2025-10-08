@@ -4,6 +4,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { MoreHorizontal, Calendar, Clock } from 'lucide-react';
 
+import { NeobrutalCard } from '@/components/neobrutal/card';
+
 interface BlogCardProps {
   title: string;
   categoryLabel: string;
@@ -80,8 +82,8 @@ export function NewBlogCard({
   const badgeColor = accentColor ?? getFallbackColor(categoryLabel);
 
   return (
-    <article className="bg-white border-4 border-black rounded-lg overflow-hidden transform transition-all hover:shadow-[8px_8px_0px_0px_rgba(0,0,0)] hover:-translate-y-1">
-      <div className="p-6">
+    <NeobrutalCard as="article" className="overflow-hidden p-0">
+      <div className="space-y-4 p-6">
         <div className="flex justify-between items-start mb-4">
           <span
             className="px-3 py-1 text-white font-bold rounded-md transform -rotate-2"
@@ -101,7 +103,7 @@ export function NewBlogCard({
               <MoreHorizontal size={20} />
             </button>
             {menuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border-4 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0)] z-50">
+              <div className="absolute right-0 mt-2 w-48 rounded-lg border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0)] z-50">
                 <button
                   type="button"
                   onClick={handleShare}
@@ -122,7 +124,7 @@ export function NewBlogCard({
         </div>
         <h3 className="text-xl font-black mb-3">{title}</h3>
         <p className="text-gray-600 mb-4">{excerpt}</p>
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <div className="flex items-center">
               <Calendar className="w-4 h-4 mr-1" />
@@ -141,6 +143,6 @@ export function NewBlogCard({
           </Link>
         </div>
       </div>
-    </article>
+    </NeobrutalCard>
   );
 }

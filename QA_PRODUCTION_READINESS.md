@@ -37,7 +37,7 @@
 
 ### A. Performance
 - **Asset Optimization:** Next.js image optimization is globally disabled for static export compatibility.【F:next.config.ts†L3-L18】 Home and content cards now leverage `<Image>` with responsive `sizes`, but unoptimized mode shifts compression responsibility to the CDN; verify build-time asset budgets and consider re-enabling optimization for dynamic deployments.
-- **Client-Side Effects:** Particle backgrounds (`fluid-particles.tsx`) attach global listeners and animations without stable cleanup handlers, which will continue firing in background tabs and can degrade performance on long sessions.【F:src/components/ui/fluid-particles.tsx†L123-L236】 Refactor using memoized callbacks and deterministic teardown.
+- **Client-Side Effects:** Legacy particle background components have been removed to avoid runaway animation loops and excess bundle weight. Reintroduce lighter-weight, well-contained visual effects only after profiling with `requestAnimationFrame` guards.
 - **Load/Stress Testing:** No automated load testing scripts exist; design scenarios covering concurrent admin edits, blog readership spikes, and Supabase rate limits.
 
 ### B. Security
@@ -47,7 +47,7 @@
 - **CSRF/XSS:** Ensure authenticated mutations (newsletter, admin) use appropriate CSRF tokens or rely on Supabase session-based protection. Review markdown rendering pipeline for HTML sanitization (check `react-markdown` usage in blog views during runtime testing).
 
 ### C. Reliability & Stability
-- **Error Handling:** Global error pages exist (`not-found.tsx`), but particle animation cleanup bug causes lingering listeners after navigation, potentially leading to errors in headless/SSR contexts.【F:src/components/ui/fluid-particles.tsx†L123-L236】
+- **Error Handling:** Global error pages exist (`not-found.tsx`), and removal of the unstable particle animations prevents lingering listeners after navigation. Continue auditing third-party widgets for similar cleanup issues.
 - **Data Integrity:** Admin post workflow calculates scheduling timestamps and status transitions; add Supabase constraints and migration tests to ensure referential integrity between posts and categories.【F:src/components/admin/PostForm.tsx†L82-L125】
 - **Observability:** No logging/monitoring integrations are visible; plan for application performance monitoring (APM) and Supabase query logs before launch.
 
@@ -56,7 +56,7 @@
 ## III. Improvement Recommendations
 
 ### A. Critical (Must Fix Before Launch)
-1. **Fix Particle Event Cleanup:** Replace anonymous event listeners with named handlers and wrap initialization in `useCallback` to satisfy `react-hooks/exhaustive-deps`, preventing runaway listeners and animation frames.【F:src/components/ui/fluid-particles.tsx†L123-L237】 Apply same fix to `enhanced-fluid-particles.tsx`.
+1. **Rebuild Motion Effects with Guards:** If reintroducing animated backgrounds, encapsulate them in requestAnimationFrame loops with deterministic teardown and `AbortController` support so navigation does not leak timers or listeners.
 2. **Enable Real CTA Behaviour:** Wire up newsletter submission to a backend endpoint (or disable the form) and add actual destinations for "Watch on YouTube" / "Read More" actions to avoid dead-end UX.【F:src/components/ui/HeroSection.tsx†L36-L50】【F:src/components/ui/ContentPreview.tsx†L101-L136】【F:src/components/ui/NewsletterSection.tsx†L21-L37】
 3. **Establish Authentication Test Coverage:** Create automated API tests covering admin login redirects, CRUD operations, and failure paths described in `AdminDashboard` and the `/api/admin/posts` handlers.【F:src/app/admin/page.tsx†L1-L32】【F:src/app/api/admin/posts/route.ts†L76-L200】
 
@@ -108,7 +108,7 @@
 
 ## Completed Work This Cycle
 - Replaced raw `<img>` usage with `next/image` in hero and content cards to unlock responsive sizing and resolve lint failures.【F:src/components/ui/HeroSection.tsx†L31-L62】【F:src/components/ui/ContentPreview.tsx†L25-L109】
-- Escaped apostrophes in hero copy and removed unused Three.js `Text` helper to keep bundle lean.【F:src/components/ui/HeroSection.tsx†L31-L50】【F:src/components/ui/SimpleDither.tsx†L180-L235】
+- Escaped apostrophes in hero copy and removed unused Three.js experiments to keep the bundle lean.
 - Hardened `useLocalStorage` hook with stable callbacks, functional updates, and SSR guards to prevent hydration warnings and stale reads.【F:src/utils/useLocalStorage.ts†L1-L52】
 - Documented outstanding QA actions and production readiness requirements (this file).
 

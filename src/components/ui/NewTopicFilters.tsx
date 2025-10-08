@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { NeobrutalTogglePill } from '@/components/neobrutal/toggle-pill';
+
 interface TopicFiltersProps {
   categories: { slug: string; label: string }[];
   selectedCategories: string[];
@@ -21,32 +23,26 @@ export function NewTopicFilters({
         </span>
       </h3>
       <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
+        <NeobrutalTogglePill
           onClick={onReset}
-          className={`px-4 py-2 font-bold rounded-md border-4 border-black transition-all hover:-translate-y-1 ${
-            selectedCategories.length === 0
-              ? 'bg-[#6C63FF] text-white hover:shadow-[4px_4px_0px_0px_rgba(0,0,0)]'
-              : 'bg-white hover:shadow-[4px_4px_0px_0px_rgba(108,99,255)]'
-          }`}
+          selected={selectedCategories.length === 0}
+          rotation="left"
         >
           All
-        </button>
-        {categories.map((category) => {
+        </NeobrutalTogglePill>
+        {categories.map((category, index) => {
           const isActive = selectedCategories.includes(category.slug);
+          const rotation = index % 2 === 0 ? 'none' : 'right';
+
           return (
-            <button
+            <NeobrutalTogglePill
               key={category.slug}
-              type="button"
               onClick={() => onToggleCategory(category.slug)}
-              className={`px-4 py-2 font-bold rounded-md border-4 border-black transition-all hover:-translate-y-1 ${
-                isActive
-                  ? 'bg-[#6C63FF] text-white hover:shadow-[4px_4px_0px_0px_rgba(0,0,0)]'
-                  : 'bg-white hover:shadow-[4px_4px_0px_0px_rgba(108,99,255)]'
-              }`}
+              selected={isActive}
+              rotation={rotation}
             >
               {category.label}
-            </button>
+            </NeobrutalTogglePill>
           );
         })}
       </div>

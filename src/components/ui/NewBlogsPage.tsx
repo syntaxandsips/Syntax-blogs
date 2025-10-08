@@ -7,6 +7,9 @@ import { NewBlogsHeader } from './NewBlogsHeader';
 import { NewBlogGrid, type BlogGridItem } from './NewBlogGrid';
 import { NewTopicFilters } from './NewTopicFilters';
 import { NewFollowSection } from './NewFollowSection';
+import { NeobrutalCard } from '@/components/neobrutal/card';
+import { NeobrutalToggleSwitch } from '@/components/neobrutal/toggle-switch';
+import { NeobrutalProgressBar } from '@/components/neobrutal/progress-bar';
 
 interface NewBlogsPageProps {
   posts: BlogListPost[];
@@ -151,7 +154,7 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
       <NewBlogsHeader />
       <div className="mt-8 flex flex-col gap-10 lg:flex-row">
         <div className="w-full lg:w-8/12">
-          <div className="flex flex-col gap-6 rounded-2xl border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.08)]">
+          <NeobrutalCard className="flex flex-col gap-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="relative w-full md:max-w-sm">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
@@ -167,20 +170,16 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
                   className="w-full rounded-md border-2 border-black bg-[#f7f7f7] py-2 pl-9 pr-3 font-semibold text-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.08)] placeholder:text-gray-400 focus:border-[#6C63FF] focus:outline-none"
                 />
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <ArrowUpDown className="h-4 w-4 text-gray-500" aria-hidden="true" />
-                <label htmlFor="blogs-sort" className="text-sm font-semibold text-gray-700">
-                  Sort by
-                </label>
-                <select
-                  id="blogs-sort"
-                  value={sortBy}
-                  onChange={(event) => setSortBy(event.target.value as 'latest' | 'popular')}
-                  className="rounded-md border-2 border-black bg-white px-3 py-2 text-sm font-semibold"
-                >
-                  <option value="latest">Latest first</option>
-                  <option value="popular">Most viewed</option>
-                </select>
+                <NeobrutalToggleSwitch
+                  label="Sort"
+                  aria-label="Toggle between latest and most popular posts"
+                  checked={sortBy === 'popular'}
+                  onLabel="Popular"
+                  offLabel="Latest"
+                  onCheckedChange={(checked) => setSortBy(checked ? 'popular' : 'latest')}
+                />
               </div>
             </div>
 
@@ -198,6 +197,12 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
               </span>
               <span>{selectedCategories.length > 0 ? `${selectedCategories.length} topic filter(s)` : 'All topics'}</span>
             </div>
+
+            <NeobrutalProgressBar
+              value={sortedBlogs.length === 0 ? 0 : page}
+              max={totalPages}
+              label="Page progress"
+            />
 
             <NewBlogGrid blogs={paginatedBlogs} />
 
@@ -222,7 +227,7 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
                 Next <ArrowRight className="h-4 w-4" />
               </button>
             </div>
-          </div>
+          </NeobrutalCard>
         </div>
         <div className="w-full lg:w-4/12">
           <NewFollowSection topics={recommendedTopics} />

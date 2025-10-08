@@ -18,6 +18,15 @@ const extendAttributes = (tag: string, attributes: AllowedAttribute[]) => {
   return Array.from(merged)
 }
 
+/**
+ * Sanitise Markdown content before rendering in the browser.
+ *
+ * Extends the default `sanitize-html` configuration to allow additional tags and
+ * attributes used by Syntax & Sips components.
+ *
+ * @param {string} input Raw Markdown converted to HTML.
+ * @returns {string} Sanitised HTML string safe for rendering.
+ */
 export const sanitizeMarkdown = (input: string) =>
   sanitizeHtml(input, {
     allowedTags: extendedAllowedTags,

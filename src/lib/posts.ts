@@ -190,6 +190,14 @@ const mapDetailPost = (record: PostDetailRecord, author: AuthorRecord | null): B
   socialImageUrl: record.social_image_url ?? null,
 })
 
+/**
+ * Retrieve all posts that have been published.
+ *
+ * The result is cached via `react`'s `cache` helper to prevent duplicate Supabase roundtrips
+ * during the same request lifecycle.
+ *
+ * @returns {Promise<BlogListPost[]>} Array of normalized blog posts ordered by `published_at` descending.
+ */
 export const getPublishedPosts = cache(async () => {
   const supabase = createServiceRoleClient()
 
@@ -214,6 +222,12 @@ export const getPublishedPosts = cache(async () => {
   }
 })
 
+/**
+ * Fetch the most viewed published posts.
+ *
+ * @param {number} [limit=6] Upper bound of results to return (values outside 1-12 are coerced).
+ * @returns {Promise<BlogListPost[]>} Ranked list of posts ordered by view count.
+ */
 export const getTrendingPosts = async (limit = 6) => {
   const supabase = createServiceRoleClient()
 
@@ -239,6 +253,13 @@ export const getTrendingPosts = async (limit = 6) => {
   }
 }
 
+/**
+ * Load a single published post by slug, including author, SEO metadata, and tag information.
+ *
+ * @param {string} slug URL slug associated with the post.
+ * @returns {Promise<BlogPostDetail | null>} Detailed post payload or `null` when not found.
+ * @throws {Error} When Supabase returns an unexpected error that is not related to optional columns.
+ */
 export const getPublishedPostBySlug = cache(async (slug: string) => {
   const supabase = createServiceRoleClient()
 
@@ -337,6 +358,13 @@ export const getPublishedPostBySlug = cache(async (slug: string) => {
   return mapDetailPost(record, author)
 })
 
+/**
+ * Perform a case-insensitive search across published posts using Supabase `ilike` filters.
+ *
+ * @param {string} query Raw search query supplied by the caller.
+ * @param {number} [limit=12] Maximum number of matches to return.
+ * @returns {Promise<BlogListPost[]>} Posts whose title, excerpt, or content matches the query.
+ */
 export const searchPublishedPosts = async (query: string, limit = 12) => {
   const supabase = createServiceRoleClient()
 
@@ -377,6 +405,15 @@ export const searchPublishedPosts = async (query: string, limit = 12) => {
   }
 }
 
+/**
+ * Derive a set of related posts based on shared tags and optional category alignment.
+ *
+ * @param {string} postId Identifier for the post to exclude from the result set.
+ * @param {string | null} categorySlug Category slug used for secondary relevance scoring.
+ * @param {string[]} tagNames List of tag names associated with the source post.
+ * @param {number} [limit=3] Desired number of related posts; falls back to recency when insufficient matches exist.
+ * @returns {Promise<BlogListPost[]>} Ranked list of related posts.
+ */
 export const getRelatedPosts = async (postId: string, categorySlug: string | null, tagNames: string[], limit = 3) => {
   const supabase = createServiceRoleClient()
 
@@ -436,6 +473,11 @@ export const getRelatedPosts = async (postId: string, categorySlug: string | nul
   }
 }
 
+/**
+ * Fetch all slugs for published posts.
+ *
+ * @returns {Promise<string[]>} Array of slugs suitable for static generation.
+ */
 export const getPublishedSlugs = cache(async () => {
   const supabase = createServiceRoleClient()
 

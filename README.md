@@ -35,6 +35,26 @@
 
 ---
 
+## <img src="https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/list.svg" alt="Table of contents" width="22" height="22" /> Table of Contents
+
+- [Overview](#-overview)
+- [Why Teams Love It](#-why-teams-love-it)
+- [Architecture &amp; Stack](#-architecture--stack)
+- [Experience Blueprint](#-experience-blueprint)
+- [Getting Started](#-getting-started)
+- [Usage](#-usage)
+- [API Quickstart](#-api-quickstart)
+- [Development](#-development)
+- [Testing](#-testing)
+- [Deployment &amp; Operations](#-deployment--operations)
+- [Documentation &amp; Support](#-documentation--support)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Maintainers &amp; Contact](#-maintainers--contact)
+- [Changelog](#-changelog)
+
+---
+
 ## <img src="https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/info-circle.svg" alt="Info" width="22" height="22" /> Overview
 
 Syntax &amp; Sips delivers an editorial suite for AI, ML, and deep-tech teams who need premium storytelling with operational rigor. The reader-facing experience showcases rich, multi-format content, while authenticated workspaces equip editors with analytics, governance tooling, and gamified engagement loops. Supabase powers authentication, content orchestration, and automation so the platform scales from prototype to production-ready deployments.
@@ -83,7 +103,7 @@ Syntax &amp; Sips delivers an editorial suite for AI, ML, and deep-tech teams wh
 
 ### Service Topology
 - **Client:** Progressive enhancement with streaming routes, suspense boundaries, and accessible motion primitives.
-- **Server:** Next.js API routes orchestrate CRUD for posts, taxonomy, comments, and newsletter workflows. (`src/app/api/admin`)
+- **Server:** Next.js API routes orchestrate CRUD for posts, taxonomy, comments, community submissions, and newsletter workflows. (`src/app/api`)
 - **Database:** Supabase Postgres with RLS, migrations, and SQL helpers. (`supabase/migrations`)
 - **Automation:** Edge Functions handle newsletter subscriptions and AI summarization triggers. (`supabase/functions`)
 
@@ -115,7 +135,8 @@ Syntax &amp; Sips delivers an editorial suite for AI, ML, and deep-tech teams wh
 ### Prerequisites
 - Node.js 20+ and npm 10+
 - Supabase project with service role and anon keys
-- Optional: Supabase CLI for local development (`supabase start`)
+- Optional: Supabase CLI for local development (`npm install -g supabase`)
+- Optional: Mailtrap (or SMTP provider) credentials for newsletter confirmations (`MAILTRAP_*` variables)
 
 ### Installation
 ```bash
@@ -123,26 +144,25 @@ npm install
 ```
 
 ### Environment Variables
-Create `.env.local` in the project root:
+Create `.env.local` in the project root and populate the required secrets:
 
-```bash
-NEXT_PUBLIC_SUPABASE_URL=<your-supabase-url>
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-supabase-anon-key>
-SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
-NEXT_PUBLIC_SITE_URL=https://www.syntax-blogs.prashant.sbs
-```
-
-- `NEXT_PUBLIC_*` keys power client-side session management.
-- Keep the service role key server-side only via secure secrets management.
-- Mirror production locally with `supabase start` to exercise migrations and RLS behavior.
+| Variable | Description | Required | Example |
+| --- | --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project REST URL | Yes | `https://xyzcompany.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key for client session management | Yes | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key for privileged server calls | Yes | `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...` |
+| `NEXT_PUBLIC_SITE_URL` | Fully qualified site URL used for metadata | Recommended | `https://www.syntax-blogs.prashant.sbs` |
+| `MAILTRAP_USER` / `MAILTRAP_PASS` | SMTP credentials for transactional emails | Required for newsletter flows | _Provided by Mailtrap_ |
+| `MAILTRAP_HOST` / `MAILTRAP_PORT` | Override host/port if not using defaults | Optional | `smtp.mailtrap.io` / `2525` |
+| `MAILTRAP_FROM_EMAIL` / `MAILTRAP_FROM_NAME` | Sender identity for outgoing mail | Optional | `noreply@syntax-blogs.test` / `Syntax & Sips` |
 
 ### Database Setup
 ```bash
+# Authenticate once, then mirror the latest schema locally
+supabase login
 supabase db push
-```
 
-For a clean slate during development:
-```bash
+# Optional: reset your local instance during development
 supabase db reset --force
 ```
 
@@ -155,39 +175,41 @@ Visit [http://localhost:3000](http://localhost:3000) (and `/admin` for authentic
 
 ---
 
-## <img src="https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/shield-check.svg" alt="Quality" width="22" height="22" /> Operational Playbooks
+## <img src="https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/player-play.svg" alt="Usage" width="22" height="22" /> Usage
 
-| Scenario | Command |
-| --- | --- |
-| Start development server with chunk sync | `npm run dev` |
-| Compile production assets | `npm run build` |
-| Serve production bundle locally | `npm run start` |
-| Lint the codebase | `npm run lint` |
-| Execute Playwright regression suites | `npm run test` |
-| Debug Playwright suites with UI runner | `npm run test:ui` |
-| Run headed browser tests | `npm run test:headed` |
+- **Content authoring:** Log in with an admin-enabled profile, create posts in the admin dashboard, and publish or schedule content. (`src/components/admin/PostForm.tsx`)
+- **Newsletter flows:** Embed the newsletter form or issue a `POST /api/newsletter` request. The confirmation link expires after 48 hours. (`src/lib/newsletter.ts`)
+- **Gamification hooks:** Display leaderboards and challenges by querying `/api/gamification/*` endpoints for authenticated profiles.
+- **Programmatic access:** Use the API endpoints to fetch published posts, record views, or submit community content—see [API Quickstart](#-api-quickstart).
 
-### Quality &amp; Observability
-- Playwright validates core journeys from authentication to publishing. Provide credentials via environment variables before running suites.
-- ESLint and TypeScript guard code quality; see `eslint.config.mjs` and `tsconfig.json` for project-wide rules.
-- Consult `QA_PRODUCTION_READINESS.md` for manual verification checklists before launch windows.
+#### Example: Fetch trending posts
+```bash
+curl "http://localhost:3000/api/posts/trending?limit=4"
+```
 
-### Security &amp; Compliance
-- Admin access requires Supabase-managed accounts with `profiles.is_admin = true`. (`src/app/admin/page.tsx`)
-- Secrets live exclusively in environment variables; never bundle credentials in the repository.
-- RLS policies gate reader data—inspect migrations prior to schema updates. (`supabase/migrations`)
-- Dedicated privacy, cookies, and disclaimer pages surface policy obligations. (`src/app/privacy/page.tsx`, `src/app/cookies/page.tsx`, `src/app/disclaimer/page.tsx`)
-
-### Deployment &amp; Operations
-1. Configure Supabase keys per environment (local, staging, production).
-2. Apply database migrations and confirm the `newsletter-subscribe` Edge Function is deployed. (`supabase/functions/newsletter-subscribe`)
-3. Run `npm run build` locally to validate the production bundle.
-4. Deploy via Vercel, Netlify, or containerized infrastructure, then monitor Supabase logs and analytics within the first 24 hours.
+#### Example: Submit a comment
+```bash
+curl -X POST "http://localhost:3000/api/posts/{slug}/comments" \
+  -H "Content-Type: application/json" \
+  -d '{"content":"Loving the neobrutalist patterns!"}'
+```
 
 ---
 
-## <img src="https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/layout-grid-add.svg" alt="Structure" width="22" height="22" /> Project Structure
+## <img src="https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/api.svg" alt="API" width="22" height="22" /> API Quickstart
 
+- Public content endpoints expose published posts, trending articles, search, and approved comments.
+- Authenticated APIs manage comments, profiles, gamification progress, newsletter confirmations, and admin consoles.
+- Each route documents request/response shapes, auth requirements, and failure modes in [`docs/api/README.md`](./docs/api/README.md).
+- Rate limiting helpers (`src/lib/rate-limit.ts`) and Supabase RLS policies enforce platform safety.
+
+> **Tip:** Use `NEXT_PUBLIC_SITE_URL` to construct absolute URLs when consuming APIs from external clients. (`src/lib/site-url.ts`)
+
+---
+
+## <img src="https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/code.svg" alt="Development" width="22" height="22" /> Development
+
+### Project Structure
 ```
 .
 ├── src
@@ -203,14 +225,60 @@ Visit [http://localhost:3000](http://localhost:3000) (and `/admin` for authentic
 └── .github/images       # Marketing and documentation visuals
 ```
 
+### Essential Scripts
+| Action | Command | Notes |
+| --- | --- | --- |
+| Start development server with chunk sync | `npm run dev` | Wraps `next dev` with Webpack chunk reconciliation |
+| Compile production assets | `npm run build` | Runs chunk sync before building |
+| Serve production bundle locally | `npm run start` | Useful for smoke testing the output of `next build` |
+| Lint the codebase | `npm run lint` | ESLint configuration lives in `eslint.config.mjs` |
+| Execute Playwright regression suites | `npm run test` | Headless browser tests |
+| Debug Playwright suites with UI runner | `npm run test:ui` | Useful for developing tests |
+| Run headed browser tests | `npm run test:headed` | Opens Chromium with a visible window |
+
+### Coding Standards
+- TypeScript strict mode is enabled—prefer explicit types and discriminated unions over `any`. (`tsconfig.json`)
+- Tailwind CSS drives styling; extend the theme via `tailwind.config.js` as needed.
+- Exported helpers include TSDoc annotations for parameters, return values, and error conditions. (`src/lib/*.ts`)
+- Follow the neobrutal design conventions documented in [`neobrutalismthemecomp.MD`](./neobrutalismthemecomp.MD).
+
+---
+
+## <img src="https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/shield-check.svg" alt="Quality" width="22" height="22" /> Testing
+
+- **Frameworks:** Playwright powers end-to-end coverage today; expand with Vitest for unit tests as the library surface grows.
+- **Environment:** Ensure Supabase keys and newsletter SMTP credentials are available to fully exercise flows that touch auth or mail.
+- **Commands:**
+  - `npm run test` — execute headless Playwright suites.
+  - `npm run test:ui` — iterate on scenarios with the Playwright UI runner.
+  - `npm run test:headed` — run tests with visible browsers for debugging.
+- **Reports:** Capture failures and test insights in `tests/build-verification.md` and update the document when CI/CD behavior changes.
+- **Guidance:** Detailed configuration, data seeding strategies, and coverage targets live in [`docs/testing/README.md`](./docs/testing/README.md).
+
+---
+
+## <img src="https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/settings.svg" alt="Settings" width="22" height="22" /> Deployment &amp; Operations
+
+1. Configure Supabase keys per environment (local, staging, production) and document them in `.env.example` or internal secrets managers.
+2. Apply database migrations and confirm the `newsletter-subscribe` Edge Function is deployed. (`supabase/functions/newsletter-subscribe`)
+3. Run `npm run build` locally (or in CI) to validate the production bundle before promoting a release.
+4. Deploy via Vercel, Netlify, or containerized infrastructure; monitor Supabase logs, analytics, and newsletters within the first 24 hours.
+5. Reference `tests/build-verification.md` and `docs/ai-integration-roadmap.md` for manual QA and roadmap context.
+
+Security highlights:
+- Admin access requires Supabase-managed accounts with `profiles.is_admin = true`. (`src/app/admin/page.tsx`)
+- Secrets live exclusively in environment variables; never bundle credentials in the repository.
+- RLS policies gate reader data—inspect migrations prior to schema updates. (`supabase/migrations`)
+- Dedicated privacy, cookies, and disclaimer pages surface policy obligations. (`src/app/privacy/page.tsx`, `src/app/cookies/page.tsx`, `src/app/disclaimer/page.tsx`)
+
 ---
 
 ## <img src="https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/book.svg" alt="Documentation" width="22" height="22" /> Documentation &amp; Support
-- Deep dives on AI integrations, gamification strategy, and community programs live in [`docs/`](./docs).
-- Reference [`neobrutalismthemecomp.MD`](./neobrutalismthemecomp.MD) for design tokens and layout principles.
-- Supabase guidance and environment variables live alongside platform runbooks in [`docs/`](./docs) (expand as playbooks evolve).
 
-For questions or enhancements, open an issue or start a discussion—maintainers actively triage requests.
+- Central index for playbooks, roadmaps, and design notes: [`docs/README.md`](./docs/README.md).
+- Deep dives on AI integrations, gamification strategy, and community programs: [`docs/`](./docs).
+- Design tokens and layout principles: [`neobrutalismthemecomp.MD`](./neobrutalismthemecomp.MD).
+- For questions or enhancements, open an issue or start a discussion—maintainers actively triage requests.
 
 ---
 
@@ -218,12 +286,28 @@ For questions or enhancements, open an issue or start a discussion—maintainers
 
 1. Fork the repository.
 2. Create a feature branch: `git checkout -b feature/your-feature`.
-3. Commit changes: `git commit -m "feat(scope): description"`.
+3. Commit changes following Conventional Commits: `git commit -m "feat(scope): description"`.
 4. Push to your fork: `git push origin feature/your-feature`.
-5. Open a Pull Request describing motivation, user impact, and validation.
+5. Open a Pull Request describing motivation, user impact, and validation, including screenshots for UI updates.
+
+Consult [`docs/code-review.md`](./docs/code-review.md) for architectural guardrails and follow the testing guidance before requesting review.
 
 ---
 
 ## <img src="https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/license.svg" alt="License" width="22" height="22" /> License
 
 Licensed under the MIT License. See [LICENSE](LICENSE) for the full terms.
+
+---
+
+## <img src="https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/users.svg" alt="Team" width="22" height="22" /> Maintainers &amp; Contact
+
+- GitHub Issues: best channel for bugs and feature requests.
+- Discussions: share ideas, roadmaps, or questions with the community.
+- Operational escalations: coordinate with the Syntax &amp; Sips platform team via the internal #syntax-sips Slack channel.
+
+---
+
+## <img src="https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/history.svg" alt="Changelog" width="22" height="22" /> Changelog
+
+Review version history, release cadence, and upgrade notes in [CHANGELOG.md](CHANGELOG.md).

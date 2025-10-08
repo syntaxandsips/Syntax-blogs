@@ -53,7 +53,14 @@ export const NeobrutalToggleSwitch = forwardRef<
           >
             {checked ? '✓' : ''}
           </span>
-          <span className="pointer-events-none absolute left-0 right-0 text-center text-xs font-bold uppercase">
+          <span
+            className={cn(
+              'pointer-events-none absolute inset-0 flex items-center justify-center text-[11px] font-black uppercase tracking-wide transition-colors',
+              checked
+                ? 'text-white drop-shadow-[1px_1px_0px_rgba(0,0,0,0.45)]'
+                : 'text-black',
+            )}
+          >
             {checked ? onLabel : offLabel}
           </span>
         </button>

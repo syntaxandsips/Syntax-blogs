@@ -1,32 +1,75 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { Menu, X, Coffee, Code, Search, UserRound } from 'lucide-react';
+import { Menu, X, Coffee, Code, Search, UserRound, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { GlobalSearch } from './GlobalSearch';
 import { useClientPathname } from '@/hooks/useClientPathname';
 import { useAuthenticatedProfile } from '@/hooks/useAuthenticatedProfile';
 import type { AuthenticatedProfileSummary } from '@/utils/types';
-import { primaryNavigation } from '@/lib/navigation';
+import {
+  navigationCategories,
+  topLevelNavigation,
+  type NavigationCategory,
+  type NavigationItem,
+} from '@/lib/navigation';
 
 export const NewNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [openCategory, setOpenCategory] = useState<string | null>(null);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const pathname = useClientPathname();
   const { profile, isLoading } = useAuthenticatedProfile();
   const needsOnboarding = Boolean(profile && profile.onboarding?.status !== 'completed');
+  const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // Function to check if a path is active
-  const isActive = (path: string) => {
+  const isPathActive = (path: string) => {
     if (path === '/') {
       return pathname === '/';
     }
     return pathname.startsWith(path);
   };
 
-  // Close mobile menu when navigating
+  const isCategoryActive = (category: NavigationCategory) =>
+    category.sections.some((section) => section.items.some((item) => isPathActive(item.href)));
+
+  useEffect(() => {
+    if (!openCategory) {
+      return undefined;
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const container = dropdownRefs.current[openCategory];
+      if (container && !container.contains(event.target as Node)) {
+        setOpenCategory(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openCategory]);
+
+  useEffect(() => {
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpenCategory(null);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeydown);
+    return () => {
+      document.removeEventListener('keydown', handleKeydown);
+    };
+  }, []);
+
+  // Close menus when navigating
   useEffect(() => {
     setIsOpen(false);
+    setOpenCategory(null);
+    setExpandedSection(null);
   }, [pathname]);
 
   return (
@@ -35,11 +78,26 @@ export const NewNavbar = () => {
         <div className="flex items-center justify-between gap-4">
           <NavbarLogo />
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
-            {primaryNavigation.map((item) => (
-              <NavLink key={item.href} href={item.href} isActive={isActive(item.href)}>
+          <nav className="hidden md:flex items-center gap-4 xl:gap-6">
+            {topLevelNavigation.map((item) => (
+              <NavLink key={item.href} href={item.href} isActive={isPathActive(item.href)}>
                 {item.label}
               </NavLink>
+            ))}
+            {navigationCategories.map((category) => (
+              <DesktopNavDropdown
+                key={category.label}
+                category={category}
+                isActive={isCategoryActive(category)}
+                isOpen={openCategory === category.label}
+                onToggle={(label) =>
+                  setOpenCategory((previous) => (previous === label ? null : label))
+                }
+                registerNode={(node) => {
+                  dropdownRefs.current[category.label] = node;
+                }}
+                isPathActive={isPathActive}
+              />
             ))}
             <GlobalSearch />
             <div className="flex items-center gap-3">
@@ -91,10 +149,29 @@ export const NewNavbar = () => {
         {isOpen && (
           <div className="md:hidden mt-4 pb-4">
             <div className="flex flex-col space-y-4">
-              {primaryNavigation.map((item) => (
-                <MobileNavLink key={item.href} href={item.href} isActive={isActive(item.href)}>
+              {topLevelNavigation.map((item) => (
+                <MobileNavLink
+                  key={item.href}
+                  href={item.href}
+                  isActive={isPathActive(item.href)}
+                  description={item.description}
+                >
                   {item.label}
                 </MobileNavLink>
+              ))}
+              {navigationCategories.map((category) => (
+                <MobileNavSection
+                  key={category.label}
+                  category={category}
+                  isExpanded={expandedSection === category.label}
+                  onToggle={() =>
+                    setExpandedSection((previous) =>
+                      previous === category.label ? null : category.label,
+                    )
+                  }
+                  isActive={isCategoryActive(category)}
+                  isPathActive={isPathActive}
+                />
               ))}
               {isLoading ? (
                 <div className="grid grid-cols-1">
@@ -226,20 +303,225 @@ interface NavLinkProps {
 const NavLink = ({ href, children, isActive }: NavLinkProps) => (
   <Link
     href={href}
-    className={`font-bold text-lg relative hover:text-[#6C63FF] transition-colors ${isActive ? 'text-[#6C63FF]' : 'text-black'}`}
+    className={`relative rounded-full px-4 py-2 text-lg font-extrabold transition-colors hover:text-[#6C63FF] ${
+      isActive ? 'text-[#6C63FF]' : 'text-black'
+    }`}
   >
     {children}
     {isActive && (
-      <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#6C63FF]"></span>
+      <span className="absolute -bottom-1 left-4 right-4 h-1 rounded-full bg-[#6C63FF]"></span>
     )}
   </Link>
 );
 
-const MobileNavLink = ({ href, children, isActive }: NavLinkProps) => (
+interface MobileNavLinkProps extends NavLinkProps {
+  description?: string;
+}
+
+const MobileNavLink = ({ href, children, isActive, description }: MobileNavLinkProps) => (
   <Link
     href={href}
-    className={`block py-2 px-4 font-bold text-lg border-l-4 ${isActive ? 'border-[#6C63FF] bg-[#6C63FF]/10 text-[#6C63FF]' : 'border-transparent hover:border-[#6C63FF] hover:bg-[#6C63FF]/5 hover:text-[#6C63FF]'}`}
+    className={`block rounded-2xl border-2 border-black px-4 py-3 text-left shadow-[4px_4px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px] ${
+      isActive
+        ? 'bg-[#6C63FF] text-white shadow-[5px_5px_0px_0px_rgba(0,0,0,0.2)]'
+        : 'bg-white text-black'
+    }`}
   >
-    {children}
+    <span className="text-base font-extrabold uppercase tracking-wide">{children}</span>
+    {description ? (
+      <span
+        className={`mt-2 block text-sm font-semibold leading-snug ${
+          isActive ? 'text-white/80' : 'text-gray-600'
+        }`}
+      >
+        {description}
+      </span>
+    ) : null}
+  </Link>
+);
+
+interface DesktopNavDropdownProps {
+  category: NavigationCategory;
+  isOpen: boolean;
+  isActive: boolean;
+  onToggle: (label: string) => void;
+  registerNode: (node: HTMLDivElement | null) => void;
+  isPathActive: (path: string) => boolean;
+}
+
+const DesktopNavDropdown = ({
+  category,
+  isOpen,
+  isActive,
+  onToggle,
+  registerNode,
+  isPathActive,
+}: DesktopNavDropdownProps) => (
+  <div
+    ref={registerNode}
+    className="relative"
+  >
+    <button
+      type="button"
+      onClick={() => onToggle(category.label)}
+      className={`group inline-flex items-center gap-2 rounded-full border-2 border-black bg-white px-4 py-2 text-lg font-extrabold uppercase tracking-wide shadow-[4px_4px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px] ${
+        isActive ? 'text-[#6C63FF]' : 'text-black'
+      }`}
+      aria-expanded={isOpen}
+      aria-haspopup="true"
+    >
+      {category.label}
+      <ChevronDown
+        className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        aria-hidden="true"
+      />
+      <span className="sr-only">Toggle {category.label} menu</span>
+    </button>
+    {isOpen ? (
+      <div
+        role="menu"
+        className="absolute left-1/2 top-full z-40 mt-3 w-[min(680px,90vw)] -translate-x-1/2 rounded-3xl border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)]"
+      >
+        {category.description ? (
+          <p className="text-sm font-semibold leading-snug text-gray-700">
+            {category.description}
+          </p>
+        ) : null}
+        <div className="mt-4 grid gap-6 md:grid-cols-2">
+          {category.sections.map((section) => (
+            <div key={section.title} className="space-y-3">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
+                {section.title}
+              </p>
+              <ul className="space-y-2">
+                {section.items.map((item) => (
+                  <li key={item.href}>
+                    <DesktopDropdownLink item={item} isActive={isPathActive(item.href)} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    ) : null}
+  </div>
+);
+
+const DesktopDropdownLink = ({
+  item,
+  isActive,
+}: {
+  item: NavigationItem;
+  isActive: boolean;
+}) => (
+  <Link
+    href={item.href}
+    className={`group block rounded-2xl border-2 border-black px-4 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px] ${
+      isActive
+        ? 'bg-[#6C63FF] text-white shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)]'
+        : 'bg-[#f9f9f9] text-black hover:bg-white'
+    }`}
+  >
+    <span className="text-base font-extrabold leading-snug">{item.label}</span>
+    {item.description ? (
+      <span
+        className={`mt-2 block text-sm font-semibold leading-snug ${
+          isActive ? 'text-white/80' : 'text-gray-600'
+        }`}
+      >
+        {item.description}
+      </span>
+    ) : null}
+  </Link>
+);
+
+interface MobileNavSectionProps {
+  category: NavigationCategory;
+  isExpanded: boolean;
+  onToggle: () => void;
+  isActive: boolean;
+  isPathActive: (path: string) => boolean;
+}
+
+const MobileNavSection = ({
+  category,
+  isExpanded,
+  onToggle,
+  isActive,
+  isPathActive,
+}: MobileNavSectionProps) => (
+  <div className="rounded-2xl border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.12)]">
+    <button
+      type="button"
+      onClick={onToggle}
+      className="flex w-full items-center justify-between px-4 py-3 text-left"
+      aria-expanded={isExpanded}
+    >
+      <span
+        className={`text-base font-extrabold uppercase tracking-wide ${
+          isActive ? 'text-[#6C63FF]' : 'text-black'
+        }`}
+      >
+        {category.label}
+      </span>
+      <ChevronDown
+        className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+        aria-hidden="true"
+      />
+    </button>
+    {isExpanded ? (
+      <div className="border-t-2 border-black bg-[#f7f7f7] px-4 py-4">
+        {category.description ? (
+          <p className="text-sm font-semibold text-gray-700">{category.description}</p>
+        ) : null}
+        <div className="mt-4 space-y-4">
+          {category.sections.map((section) => (
+            <div key={section.title} className="space-y-2">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
+                {section.title}
+              </p>
+              <div className="space-y-2">
+                {section.items.map((item) => (
+                  <MobileNavDetailLink
+                    key={item.href}
+                    item={item}
+                    isActive={isPathActive(item.href)}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ) : null}
+  </div>
+);
+
+const MobileNavDetailLink = ({
+  item,
+  isActive,
+}: {
+  item: NavigationItem;
+  isActive: boolean;
+}) => (
+  <Link
+    href={item.href}
+    className={`block rounded-2xl border-2 border-black px-3 py-2 text-left text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px] ${
+      isActive
+        ? 'bg-[#6C63FF] text-white shadow-[5px_5px_0px_0px_rgba(0,0,0,0.2)]'
+        : 'bg-white text-black'
+    }`}
+  >
+    <span>{item.label}</span>
+    {item.description ? (
+      <span
+        className={`mt-1 block text-xs font-semibold leading-snug ${
+          isActive ? 'text-white/80' : 'text-gray-600'
+        }`}
+      >
+        {item.description}
+      </span>
+    ) : null}
   </Link>
 );

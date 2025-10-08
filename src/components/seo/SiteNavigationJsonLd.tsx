@@ -1,8 +1,8 @@
-import { primaryNavigation } from '@/lib/navigation'
+import { siteNavigationItems } from '@/lib/navigation'
 import { buildSiteUrl } from '@/lib/site-url'
 
 export function SiteNavigationJsonLd() {
-  const itemListElement = primaryNavigation.map((item, index) => ({
+  const itemListElement = siteNavigationItems.map((item, index) => ({
     '@type': 'SiteNavigationElement',
     position: index + 1,
     name: item.label,

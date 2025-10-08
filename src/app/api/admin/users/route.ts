@@ -160,11 +160,14 @@ export async function POST(request: Request) {
 
     const { data: profileData, error: profileError } = await serviceClient
       .from('profiles')
-      .insert({
-        user_id: authUser.id,
-        display_name: displayName,
-        is_admin: isAdmin,
-      })
+      .upsert(
+        {
+          user_id: authUser.id,
+          display_name: displayName,
+          is_admin: isAdmin,
+        },
+        { onConflict: 'user_id' },
+      )
       .select(
         `id, user_id, display_name, is_admin, created_at, primary_role_id,
          profile_roles(role:roles(id, slug, name, description, priority))`,

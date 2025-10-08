@@ -56,6 +56,7 @@ import {
 } from '@/lib/storage/profile-photos'
 import { useAuthenticatedProfile } from '@/hooks/useAuthenticatedProfile'
 import '@/styles/neo-brutalism.css'
+import { GamificationOverview } from '@/components/gamification/GamificationOverview'
 
 interface UserAccountPanelProps {
   profile: AuthenticatedProfileSummary
@@ -1362,6 +1363,10 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
             </div>
 
             <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+              <div className="xl:col-span-2">
+                <GamificationOverview profileId={currentProfile.profileId} />
+              </div>
+
               <div className="flex h-full flex-col gap-4 rounded-3xl border-2 border-black bg-white p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.15)]">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>

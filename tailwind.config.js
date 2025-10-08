@@ -49,6 +49,13 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        gamification: {
+          xp: '#6C63FF',
+          streak: '#FF5252',
+          challenge: '#1B9AAA',
+          prestige: '#FFAF00',
+          neutral: '#F7F1FF',
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -12,5 +12,7 @@ declare namespace NodeJS {
     MAILTRAP_PASS?: string
     MAILTRAP_FROM_EMAIL?: string
     MAILTRAP_FROM_NAME?: string
+    UPSTASH_REDIS_REST_URL?: string
+    UPSTASH_REDIS_REST_TOKEN?: string
   }
 }

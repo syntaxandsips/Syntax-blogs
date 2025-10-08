@@ -195,6 +195,7 @@ export interface AdminCommentSummary {
 }
 
 export interface AuthenticatedProfileSummary {
+  profileId: string
   userId: string
   email: string
   displayName: string

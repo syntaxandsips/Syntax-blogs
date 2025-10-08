@@ -111,6 +111,19 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
   const totalPages = sortedBlogs.length === 0 ? 1 : Math.ceil(sortedBlogs.length / PAGE_SIZE);
 
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const sortParam = params.get('sort');
+
+    if (sortParam === 'popular') {
+      setSortBy('popular');
+    }
+  }, []);
+
+  useEffect(() => {
     setPage(1);
   }, [selectedCategories, query, sortBy]);
 

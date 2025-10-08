@@ -1,8 +1,7 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
-
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -20,11 +19,14 @@ import { NewMarkdownRenderer } from '@/components/ui/NewMarkdownRenderer';
 import { NewSummarizeButton } from '@/components/ui/NewSummarizeButton';
 import { SocialFollowItem } from '@/components/ui/SocialFollowItem';
 import { CommentsSection } from '@/components/ui/CommentsSection';
+import { Breadcrumbs, type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import type { BlogListPost, BlogPostDetail } from '@/lib/posts';
 
 interface BlogPostClientProps {
   post: BlogPostDetail;
   relatedPosts: BlogListPost[];
+  canonicalUrl: string;
+  breadcrumbs: BreadcrumbItem[];
 }
 
 const formatDisplayDate = (publishedAt: string | null) =>
@@ -36,7 +38,7 @@ const formatDisplayDate = (publishedAt: string | null) =>
       })
     : 'Unscheduled';
 
-export default function NewBlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
+export default function NewBlogPostClient({ post, relatedPosts, canonicalUrl, breadcrumbs }: BlogPostClientProps) {
   useEffect(() => {
     fetch(`/api/posts/${post.slug}/view`, { method: 'POST' }).catch(() => {
       // Intentionally swallow errors so UI rendering is unaffected.
@@ -51,7 +53,11 @@ export default function NewBlogPostClient({ post, relatedPosts }: BlogPostClient
   const formattedDate = formatDisplayDate(post.publishedAt);
   const tags = post.tags.length > 0 ? post.tags : [categoryBadge];
 
-  const [shareUrl, setShareUrl] = useState(`https://syntaxandsips.com/blogs/${post.slug}`);
+  const [shareUrl, setShareUrl] = useState(canonicalUrl);
+
+  useEffect(() => {
+    setShareUrl(canonicalUrl);
+  }, [canonicalUrl]);
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
 
   useEffect(() => {
@@ -113,6 +119,7 @@ export default function NewBlogPostClient({ post, relatedPosts }: BlogPostClient
   return (
     <div className="w-full bg-[#f0f0f0]">
       <div className="container mx-auto px-4 py-8">
+        <Breadcrumbs items={breadcrumbs} />
         <Link
           href="/blogs"
           className="inline-flex items-center gap-2 mb-8 font-bold hover:text-[#6C63FF] transition"
@@ -157,10 +164,14 @@ export default function NewBlogPostClient({ post, relatedPosts }: BlogPostClient
               <div className="p-6">
                 {post.featuredImageUrl && (
                   <div className="mb-6 overflow-hidden rounded-md border-4 border-black/10">
-                    <img
+                    <Image
                       src={post.featuredImageUrl}
-                      alt={post.title}
+                      alt={`${post.title} featured illustration`}
+                      width={1200}
+                      height={630}
+                      priority
                       className="h-auto w-full object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1280px) 75vw, 60vw"
                     />
                   </div>
                 )}

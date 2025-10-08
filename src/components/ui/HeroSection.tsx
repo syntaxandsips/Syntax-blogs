@@ -28,10 +28,12 @@ export const HeroSection = () => {
                 Conversation
               </span>
             </h1>
+            <h2 className="text-2xl md:text-3xl font-extrabold uppercase tracking-wider text-gray-700 mb-6">
+              Machine Learning Tutorials · Data Science Playbooks · Quantum Computing Deep Dives
+            </h2>
             <p className="text-xl md:text-2xl mb-10 max-w-2xl">
-              From coding tutorials to tech reviews, gaming sessions to casual
-              chit-chat — we brew content that&apos;s both educational and
-              entertaining.
+              From applied AI walkthroughs and coding tutorials to product reviews and creator conversations, we brew content
+              that&apos;s both educational and entertaining.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
               <Link

@@ -29,3 +29,7 @@ export const getSiteUrl = () => {
 
   return DEFAULT_SITE_URL
 }
+
+const ensureLeadingSlash = (path: string) => (path.startsWith('/') ? path : `/${path}`)
+
+export const buildSiteUrl = (path = '/') => `${getSiteUrl()}${ensureLeadingSlash(path)}`

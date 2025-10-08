@@ -1,15 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
 # **Neobrutalism Components - Complete Reference Guide**
 
 ## **Installation Overview**

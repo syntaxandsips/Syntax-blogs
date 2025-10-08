@@ -80,8 +80,12 @@ export function generateStaticParams() {
 
 type DocsPageParams = { filename: string };
 
-async function DocPageImpl({ params }: { params: DocsPageParams }) {
-  const { filename: rawFilename } = params;
+type DocPageProps = {
+  params: Promise<DocsPageParams>;
+};
+
+export default async function DocPage({ params }: DocPageProps) {
+  const { filename: rawFilename } = await params;
 
   try {
     const resolvedFilename = resolveDocumentFilename(rawFilename);
@@ -110,14 +114,6 @@ async function DocPageImpl({ params }: { params: DocsPageParams }) {
     return notFound();
   }
 }
-
-const DocPage = DocPageImpl as unknown as ({
-  params,
-}: {
-  params: Promise<DocsPageParams>;
-}) => ReturnType<typeof DocPageImpl>;
-
-export default DocPage;
 
 async function renderMarkdown(markdown: string): Promise<string> {
   const [

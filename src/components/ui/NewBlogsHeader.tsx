@@ -15,7 +15,8 @@ export function NewBlogsHeader() {
           </span>
         </h1>
         <p className="mt-6 text-xl text-center max-w-2xl mx-auto">
-          Exploring the cutting edge of artificial intelligence, machine learning, and deep learning
+          Exploring the cutting edge of artificial intelligence, machine learning, data science workflows, quantum computing,
+          coding tutorials, and product reviews.
         </p>
       </div>
     </div>

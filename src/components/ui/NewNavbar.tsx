@@ -8,6 +8,7 @@ import { GlobalSearch } from './GlobalSearch';
 import { useClientPathname } from '@/hooks/useClientPathname';
 import { useAuthenticatedProfile } from '@/hooks/useAuthenticatedProfile';
 import type { AuthenticatedProfileSummary } from '@/utils/types';
+import { primaryNavigation } from '@/lib/navigation';
 
 export const NewNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,18 +36,11 @@ export const NewNavbar = () => {
           <NavbarLogo />
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
-            <NavLink href="/" isActive={isActive('/')}> 
-              Home
-            </NavLink>
-            <NavLink href="/blogs" isActive={isActive('/blogs')}>
-              Blogs
-            </NavLink>
-            <NavLink href="/podcasts" isActive={isActive('/podcasts')}>
-              Podcasts
-            </NavLink>
-            <NavLink href="/changelog" isActive={isActive('/changelog')}>
-              Changelogs
-            </NavLink>
+            {primaryNavigation.map((item) => (
+              <NavLink key={item.href} href={item.href} isActive={isActive(item.href)}>
+                {item.label}
+              </NavLink>
+            ))}
             <GlobalSearch />
             <div className="flex items-center gap-3">
               {isLoading ? (
@@ -97,18 +91,11 @@ export const NewNavbar = () => {
         {isOpen && (
           <div className="md:hidden mt-4 pb-4">
             <div className="flex flex-col space-y-4">
-              <MobileNavLink href="/" isActive={isActive('/')}> 
-                Home
-              </MobileNavLink>
-              <MobileNavLink href="/blogs" isActive={isActive('/blogs')}>
-                Blogs
-              </MobileNavLink>
-              <MobileNavLink href="/podcasts" isActive={isActive('/podcasts')}>
-                Podcasts
-              </MobileNavLink>
-              <MobileNavLink href="/changelog" isActive={isActive('/changelog')}>
-                Changelogs
-              </MobileNavLink>
+              {primaryNavigation.map((item) => (
+                <MobileNavLink key={item.href} href={item.href} isActive={isActive(item.href)}>
+                  {item.label}
+                </MobileNavLink>
+              ))}
               {isLoading ? (
                 <div className="grid grid-cols-1">
                   <span className="h-10 rounded-lg border-2 border-dashed border-black/40 bg-white animate-pulse" aria-hidden />

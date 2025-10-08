@@ -1,3 +1,8 @@
+# Comprehensive Code Review Prompt & Reporting Template
+
+## 1. Review Prompt
+
+````markdown
 You are an expert senior software engineer and security specialist with extensive experience in code review, architecture analysis, and quality assurance. Your task is to perform a comprehensive code review of the entire application/codebase provided below.
 
 ### Review Scope and Requirements
@@ -116,13 +121,11 @@ You are an expert senior software engineer and security specialist with extensiv
 7. Include both quick fixes and long-term improvements
 
 Begin your comprehensive analysis now.
-```
-
----
+````
 
 ## 2. Markdown Template for Results
 
-```
+````markdown
 # Comprehensive Code Review Report
 
 ## Executive Summary
@@ -340,17 +343,11 @@ Begin your comprehensive analysis now.
 **Report Generated**: [Date]
 **Reviewer**: [AI Assistant]
 **Next Review Date**: [Suggested date]
-```
-
----
+````
 
 ## 3. Instructions for Generating Actionable Tasks
 
-Based on the code review results, the AI should automatically generate detailed tasks using this structure:
-
-### Task Generation Logic
-
-```
+````markdown
 Based on your code review findings, generate detailed tasks for each issue found using the following structure:
 
 For each issue identified:
@@ -369,7 +366,7 @@ For each issue identified:
 
 ### Task Template Example
 
-```
+```markdown
 ### Task: Fix SQL Injection Vulnerability in User Authentication
 
 **Category**: Security  
@@ -381,7 +378,7 @@ For each issue identified:
 The application is vulnerable to SQL injection attacks in the user authentication function. User input is directly concatenated into SQL queries without proper sanitization, allowing malicious users to execute arbitrary SQL commands.
 
 #### Current Code
-```
+```javascript
 const query = "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'";
 ```
 
@@ -392,7 +389,7 @@ const query = "SELECT * FROM users WHERE username = '" + username + "' AND passw
 4. Update related unit tests
 
 #### Fixed Code
-```
+```javascript
 const query = "SELECT * FROM users WHERE username = ? AND password = ?";
 const values = [username, password];
 connection.query(query, values, (error, results) => {
@@ -418,11 +415,9 @@ connection.query(query, values, (error, results) => {
 ```
 
 Generate tasks for ALL issues found in the code review, organized by priority level and category.
-```
+````
 
----
-
-## How to Use This System
+## 4. How to Use This System
 
 1. **Copy the comprehensive prompt** and paste it into your AI tool (Codex, ChatGPT, Claude, etc.)
 2. **Provide your codebase** either by pasting it directly or providing repository access
@@ -438,6 +433,4 @@ This system ensures:
 - Detailed implementation guidance
 - Traceability from issue to resolution
 
-
-__
-you have unlimited time and resource gothrough eachand every files back and frth to check the logic an dgaps nad dependecy and all.
+_You have unlimited time and resources—go through each and every file repeatedly to check the logic, gaps, dependencies, and all related concerns._

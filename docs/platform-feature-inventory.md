@@ -152,4 +152,39 @@ This reference catalogs the current Syntax & Sips surface area so feature work, 
   - [ ] Verify member account view reflects latest comment statuses and associated post links.【F:src/app/account/page.tsx†L73-L118】
   - [ ] Stress test comment filters for `pending`, `approved`, and `rejected` without runtime errors.【F:src/components/admin/CommentsModeration.tsx†L1-L160】
 
-Use this matrix as the canonical backlog of current experiences; update it whenever new features ship or dependencies change to keep QA coverage comprehensive.
+## QA Execution Report — 2025-10-08
+
+| Command / Scenario | Coverage Area | Result | Notes |
+| --- | --- | --- | --- |
+| `npm run lint` | Static analysis for all App Router routes, components, and utilities | ✅ Pass | ESLint completed without warnings or errors, confirming project-wide TypeScript/React conventions remain intact.【9f47f1†L1-L5】【3df00c†L1-L1】 |
+| `npm run test` | Playwright regression pack (auth flows + newsletter API) | ⚠️ Partial | Newsletter API route specs failed because the Mailtrap transporter rejects missing credentials and Supabase service-role calls cannot connect in CI, while auth specs were skipped due to unmet prerequisites.【2c353b†L1-L5】【eed7b6†L1-L14】【89c566†L1-L42】 |
+
+### Additional Observations
+- Newsletter transport errors originate from the runtime guard that requires `MAILTRAP_USER` and `MAILTRAP_PASS` before Nodemailer is instantiated.【F:src/lib/mailtrap.ts†L1-L26】
+- Even after bypassing email transport, the Supabase-powered `saveSubscriber` helper throws when service-role credentials are unavailable, producing the fallback 500 response validated in the Playwright failure log.【F:src/app/api/newsletter/route.ts†L1-L72】【F:src/lib/newsletter.ts†L1-L78】【89c566†L1-L42】
+- The spec expectation for the upstream failure messaging (`"Unable to subscribe"`) no longer matches the API response copy, which now returns a generic recovery prompt to the client.【F:src/app/api/newsletter/route.ts†L53-L72】【89c566†L31-L42】
+
+## Follow-up Task Backlog
+
+- [ ] **Stabilize Mailtrap configuration for automated runs**  
+  **Priority:** High  
+  **Requirements:** Provide non-production values for `MAILTRAP_USER`, `MAILTRAP_PASS`, optional host/port, and sender metadata so `createMailtrapTransport` can build a transporter during tests.【F:src/lib/mailtrap.ts†L1-L26】  
+  **Dependencies:** Secrets management in CI, local `.env.local` for contributors, and any mocking strategy adopted in Playwright fixtures.  
+  **Blocked by:** Access to sandbox Mailtrap credentials.
+- [ ] **Mock external email delivery in newsletter Playwright specs**  
+  **Priority:** Medium  
+  **Requirements:** Extend test setup to stub `createMailtrapTransport` or inject a fake via dependency injection, allowing specs to verify request payloads without real SMTP credentials.【F:src/app/api/newsletter/route.ts†L1-L72】【eed7b6†L1-L14】  
+  **Dependencies:** Playwright fixtures, test environment module resolution, and potential refactor to accept injectable transporters.  
+  **Blocked by:** Decision on mocking framework (e.g., `vi.mock`, custom fetch interceptors).
+- [ ] **Align failure copy between API route and tests**  
+  **Priority:** Medium  
+  **Requirements:** Update either the API response string or the Playwright assertion so both expect the same recovery messaging when Supabase is unavailable.【F:src/app/api/newsletter/route.ts†L53-L72】【89c566†L31-L42】  
+  **Dependencies:** Product decision on final wording, ensuring marketing/legal review for user-facing copy changes.  
+  **Blocked by:** Confirmation of preferred UX copy.
+- [ ] **Provision Supabase service-role credentials or mock client**  
+  **Priority:** High  
+  **Requirements:** Supply test-safe `createServiceRoleClient` configuration or introduce a mocked client to avoid `connection refused` errors when `saveSubscriber` performs reads/writes during tests.【F:src/lib/newsletter.ts†L19-L78】【89c566†L13-L29】  
+  **Dependencies:** Secrets storage, Supabase project dedicated to QA, or dependency injection for database client.  
+  **Blocked by:** Availability of service-role key with restricted permissions.
+
+Use this matrix and the execution report as the canonical backlog of current experiences; update it whenever new features ship, dependencies change, or QA coverage evolves to keep regression protection comprehensive and actionable.

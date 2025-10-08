@@ -99,6 +99,20 @@ export async function cacheInvalidate(prefix: string) {
   }
 }
 
+export const clearLeaderboardSnapshots = async (supabase: SupabaseClient, scope?: string) => {
+  try {
+    const baseQuery = supabase.from('leaderboard_snapshots').delete()
+    const query = scope ? baseQuery.eq('scope', scope) : baseQuery.gte('captured_at', '1970-01-01T00:00:00Z')
+    const { error } = await query
+
+    if (error) {
+      console.error('Failed to clear leaderboard snapshots', error)
+    }
+  } catch (error) {
+    console.error('Unexpected error while clearing leaderboard snapshots', error)
+  }
+}
+
 export const upsertGamificationProfile = async (
   supabase: SupabaseClient,
   profileId: string,

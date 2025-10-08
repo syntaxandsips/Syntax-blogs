@@ -5,6 +5,7 @@ import {
   cacheInvalidate,
   cacheSet,
   buildCacheKey,
+  clearLeaderboardSnapshots,
 } from './cache'
 import type {
   ActionDefinition,
@@ -366,6 +367,7 @@ export const recordAction = async (
   }
 
   await cacheInvalidate(buildCacheKey('gamification', 'leaderboard'))
+  await clearLeaderboardSnapshots(supabase)
 
   const profileSummary = mapProfileRowToSummary(updatedRow, nextLevelXp)
 

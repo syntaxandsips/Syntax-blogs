@@ -1,0 +1,26 @@
+{
+  "server": {
+    "name": "syntax-sips-storage",
+    "version": "0.1.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "header": "authorization"
+  },
+  "tools": [
+    {
+      "name": "upload-asset",
+      "title": "Upload Asset",
+      "description": "Upload media assets to storage",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "contentType": { "type": "string" },
+          "data": { "type": "string" }
+        },
+        "required": ["path", "contentType", "data"]
+      }
+    }
+  ]
+}

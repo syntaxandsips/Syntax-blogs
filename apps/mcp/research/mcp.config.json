@@ -1,0 +1,25 @@
+{
+  "server": {
+    "name": "syntax-sips-research",
+    "version": "0.1.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "header": "authorization"
+  },
+  "tools": [
+    {
+      "name": "search",
+      "title": "Search Knowledge Sources",
+      "description": "Run federated search across configured providers",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string" },
+          "limit": { "type": "number" }
+        },
+        "required": ["query"]
+      }
+    }
+  ]
+}

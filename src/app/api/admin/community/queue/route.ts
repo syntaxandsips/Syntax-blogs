@@ -50,6 +50,22 @@ export async function POST(request: NextRequest) {
 
   const serviceClient = createServiceRoleClient()
 
+  const buildProxyHeaders = () => {
+    const headers = new Headers({ 'Content-Type': 'application/json' })
+    const cookie = request.headers.get('cookie')
+    const authorization = request.headers.get('authorization')
+
+    if (cookie) {
+      headers.set('cookie', cookie)
+    }
+
+    if (authorization) {
+      headers.set('authorization', authorization)
+    }
+
+    return headers
+  }
+
   if (entityType === 'application') {
     const parsed = authorApplicationReviewSchema.safeParse({
       applicationId: body?.applicationId,
@@ -152,7 +168,7 @@ export async function POST(request: NextRequest) {
           `${request.nextUrl.origin}/api/community/submissions/${transition.submissionId}/feedback`,
           {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: buildProxyHeaders(),
             body: JSON.stringify({ notes: transition.notes }),
           },
         )
@@ -163,7 +179,7 @@ export async function POST(request: NextRequest) {
           `${request.nextUrl.origin}/api/community/submissions/${transition.submissionId}/approve`,
           {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: buildProxyHeaders(),
             body: JSON.stringify({ notes: transition.notes }),
           },
         )
@@ -174,7 +190,7 @@ export async function POST(request: NextRequest) {
           `${request.nextUrl.origin}/api/community/submissions/${transition.submissionId}/decline`,
           {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: buildProxyHeaders(),
             body: JSON.stringify({ notes: transition.notes }),
           },
         )

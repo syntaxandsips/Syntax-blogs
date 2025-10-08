@@ -106,7 +106,6 @@ const mapProfileRowToSummary = (
 ): GamificationProfileSummary => {
   const xpTotal = Number(row.xp_total ?? 0)
   const currentLevel = Number(row.level ?? 1)
-  const xpToNext = Math.max(nextLevelXp - xpTotal, 0)
   const levelProgress = nextLevelXp > 0 ? Math.min((xpTotal / nextLevelXp) * 100, 100) : 0
 
   return {

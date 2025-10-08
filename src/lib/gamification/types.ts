@@ -1,3 +1,4 @@
+import type { SupabaseClient as SupabaseClientBase } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/types'
 
 type Json = Database['public']['Tables']['gamification_profiles']['Row']['settings']
@@ -141,8 +142,4 @@ export interface ConsentToggleInput {
   optedIn: boolean
 }
 
-export type SupabaseClient = ReturnType<typeof import('@supabase/supabase-js')['createClient']<
-  Database,
-  'public',
-  any
->>
+export type SupabaseClient = SupabaseClientBase

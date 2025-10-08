@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server-client'
+import { extractRelationSlug, isRecordLike } from '@/lib/gamification/utils'
 import { requireAdmin } from '../shared'
 
 export const dynamic = 'force-dynamic'
@@ -49,8 +50,12 @@ export async function GET() {
 
   if (!badgesQuery.error) {
     for (const entry of badgesQuery.data ?? []) {
-      const slug = Array.isArray(entry.badges) ? entry.badges[0]?.slug : (entry as any)?.badges?.slug
-      if (typeof slug === 'string') {
+      if (!isRecordLike(entry)) {
+        continue
+      }
+
+      const slug = extractRelationSlug(entry.badges)
+      if (slug) {
         badgeCounts[slug] = (badgeCounts[slug] ?? 0) + 1
       }
     }
@@ -59,6 +64,10 @@ export async function GET() {
   const challengeStatusCounts: Record<string, number> = {}
   if (!challengesQuery.error) {
     for (const entry of challengesQuery.data ?? []) {
+      if (!isRecordLike(entry)) {
+        continue
+      }
+
       const status = typeof entry.status === 'string' ? entry.status : 'unknown'
       challengeStatusCounts[status] = (challengeStatusCounts[status] ?? 0) + 1
     }

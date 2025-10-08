@@ -1,4 +1,5 @@
 import type { SupabaseClient } from './types'
+import { extractRelationSlug, isRecordLike } from './utils'
 
 const LEVEL_ROLE_THRESHOLDS: Array<{ level: number; roleSlug: string }> = [
   { level: 2, roleSlug: 'community-member' },
@@ -47,8 +48,12 @@ const fetchOwnedBadges = async (supabase: SupabaseClient, profileId: string) => 
 
   const slugs = new Set<string>()
   for (const entry of data ?? []) {
-    const slug = Array.isArray(entry.badges) ? entry.badges[0]?.slug : (entry as any)?.badges?.slug
-    if (typeof slug === 'string') {
+    if (!isRecordLike(entry)) {
+      continue
+    }
+
+    const slug = extractRelationSlug(entry.badges)
+    if (slug) {
       slugs.add(slug)
     }
   }
@@ -95,8 +100,12 @@ export const syncRolesForProfile = async (
   const roleIdBySlug = new Map<string, string>()
 
   for (const entry of existingRoles ?? []) {
-    const slug = Array.isArray(entry.roles) ? entry.roles[0]?.slug : (entry as any)?.roles?.slug
-    if (typeof slug === 'string') {
+    if (!isRecordLike(entry)) {
+      continue
+    }
+
+    const slug = extractRelationSlug(entry.roles)
+    if (slug) {
       ownedRoleSlugs.add(slug)
       if (typeof entry.role_id === 'string') {
         roleIdBySlug.set(slug, entry.role_id)

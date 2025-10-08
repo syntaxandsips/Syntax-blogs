@@ -12,6 +12,14 @@ import type {
   OwnedBadge,
   SupabaseClient,
 } from './types'
+import {
+  extractNumericField,
+  ensureJsonRecord,
+  isBadgeState,
+  isRecordLike,
+  toNumber,
+  toNullableString,
+} from './utils'
 
 const PROFILE_CACHE_TTL_SECONDS = 60
 const LEADERBOARD_CACHE_TTL_SECONDS = 30
@@ -20,7 +28,7 @@ const mapProfileRow = (
   row: Database['public']['Tables']['gamification_profiles']['Row'],
 ): GamificationProfileSummary => {
   const xpTotal = Number(row.xp_total ?? 0)
-  const nextLevelXp = Number((row.level_progress as any)?.nextLevelXp ?? 0)
+  const nextLevelXp = extractNumericField(row.level_progress, 'nextLevelXp') ?? 0
   const progressPercentage = nextLevelXp > 0 ? Math.min((xpTotal / nextLevelXp) * 100, 100) : 0
 
   return {
@@ -35,35 +43,86 @@ const mapProfileRow = (
     optedIn: Boolean(row.opted_in),
     lastActionAt: row.last_action_at,
     streakFrozenUntil: row.streak_frozen_until,
-    settings: row.settings ?? {},
+    settings: ensureJsonRecord(row.settings ?? {}),
   }
 }
 
-const mapOwnedBadge = (
-  badge: {
-    badges: { id: string; slug: string; name: string; description: string | null; category: string; rarity: string; icon: string | null; theme: string | null; requirements: Record<string, unknown>; reward_points: number; available_from: string | null; available_to: string | null } | null
-    awarded_at: string
-    state: 'awarded' | 'revoked' | 'suspended'
-    notified_at: string | null
-  },
-): OwnedBadge | null => {
-  if (!badge.badges) return null
+interface BadgeDetails {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+  category: string
+  rarity: string
+  icon: string | null
+  theme: string | null
+  requirements: Record<string, unknown>
+  rewardPoints: number
+  availableFrom: string | null
+  availableTo: string | null
+}
+
+const resolveBadgeDetails = (value: unknown): BadgeDetails | null => {
+  if (!isRecordLike(value)) {
+    return null
+  }
+
+  const requiredStrings: Array<keyof typeof value> = ['id', 'slug', 'name', 'category', 'rarity']
+  if (!requiredStrings.every((key) => typeof value[key] === 'string')) {
+    return null
+  }
+
+  const requirements = ensureJsonRecord(value.requirements)
+
   return {
-    id: badge.badges.id,
-    slug: badge.badges.slug,
-    name: badge.badges.name,
-    description: badge.badges.description,
-    category: badge.badges.category,
-    rarity: badge.badges.rarity,
-    icon: badge.badges.icon,
-    theme: badge.badges.theme,
-    requirements: badge.badges.requirements,
-    rewardPoints: badge.badges.reward_points,
-    availableFrom: badge.badges.available_from,
-    availableTo: badge.badges.available_to,
-    awardedAt: badge.awarded_at,
-    state: badge.state,
-    notifiedAt: badge.notified_at,
+    id: value.id as string,
+    slug: value.slug as string,
+    name: value.name as string,
+    description: typeof value.description === 'string' ? value.description : null,
+    category: value.category as string,
+    rarity: value.rarity as string,
+    icon: toNullableString(value.icon),
+    theme: toNullableString(value.theme),
+    requirements,
+    rewardPoints: toNumber(value.reward_points, 0),
+    availableFrom: toNullableString(value.available_from),
+    availableTo: toNullableString(value.available_to),
+  }
+}
+
+const mapOwnedBadge = (badge: unknown): OwnedBadge | null => {
+  if (!isRecordLike(badge)) {
+    return null
+  }
+
+  const details = resolveBadgeDetails(badge.badges)
+  if (!details) {
+    return null
+  }
+
+  const awardedAt = toNullableString(badge.awarded_at)
+  const state = isBadgeState(badge.state) ? badge.state : null
+
+  if (!awardedAt || !state) {
+    return null
+  }
+
+  return {
+    id: details.id,
+    slug: details.slug,
+    name: details.name,
+    description: details.description,
+    category: details.category,
+    rarity: details.rarity,
+    icon: details.icon,
+    theme: details.theme,
+    requirements: details.requirements,
+    rewardPoints: details.rewardPoints,
+    availableFrom: details.availableFrom,
+    availableTo: details.availableTo,
+    awardedAt,
+    state,
+    notifiedAt: toNullableString(badge.notified_at),
   }
 }
 
@@ -107,7 +166,7 @@ export const fetchGamificationProfile = async (
 
   const profile = profileRow ? mapProfileRow(profileRow) : null
   const badges = (badgesData ?? [])
-    .map((badge) => mapOwnedBadge(badge as any))
+    .map((badge) => mapOwnedBadge(badge))
     .filter((value): value is OwnedBadge => Boolean(value))
 
   const recentActions = (actionsData ?? []).map((action) => ({
@@ -139,26 +198,48 @@ interface LeaderboardPayload {
   capturedAt: string
 }
 
-const mapLeaderboardEntries = (
-  rows: Array<{
-    profile_id: string
-    xp_total: number
-    level: number
-    current_streak: number
-    profiles: { display_name: string | null; avatar_url: string | null } | null
-    badges: { slug: string }[] | null
-  }>,
-): LeaderboardEntry[] =>
-  rows.map((row, index) => ({
-    profileId: row.profile_id,
-    xp: Number(row.xp_total ?? 0),
-    level: Number(row.level ?? 1),
-    streak: Number(row.current_streak ?? 0),
-    displayName: row.profiles?.display_name ?? 'Community member',
-    avatarUrl: row.profiles?.avatar_url ?? null,
-    badges: (row.badges ?? []).map((badge) => badge.slug),
-    rank: index + 1,
-  }))
+const mapLeaderboardEntries = (rows: unknown[]): LeaderboardEntry[] =>
+  rows
+    .map((row, index) => {
+      if (!isRecordLike(row)) {
+        return null
+      }
+
+      const profileId = typeof row.profile_id === 'string' ? row.profile_id : null
+      if (!profileId) {
+        return null
+      }
+
+      const xp = toNumber(row.xp_total, 0)
+      const level = toNumber(row.level, 1)
+      const streak = toNumber(row.current_streak, 0)
+
+      const profileSource = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles
+      const displayName =
+        isRecordLike(profileSource) && typeof profileSource.display_name === 'string'
+          ? profileSource.display_name
+          : null
+      const avatarUrl =
+        isRecordLike(profileSource) && typeof profileSource.avatar_url === 'string'
+          ? profileSource.avatar_url
+          : null
+
+      const badgeSlugs = (Array.isArray(row.badges) ? row.badges : [])
+        .map((badge) => (isRecordLike(badge) && typeof badge.slug === 'string' ? badge.slug : null))
+        .filter((slug): slug is string => Boolean(slug))
+
+      return {
+        profileId,
+        xp,
+        level,
+        streak,
+        displayName: displayName ?? 'Community member',
+        avatarUrl: avatarUrl ?? null,
+        badges: badgeSlugs,
+        rank: index + 1,
+      }
+    })
+    .filter((entry): entry is LeaderboardEntry => Boolean(entry))
 
 export const fetchLeaderboard = async (
   filters: LeaderboardFilters,

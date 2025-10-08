@@ -5,6 +5,7 @@ import { Loader2, RefreshCcw, Save, Star, Flame, Target } from 'lucide-react'
 import { NeobrutalCard } from '@/components/neobrutal/card'
 import { NeobrutalProgressBar } from '@/components/neobrutal/progress-bar'
 import { cn } from '@/lib/utils'
+import { isRecordLike, toNumber } from '@/lib/gamification/utils'
 
 interface BadgeFormState {
   id?: string
@@ -34,6 +35,133 @@ interface AnalyticsState {
   }
   badges: Record<string, number>
   challenges: Record<string, number>
+}
+
+const normalizeBadgePayload = (payload: unknown): BadgeFormState | null => {
+  if (!isRecordLike(payload)) {
+    return null
+  }
+
+  const slug = typeof payload.slug === 'string' ? payload.slug : null
+  const name = typeof payload.name === 'string' ? payload.name : null
+  const category = typeof payload.category === 'string' ? payload.category : null
+  const rarity = typeof payload.rarity === 'string' ? payload.rarity : 'common'
+
+  if (!slug || !name || !category) {
+    return null
+  }
+
+  const rewardSource = 'rewardPoints' in payload ? payload.rewardPoints : payload.reward_points
+  const rewardPoints = toNumber(rewardSource, 0)
+
+  return {
+    id: typeof payload.id === 'string' ? payload.id : undefined,
+    slug,
+    name,
+    category,
+    rarity,
+    rewardPoints,
+    description: typeof payload.description === 'string' ? payload.description : '',
+  }
+}
+
+const cadenceOptions: ReadonlyArray<ChallengeFormState['cadence']> = [
+  'daily',
+  'weekly',
+  'monthly',
+  'seasonal',
+  'event',
+] as const
+
+const isCadenceValue = (value: unknown): value is ChallengeFormState['cadence'] =>
+  typeof value === 'string' && cadenceOptions.some((option) => option === value)
+
+const formatCadenceLabel = (cadence: ChallengeFormState['cadence']) =>
+  cadence.charAt(0).toUpperCase() + cadence.slice(1)
+
+const normalizeChallengePayload = (payload: unknown): ChallengeFormState | null => {
+  if (!isRecordLike(payload)) {
+    return null
+  }
+
+  const slug = typeof payload.slug === 'string' ? payload.slug : null
+  const title = typeof payload.title === 'string' ? payload.title : null
+  const cadence = isCadenceValue(payload.cadence) ? payload.cadence : 'weekly'
+
+  if (!slug || !title) {
+    return null
+  }
+
+  const rewardSource = 'rewardPoints' in payload ? payload.rewardPoints : payload.reward_points
+  const rewardPoints = toNumber(rewardSource, 0)
+
+  return {
+    id: typeof payload.id === 'string' ? payload.id : undefined,
+    slug,
+    title,
+    cadence,
+    rewardPoints,
+    description: typeof payload.description === 'string' ? payload.description : '',
+  }
+}
+
+const normalizeAnalyticsPayload = (payload: unknown): AnalyticsState => {
+  const base: AnalyticsState = {
+    profiles: {
+      total: 0,
+      totalXp: 0,
+      averageLevel: 0,
+      streakLeaders: [],
+    },
+    badges: {},
+    challenges: {},
+  }
+
+  if (!isRecordLike(payload)) {
+    return base
+  }
+
+  if (isRecordLike(payload.profiles)) {
+    base.profiles.total = toNumber(payload.profiles.total, 0)
+    base.profiles.totalXp = toNumber(payload.profiles.totalXp, 0)
+    base.profiles.averageLevel = toNumber(payload.profiles.averageLevel, 0)
+    const leadersSource = Array.isArray(payload.profiles.streakLeaders)
+      ? payload.profiles.streakLeaders
+      : []
+    base.profiles.streakLeaders = leadersSource
+      .map((entry: unknown) => {
+        if (!isRecordLike(entry)) {
+          return null
+        }
+
+        const profileId = typeof entry.profileId === 'string' ? entry.profileId : null
+        if (!profileId) {
+          return null
+        }
+
+        return {
+          profileId,
+          streak: toNumber(entry.streak, 0),
+          level: toNumber(entry.level, 1),
+          xp: toNumber(entry.xp, 0),
+        }
+      })
+      .filter((value): value is AnalyticsState['profiles']['streakLeaders'][number] => Boolean(value))
+  }
+
+  if (isRecordLike(payload.badges)) {
+    for (const [slug, total] of Object.entries(payload.badges)) {
+      base.badges[slug] = toNumber(total, 0)
+    }
+  }
+
+  if (isRecordLike(payload.challenges)) {
+    for (const [status, count] of Object.entries(payload.challenges)) {
+      base.challenges[status] = toNumber(count, 0)
+    }
+  }
+
+  return base
 }
 
 const defaultBadge: BadgeFormState = {
@@ -93,24 +221,26 @@ export const GamificationPanel = () => {
         throw new Error(challengesPayload.error ?? 'Unable to load challenges.')
       }
 
-      setAnalytics(analyticsPayload)
-      setBadges((badgesPayload.badges ?? []).map((badge: any) => ({
-        id: badge.id,
-        slug: badge.slug,
-        name: badge.name,
-        category: badge.category,
-        rarity: badge.rarity,
-        rewardPoints: Number(badge.rewardPoints ?? badge.reward_points ?? 0),
-        description: badge.description ?? '',
-      })))
-      setChallenges((challengesPayload.challenges ?? []).map((challenge: any) => ({
-        id: challenge.id,
-        slug: challenge.slug,
-        title: challenge.title,
-        cadence: challenge.cadence,
-        rewardPoints: Number(challenge.rewardPoints ?? challenge.reward_points ?? 0),
-        description: challenge.description ?? '',
-      })))
+      const analyticsData = normalizeAnalyticsPayload(analyticsPayload)
+      setAnalytics(analyticsData)
+
+      const badgeList: unknown[] = Array.isArray(badgesPayload.badges)
+        ? badgesPayload.badges
+        : []
+      setBadges(
+        badgeList
+          .map((badge: unknown) => normalizeBadgePayload(badge))
+          .filter((badge): badge is BadgeFormState => Boolean(badge)),
+      )
+
+      const challengeList: unknown[] = Array.isArray(challengesPayload.challenges)
+        ? challengesPayload.challenges
+        : []
+      setChallenges(
+        challengeList
+          .map((challenge: unknown) => normalizeChallengePayload(challenge))
+          .filter((challenge): challenge is ChallengeFormState => Boolean(challenge)),
+      )
     } catch (error) {
       console.error('Failed to load gamification admin data', error)
       setFeedback(error instanceof Error ? error.message : 'Unable to load gamification data.')
@@ -410,14 +540,17 @@ export const GamificationPanel = () => {
                   className="mt-1 w-full rounded-lg border-2 border-black bg-white px-3 py-2 text-sm font-semibold shadow-[4px_4px_0px_rgba(0,0,0,0.12)]"
                   value={challengeForm.cadence}
                   onChange={(event) =>
-                    setChallengeForm((prev) => ({ ...prev, cadence: event.target.value as ChallengeFormState['cadence'] }))
+                    setChallengeForm((prev) => ({
+                      ...prev,
+                      cadence: isCadenceValue(event.target.value) ? event.target.value : prev.cadence,
+                    }))
                   }
                 >
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="seasonal">Seasonal</option>
-                  <option value="event">Event</option>
+                  {cadenceOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {formatCadenceLabel(option)}
+                    </option>
+                  ))}
                 </select>
               </label>
               <label className="text-xs font-semibold uppercase tracking-wide text-gray-600">

@@ -9,24 +9,23 @@ export function generateMetadata(): Metadata {
   const canonical = buildSiteUrl('/blogs');
 
   return {
-    title: 'AI, Machine Learning & Data Science Blog Library',
+    title: 'Syntax & Sips blog — Build notes & release updates',
     description:
-      'Browse Syntax & Sips articles on machine learning, data science workflows, quantum computing experiments, and coding best practices.',
+      'Browse Syntax & Sips articles documenting how we are building the platform, the decisions we make, and the features we ship.',
     alternates: {
       canonical,
     },
     openGraph: {
       type: 'website',
       url: canonical,
-      title: 'Syntax & Sips Blog — Machine Learning, Quantum & Coding Tutorials',
+      title: 'Syntax & Sips blog — Build notes & release updates',
       description:
-        'Filter hundreds of Syntax & Sips tutorials, reviews, and explainers spanning ML, data engineering, quantum computing, and creative coding.',
+        'Progress updates, documentation drafts, and honest retrospectives from the Syntax & Sips team.',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Syntax & Sips Blog',
-      description:
-        'Stay current with Syntax & Sips machine learning and quantum computing breakdowns.',
+      title: 'Syntax & Sips blog',
+      description: 'Follow the work as we build Syntax & Sips.',
     },
   };
 }

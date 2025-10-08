@@ -1,56 +1,38 @@
 import { Metadata } from 'next';
-import { Briefcase, FolderGit2, GraduationCap, Library, Newspaper } from 'lucide-react';
+import { FileText, FolderGit2, LayoutTemplate } from 'lucide-react';
 import { PageShell, PageHero, ContentSection, CtaButton } from '@/components/ui/PageLayout';
 
-const resourceCollections = [
+const availableResources = [
   {
-    title: 'Starter templates',
-    description: 'Opinionated boilerplates for Next.js, Remix, and Astro with testing, linting, and deployment ready to go.',
-    icon: FolderGit2,
-    linkLabel: 'View templates',
-    href: '/docs',
+    title: 'Documentation',
+    description: 'Architecture notes, contribution guides, and editorial standards live in our docs folder.',
+    href: '/docs/markdown-guide.md',
+    icon: FileText,
   },
   {
-    title: 'Team playbooks',
-    description: 'Download battle-tested rituals, meeting cadences, and handoff docs to keep cross-functional teams aligned.',
-    icon: Briefcase,
-    linkLabel: 'Run the play',
+    title: 'Blog library',
+    description: 'Long-form posts break down the experiments and systems we are building in real time.',
     href: '/blogs',
+    icon: LayoutTemplate,
   },
   {
-    title: 'Learning paths',
-    description: 'Step-by-step curriculum recommendations to go from fundamentals to advanced topics without burning out.',
-    icon: GraduationCap,
-    linkLabel: 'Choose a path',
-    href: '/tutorials',
+    title: 'Changelog',
+    description: 'Every release entry explains what shipped and why, serving as lightweight release notes.',
+    href: '/changelog',
+    icon: FolderGit2,
   },
 ];
 
-const guides = [
-  'Accessibility checklists and inclusive design patterns for every component.',
-  'Incident response handbook for small teams shipping on-call rotations.',
-  'Community templates for writing effective RFCs and architecture docs.',
-  'Workshop kits including slide decks, facilitation notes, and recap templates.',
-];
-
-const newsletterHighlights = [
-  {
-    title: 'The Ship Log',
-    description: 'Weekly summary of product releases, developer experience wins, and roadmap updates.',
-  },
-  {
-    title: 'Friday Debug',
-    description: 'A tactical teardown of one tricky issue and how a community member solved it.',
-  },
-  {
-    title: 'Culture Code',
-    description: 'Stories, rituals, and experiments from teams building healthy engineering cultures.',
-  },
+const upcomingDrops = [
+  'Template bundles for editorial planning, currently being reviewed for accuracy.',
+  'Checklists for accessibility and publishing QA.',
+  'Downloadable component inventories once the UI library stabilises.',
 ];
 
 export const metadata: Metadata = {
-  title: 'Resource Library | Syntax & Sips',
-  description: 'Download templates, guides, and curated resources to support your developer workflow from idea to launch.',
+  title: 'Resource hub status | Syntax & Sips',
+  description:
+    'The resource library is still being assembled. Explore the materials that exist today and see what is coming next.',
 };
 
 export default function ResourcesPage() {
@@ -58,14 +40,14 @@ export default function ResourcesPage() {
     <PageShell
       hero={
         <PageHero
-          eyebrow="Resource Library"
-          title="Tools, templates, and guides to accelerate your workflow"
-          description="Save hours of busywork with curated resources crafted by our team and community contributors."
+          eyebrow="In progress"
+          title="Resource downloads are not live yet"
+          description="We are still packaging the files. In the meantime, use these public references to follow our work."
           actions={
             <>
-              <CtaButton href="/newsletter">Get resource drops</CtaButton>
-              <CtaButton href="/podcasts" variant="secondary">
-                Hear how teams use them
+              <CtaButton href="/blogs">Read the latest posts</CtaButton>
+              <CtaButton href="/newsletter" variant="secondary">
+                Get notified when they drop
               </CtaButton>
             </>
           }
@@ -73,75 +55,52 @@ export default function ResourcesPage() {
       }
     >
       <ContentSection
-        eyebrow="Collections"
-        title="Curated libraries for builders"
-        description="Every download comes with context, setup instructions, and recommended next steps."
+        eyebrow="Available today"
+        title="Reference material you can use now"
+        description="These links stay up-to-date as we continue building the platform."
       >
-        {resourceCollections.length > 0 ? (
-          <div className="grid gap-8 md:grid-cols-3">
-            {resourceCollections.map((collection) => (
-              <article
-                key={collection.title}
-                className="flex h-full flex-col gap-4 rounded-2xl border-2 border-black bg-white/80 p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.08)]"
-              >
-                <collection.icon className="h-10 w-10 text-[#6C63FF]" aria-hidden="true" />
-                <h3 className="text-xl font-black">{collection.title}</h3>
-                <p className="text-sm text-black/70 leading-relaxed">{collection.description}</p>
-                <CtaButton href={collection.href}>{collection.linkLabel}</CtaButton>
-              </article>
-            ))}
-          </div>
-        ) : null}
+        <div className="grid gap-6 md:grid-cols-3">
+          {availableResources.map((resource) => (
+            <article
+              key={resource.title}
+              className="flex h-full flex-col gap-4 rounded-2xl border-2 border-black bg-white/80 p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.08)]"
+            >
+              <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.2em] text-black/60">
+                <resource.icon className="h-6 w-6 text-[#6C63FF]" aria-hidden="true" />
+                {resource.title}
+              </div>
+              <p className="text-sm text-black/70 leading-relaxed">{resource.description}</p>
+              <CtaButton href={resource.href}>Open</CtaButton>
+            </article>
+          ))}
+        </div>
       </ContentSection>
 
       <ContentSection
-        eyebrow="Guides & toolkits"
-        title="What you can download today"
-        description="We keep everything updated as frameworks evolve, so you always grab the latest version."
+        eyebrow="Packaging work"
+        title="What we are still compiling"
+        description="We will flip these live once we have verified each download."
         tone="lavender"
       >
-        {guides.length > 0 ? (
-          <ul className="grid gap-4 md:grid-cols-2">
-            {guides.map((guide) => (
-              <li
-                key={guide}
-                className="flex items-start gap-4 rounded-2xl border-2 border-dashed border-black/40 bg-white/80 p-6"
-              >
-                <Library className="mt-1 h-8 w-8 text-[#FF5252]" aria-hidden="true" />
-                <p className="text-sm text-black/80 leading-relaxed">{guide}</p>
-              </li>
-            ))}
-          </ul>
-        ) : null}
+        <ul className="grid gap-4 md:grid-cols-3">
+          {upcomingDrops.map((item) => (
+            <li
+              key={item}
+              className="rounded-2xl border-2 border-dashed border-black/30 bg-white/70 p-6 text-sm text-black/70"
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
       </ContentSection>
 
       <ContentSection
-        eyebrow="Newsletter extras"
-        title="Premium resources delivered on Fridays"
-        description="Subscribers get bonus checklists, partner discounts, and behind-the-scenes case studies."
+        eyebrow="Download shelf"
+        title="Resource bundles"
+        description="When the first packages are ready, download links will appear here."
         tone="peach"
-        align="center"
-        footerContent={
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <p className="text-sm text-black/70">Unlock access by joining the Syntax & Sips newsletter community.</p>
-            <CtaButton href="/newsletter">Subscribe now</CtaButton>
-          </div>
-        }
       >
-        {newsletterHighlights.length > 0 ? (
-          <div className="grid gap-8 md:grid-cols-3">
-            {newsletterHighlights.map((highlight) => (
-              <article
-                key={highlight.title}
-                className="flex flex-col items-center gap-4 rounded-2xl border-2 border-black bg-white/70 p-6 text-center"
-              >
-                <Newspaper className="h-12 w-12 text-[#FF5252]" aria-hidden="true" />
-                <h3 className="text-lg font-black">{highlight.title}</h3>
-                <p className="text-sm text-black/70 leading-relaxed">{highlight.description}</p>
-              </article>
-            ))}
-          </div>
-        ) : null}
+        {null}
       </ContentSection>
     </PageShell>
   );

@@ -1,7 +1,6 @@
 -- Author program schema extensions
 
-DO $$
-BEGIN
+DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'author_application_status') THEN
     CREATE TYPE author_application_status AS ENUM (
       'draft',
@@ -13,10 +12,9 @@ BEGIN
     );
   END IF;
 END;
-$$;
+ $$;
 
-DO $$
-BEGIN
+DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'community_contributor_status') THEN
     CREATE TYPE community_contributor_status AS ENUM (
       'pending',
@@ -26,10 +24,9 @@ BEGIN
     );
   END IF;
 END;
-$$;
+ $$;
 
-DO $$
-BEGIN
+DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'community_submission_status') THEN
     CREATE TYPE community_submission_status AS ENUM (
       'draft',
@@ -44,7 +41,7 @@ BEGIN
     );
   END IF;
 END;
-$$;
+ $$;
 
 CREATE TABLE IF NOT EXISTS public.community_contributors (
   profile_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -65,7 +62,7 @@ CREATE TABLE IF NOT EXISTS public.author_applications (
   application_payload jsonb NOT NULL DEFAULT '{}'::jsonb,
   focus_areas text[] NOT NULL DEFAULT '{}'::text[],
   experience_level text,
-  current_role text,
+  applicant_role text,
   community_participation text,
   published_links text[] NOT NULL DEFAULT '{}'::text[],
   social_handles jsonb,
@@ -194,8 +191,7 @@ CREATE POLICY "insert submission events"
   FOR INSERT
   WITH CHECK (true);
 
-DO $$
-BEGIN
+DO $$ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_trigger WHERE tgname = 'community_contributors_set_updated_at'
   ) THEN
@@ -204,10 +200,9 @@ BEGIN
       FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
   END IF;
 END;
-$$;
+ $$;
 
-DO $$
-BEGIN
+DO $$ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_trigger WHERE tgname = 'author_applications_set_updated_at'
   ) THEN
@@ -216,10 +211,9 @@ BEGIN
       FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
   END IF;
 END;
-$$;
+ $$;
 
-DO $$
-BEGIN
+DO $$ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_trigger WHERE tgname = 'community_submissions_set_updated_at'
   ) THEN
@@ -228,4 +222,4 @@ BEGIN
       FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
   END IF;
 END;
-$$;
+ $$;

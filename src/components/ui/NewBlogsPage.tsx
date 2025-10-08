@@ -9,7 +9,6 @@ import { NewTopicFilters } from './NewTopicFilters';
 import { NewFollowSection } from './NewFollowSection';
 import { NeobrutalCard } from '@/components/neobrutal/card';
 import { NeobrutalToggleSwitch } from '@/components/neobrutal/toggle-switch';
-import { NeobrutalProgressBar } from '@/components/neobrutal/progress-bar';
 
 interface NewBlogsPageProps {
   posts: BlogListPost[];
@@ -197,12 +196,6 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
               </span>
               <span>{selectedCategories.length > 0 ? `${selectedCategories.length} topic filter(s)` : 'All topics'}</span>
             </div>
-
-            <NeobrutalProgressBar
-              value={sortedBlogs.length === 0 ? 0 : page}
-              max={totalPages}
-              label="Page progress"
-            />
 
             <NewBlogGrid blogs={paginatedBlogs} />
 

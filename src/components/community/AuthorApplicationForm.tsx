@@ -5,13 +5,43 @@ import HCaptcha from '@hcaptcha/react-hcaptcha'
 import { cn } from '@/lib/utils'
 import { AuthorApplicationInput } from '@/lib/validation/community'
 
+interface ApplicationPitchSnapshot {
+  focus?: string | null
+  audience?: string | null
+  cadence?: string | null
+  availability?: string | null
+}
+
+interface ApplicationPayloadSnapshot {
+  focusAreas?: string[] | null
+  publishedLinks?: string[] | null
+  socialHandles?: Record<string, string | null> | null
+  pitch?: ApplicationPitchSnapshot | null
+  newsletterOptIn?: boolean | null
+}
+
+interface ExistingAuthorApplication {
+  id?: string | null
+  focus_areas?: string[] | null
+  experience_level?: string | null
+  current_role?: string | null
+  community_participation?: string | null
+  published_links?: string[] | null
+  social_handles?: Record<string, string | null> | null
+  writing_sample_url?: string | null
+  pitch_focus?: string | null
+  pitch?: ApplicationPitchSnapshot | null
+  newsletter_opt_in?: boolean | null
+  application_payload?: ApplicationPayloadSnapshot | null
+}
+
 interface AuthorApplicationFormProps {
   profile: {
     fullName: string
     email: string
     pronouns?: string | null
   }
-  existingApplication: Record<string, unknown> | null
+  existingApplication: ExistingAuthorApplication | null
   hcaptchaSiteKey: string | null
 }
 
@@ -397,27 +427,34 @@ export const AuthorApplicationForm = ({
           </div>
           {Object.keys(formState.socialHandles ?? {}).length ? (
             <ul className="space-y-2 text-sm">
-              {Object.entries(formState.socialHandles ?? {}).map(([platform, url]) => (
-                <li key={platform} className="flex items-center justify-between rounded-lg border border-dashed border-[#121212]/40 px-3 py-2">
-                  <div>
-                    <p className="font-semibold text-[#121212]">{platform}</p>
-                    <p className="text-xs text-[#4B4B4B]">{url}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormState((previous) => {
-                        const next = { ...(previous.socialHandles ?? {}) }
-                        delete next[platform]
-                        return { ...previous, socialHandles: next }
-                      })
-                    }
-                    className="text-sm font-bold uppercase text-[#FF5252] hover:text-[#C62828]"
+              {Object.entries(formState.socialHandles ?? {}).map(([platform, url]) => {
+                if (typeof url !== 'string') return null
+
+                return (
+                  <li
+                    key={platform}
+                    className="flex items-center justify-between rounded-lg border border-dashed border-[#121212]/40 px-3 py-2"
                   >
-                    Remove
-                  </button>
-                </li>
-              ))}
+                    <div>
+                      <p className="font-semibold text-[#121212]">{platform}</p>
+                      <p className="text-xs text-[#4B4B4B]">{url}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormState((previous) => {
+                          const next = { ...(previous.socialHandles ?? {}) }
+                          delete next[platform]
+                          return { ...previous, socialHandles: next }
+                        })
+                      }
+                      className="text-sm font-bold uppercase text-[#FF5252] hover:text-[#C62828]"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                )
+              })}
             </ul>
           ) : null}
         </div>
@@ -496,7 +533,10 @@ export const AuthorApplicationForm = ({
             type="checkbox"
             checked={formState.consent}
             onChange={(event) =>
-              setFormState((previous) => ({ ...previous, consent: event.target.checked }))
+              setFormState((previous) => ({
+                ...previous,
+                consent: event.target.checked ? true : previous.consent,
+              }))
             }
             required
             className="mt-1 h-5 w-5 accent-[#FF5252]"
@@ -512,7 +552,7 @@ export const AuthorApplicationForm = ({
             onChange={(event) =>
               setFormState((previous) => ({
                 ...previous,
-                editorialPolicyAcknowledged: event.target.checked,
+                editorialPolicyAcknowledged: event.target.checked ? true : previous.editorialPolicyAcknowledged,
               }))
             }
             required

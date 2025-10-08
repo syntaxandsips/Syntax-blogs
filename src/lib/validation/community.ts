@@ -30,7 +30,7 @@ export const authorApplicationSchema = z
       .optional()
       .default([]),
     socialHandles: z
-      .record(z.string().min(2).max(320))
+      .record(z.string(), z.string().min(2).max(320))
       .optional()
       .default({}),
     writingSampleUrl: z

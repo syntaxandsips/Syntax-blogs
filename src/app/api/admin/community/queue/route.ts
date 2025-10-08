@@ -116,15 +116,18 @@ export async function POST(request: NextRequest) {
     )
 
     if (decision.action === 'approve') {
-      await serviceClient
-        .from('community_contributors')
-        .upsert({
-          profile_id: data?.profile_id,
-          status: 'approved',
-          approved_at: new Date().toISOString(),
-        })
-        .throwOnError()
-        .catch(() => undefined)
+      try {
+        await serviceClient
+          .from('community_contributors')
+          .upsert({
+            profile_id: data?.profile_id,
+            status: 'approved',
+            approved_at: new Date().toISOString(),
+          })
+          .throwOnError()
+      } catch (error) {
+        console.error('Unable to upsert community contributor record', error)
+      }
     }
 
     try {

@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server-client'
 import { ensureContributorAccess, recordEvent } from '../../_shared'
 
-export async function POST(_request: NextRequest, { params }: { params: { id: string } }) {
-  const submissionId = params.id
+export async function POST(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id: submissionId } = await params
 
   if (!submissionId) {
     return NextResponse.json({ error: 'Submission id is required.' }, { status: 400 })

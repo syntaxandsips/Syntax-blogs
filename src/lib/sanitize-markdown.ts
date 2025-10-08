@@ -1,5 +1,7 @@
 import sanitizeHtml from 'sanitize-html'
 
+type AllowedAttribute = sanitizeHtml.AllowedAttribute
+
 const allowedSchemes = ['http', 'https', 'mailto']
 
 const baseAllowedTags = sanitizeHtml.defaults.allowedTags ?? []
@@ -9,9 +11,9 @@ const extendedAllowedTags = Array.from(
 
 const baseAllowedAttributes = sanitizeHtml.defaults.allowedAttributes ?? {}
 
-const extendAttributes = (tag: string, attributes: (string | RegExp)[]) => {
+const extendAttributes = (tag: string, attributes: AllowedAttribute[]) => {
   const existing = baseAllowedAttributes[tag] ?? []
-  const merged = new Set<(string | RegExp)>([...existing, ...attributes])
+  const merged = new Set<AllowedAttribute>([...existing, ...attributes])
 
   return Array.from(merged)
 }

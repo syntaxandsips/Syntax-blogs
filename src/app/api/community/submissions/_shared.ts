@@ -163,15 +163,18 @@ export const recordEvent = async (
 
   const serviceClient = createServiceRoleClient()
 
-  await serviceClient
-    .from('community_submission_events')
-    .insert({
-      entity_id: entityId,
-      entity_type: entityType,
-      event,
-      payload,
-      actor_profile_id: actorProfileId,
-    })
-    .throwOnError()
-    .catch(() => undefined)
+  try {
+    await serviceClient
+      .from('community_submission_events')
+      .insert({
+        entity_id: entityId,
+        entity_type: entityType,
+        event,
+        payload,
+        actor_profile_id: actorProfileId,
+      })
+      .throwOnError()
+  } catch (error) {
+    console.error('Unable to record community submission event', error)
+  }
 }

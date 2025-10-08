@@ -222,32 +222,38 @@ export async function POST(request: NextRequest) {
 
   const serviceClient = createServiceRoleClient()
 
-  await serviceClient
-    .from('community_submission_events')
-    .insert({
-      entity_id: data?.id,
-      entity_type: 'author_application',
-      event: payload.existingApplicationId ? 'resubmitted' : 'submitted',
-      payload: {
-        focusAreas: payload.focusAreas,
-        pitchCadence: payload.pitchCadence,
-      },
-      actor_profile_id: profile.id,
-    })
-    .throwOnError()
-    .catch(() => undefined)
+  try {
+    await serviceClient
+      .from('community_submission_events')
+      .insert({
+        entity_id: data?.id,
+        entity_type: 'author_application',
+        event: payload.existingApplicationId ? 'resubmitted' : 'submitted',
+        payload: {
+          focusAreas: payload.focusAreas,
+          pitchCadence: payload.pitchCadence,
+        },
+        actor_profile_id: profile.id,
+      })
+      .throwOnError()
+  } catch (error) {
+    console.error('Unable to record author application event', error)
+  }
 
-  await serviceClient
-    .from('community_contributors')
-    .upsert(
-      {
-        profile_id: profile.id,
-        status: 'pending',
-      },
-      { onConflict: 'profile_id' },
-    )
-    .throwOnError()
-    .catch(() => undefined)
+  try {
+    await serviceClient
+      .from('community_contributors')
+      .upsert(
+        {
+          profile_id: profile.id,
+          status: 'pending',
+        },
+        { onConflict: 'profile_id' },
+      )
+      .throwOnError()
+  } catch (error) {
+    console.error('Unable to update contributor enrollment record', error)
+  }
 
   try {
     await serviceClient.functions.invoke('community-author-program-notify', {

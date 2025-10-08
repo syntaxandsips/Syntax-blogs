@@ -5,6 +5,8 @@
 - The live site at [syntax-blogs.prashant.sbs](https://syntax-blogs.prashant.sbs) presents curated long-form stories, topic hubs, newsletters, and multimedia routes built with the Next.js App Router and a Supabase-backed editorial stack.【F:README.md†L16-L68】
 - Authenticated contributors already flow through a Supabase-driven onboarding journey (`/onboarding`) and reach an admin cockpit with analytics, content workflow tables, and moderation tooling.【F:src/app/onboarding/page.tsx†L1-L73】【F:README.md†L24-L70】
 - Existing Supabase schema centers on `posts`, taxonomy, `profiles`, roles, and RLS-protected admin operations, providing a solid foundation for extending community publishing.【F:README.md†L72-L104】
+- **Brand positioning:** Homepage hero messaging (“Welcome to the digital brew”) and CTA mix (“Read the latest blog”, “Watch on YouTube”) reinforce an inclusive, community-forward vibe that pairs well with inviting guest authors.
+- **Information architecture:** Primary navigation (Home, Blogs, Podcasts, Changelogs), topic filters (Machine Learning, Data Science, Quantum Computing, etc.), and an existing newsletter subscription form create clear anchor points for new application CTAs and guidance content.
 
 ## Vision
 
@@ -13,29 +15,39 @@ Enable two complementary community entry points:
 2. **Submit a draft for editorial review** – a submission studio where approved community members can craft posts that route into the existing admin workflow for review, edits, and publication.
 
 The flow should mirror mature editorial platforms (Dev.to, Hashnode, Medium Partner Program) where applications gather expertise evidence, and approved writers use a submission UI that enforces structured metadata, compliance acknowledgements, and automated reviews before staff approval.
+Both experiences should echo Syntax & Sips’ inclusive “digital brew” tone while remaining grounded in the App Router architecture and Supabase security conventions already in production.
 
 ## Feature Pillars & Forms
 
-### 1. Author Application (`/apply`)
-- **Contextual hero** explaining the program, expectations, and benefits.
-- **Eligibility checklist** (e.g., expertise area, writing cadence, community participation).
+### 1. “Become an Author” Landing Page (`/apply/author`)
+- **Implementation prompt:**
+  > *"Brew Your Voice Into Syntax & Sips" – craft a conversational landing page that welcomes prospective contributors, highlights why to contribute, what we publish, the author journey (Apply → Draft & Collaborate → Publish), perks/support, and ends with a CTA duo (“Apply to Become an Author”, “View Author Guidelines”). Keep beverage metaphors playful but sparing and align visuals with the existing neo-brutalist theme.*
+- **Creative direction:**
+  - **Headline:** “Brew Your Voice Into Syntax & Sips”.
+  - **Subheadline:** “Share your AI, ML, dev, or gaming insights with a community that loves thoughtful tech conversations.”
+  - Key sections: Why Contribute, What We Publish (mirror topic pillars such as Machine Learning, Data Science, Quantum Computing, Coding Tutorials, Reviews, Video Content, Gaming), Author Journey (Apply → Draft & Collaborate → Publish), Perks & Support, closing CTA block.
+  - Primary CTA: “Apply to Become an Author” (opens the form modal or scrolls to the application section).
+  - Secondary CTA: “View Author Guidelines” (links to contributor docs).
 - **Application form fields:**
-  - Contact: full name (auto-hydrate from profile), email (read-only from Supabase), preferred pronouns.
-  - Background: areas of expertise (multi-select tags mapped to existing taxonomy), years of experience, current role, links to portfolio/socials.
-  - Writing samples: URLs, short description, optional file upload (Supabase storage) for PDFs.
-  - Motivation & pitch: free-text on proposed series, target audience, unique angle.
-  - Availability & cadence commitments (radio/select).
-  - Policy acknowledgements (checkboxes for community guidelines, exclusivity, use of AI assistance).
-- **Submission UX:** progress indicator, autosave (Draft status), success screen guiding next steps (timeline, communication).
+  - Contact: full name (auto-hydrate from profile), email (read-only from Supabase), optional pronouns.
+  - Background: focus areas (multi-select mapped to taxonomy), experience level, current role, community participation.
+  - Portfolio: published links, social handles, optional writing sample upload (Supabase Storage) with MIME validation.
+  - Pitch: proposed topics/series, target audience, publishing cadence, availability.
+  - Compliance: consent checkbox for terms/privacy, acknowledgement of editorial policies, optional newsletter opt-in.
+- **Submission UX:** eligibility checklist, progress indicator, hCaptcha/reCAPTCHA, Supabase function to prevent duplicate active applications, autosave Draft state, confirmation screen with review SLA and guidelines link.
 
-### 2. Community Submission Studio (`/submit`)
-- **Eligibility gating:** only visible to users with `approved_author` role or `author_program_status = approved`.
-- **Editor experience:**
-  - Structured metadata panel: title, slug (auto-generated & validated), excerpt, reading level, hero image upload, category, tags, canonical URL, optional series assignment.
-  - Content builder: markdown/MDX editor with live preview, support for code blocks, embeds, callouts (re-use `NewBlogPostClient` patterns).
-  - Compliance checklist: fact-check confirmation, AI disclosure, image rights, accessibility checks.
-  - Collaboration: optional co-author mentions, notes for editors, attach assets.
-  - Submission actions: save draft, request editorial review, withdraw.
+### 2. Community Submission Studio (`/creator/workspace`)
+- **Implementation prompt:**
+  > *Build a contributor workspace for approved authors featuring breadcrumb + status banner, structured metadata form, MDX editor with autosave, editorial checklist sidebar, revision history, and actions to save, submit, or withdraw drafts. Surface status-driven notifications and reuse existing markdown components for a consistent Syntax & Sips experience.*
+- **Eligibility gating:** only visible to authenticated users with an `approved` contributor status flag (e.g., `profile_roles.contributor = true`).
+- **Workspace layout:**
+  - Breadcrumb + status banner (Draft, Submitted, In Review, Needs Revision, Approved, Scheduled, Published).
+  - Metadata panel: title, slug suggestion (auto-generated + collision check), summary, reading time estimate, categories (multi-select), tags, canonical URL, optional series, featured image upload (dimension + size validation).
+  - Body editor: MDX/markdown editor with preview, support for embeds and code blocks, autosave timestamp surfaced near actions.
+  - Editorial checklist sidebar: word count, tone guidance, accessibility checklist, required assets with auto-highlight for missing fields.
+  - Collaboration: notes to editors, optional co-author mention, supporting file attachments (Supabase Storage signed URLs).
+  - Revision history: timeline of reviewer comments, contributor responses, and status changes.
+  - Actions: Save Draft, Submit for Review, Withdraw Submission; disable invalid transitions based on workflow state machine.
 
 ### 3. Admin & Workflow Enhancements
 - **Application review queue:** new admin table surface to triage `author_applications`, view profile context, add internal notes, approve/decline with templated responses.
@@ -48,9 +60,11 @@ The flow should mirror mature editorial platforms (Dev.to, Hashnode, Medium Part
 
 | Table | Key Columns | Notes |
 | --- | --- | --- |
-| `author_applications` | `id`, `profile_id` (FK), `status` (`pending`, `approved`, `declined`, `needs_more_info`), `submitted_at`, `reviewed_by`, `review_notes`, `application_payload` (JSONB) | Store form responses and review audit trail.
-| `author_program_statuses` (or extend `profiles`) | `profile_id`, `status`, `approved_at`, `expires_at`, `level` (`guest`, `contributor`, `editor`), `notes` | Drive gating logic for submission access.
-| `community_submissions` | `id`, `profile_id`, `post_id` (nullable until approved), `title`, `slug`, `summary`, `content`, `metadata` JSONB, `status`, `submitted_at`, `reviewed_at`, `feedback` | Keeps submission history even if post rejected.
+| `author_applications` | `id`, `profile_id` (FK), `status` (`submitted`, `under_review`, `accepted`, `rejected`, `needs_more_info`), `submitted_at`, `reviewed_by`, `review_notes`, `application_payload` (JSONB) | Store form responses and review audit trail.
+| `contributors` (or extend `profile_roles`) | `profile_id`, `status`, `approved_at`, `expires_at`, `level` (`guest`, `contributor`, `editor`), onboarding checklist state, signed agreement flag | Drive gating logic for workspace access.
+| `draft_submissions` | `id`, `profile_id`, `post_id` (nullable until approved), `title`, `slug`, `summary`, `content`, `metadata` JSONB, `status`, `reading_time`, `submitted_at`, `reviewed_at`, `feedback` | Keeps submission history even if post rejected.
+| `submission_comments` | `id`, `draft_id`, `author_id`, `body`, `visibility`, timestamps | Threaded reviewer feedback linked to drafts.
+| `submission_events` | `id`, `entity_id`, `entity_type`, `event`, `payload`, `actor_id`, timestamps | Audit log for application and draft state changes.
 | `submission_revisions` | `submission_id`, `version`, `content`, `editor_notes`, timestamps | Optional version control for back-and-forth edits.
 
 - Leverage Supabase row level security to ensure applicants can only see their records and admins (role `editor`/`admin`) can review.
@@ -65,34 +79,53 @@ The flow should mirror mature editorial platforms (Dev.to, Hashnode, Medium Part
   - `POST /api/community/submissions/{id}/submit` – transition to `in_review`, notify editors.
   - `POST /api/community/submissions/{id}/feedback` – admin-only to request changes.
   - `POST /api/community/submissions/{id}/approve` – admin-only to convert into `posts` record, assign slug, schedule.
+  - `POST /api/community/submissions/{id}/withdraw` – contributor-only revert to Draft state with audit entry.
+  - Edge function/webhook: push notifications and run automated linting (tone, plagiarism, toxicity) before human review.
 - **Supabase Edge Functions:** optional automation for sending transactional emails, running AI-assisted linting (toxicity, plagiarism) before review.
 - **Validation:** use Zod schemas shared across client/server to prevent tampering, enforce length limits, sanitize HTML embeds.
 
 ## Security & Compliance
 
 - Enforce Supabase RLS policies with `auth.role()` checks, verifying `approved_author` or admin roles for submission endpoints.
+- Require authenticated Supabase sessions for all writes; anonymous visitors can view the landing page but must sign in before applying.
 - Rate-limit application and submission routes (middleware or Vercel Edge + Upstash Redis) to deter spam/bot abuse.
 - Server-side slug generation + collision checks; never trust client-provided slugs.
 - Sanitize markdown via trusted pipeline (e.g., `rehype-sanitize`) to prevent XSS when rendering community content.
-- Require reCAPTCHA or hCaptcha on public-facing application form if anonymous access allowed; prefer authenticated-only flow.
-- Log moderation actions (who approved, when) for auditing.
+- Require reCAPTCHA or hCaptcha on the application form; run dedupe checks before insert.
+- Validate uploads (MIME, dimensions, size) and store in a restricted `author-submissions` Supabase Storage bucket with signed URL delivery.
+- Log moderation actions (who approved, when) for auditing and store in `submission_events`.
 - Add content scanning (OpenAI moderation, Perspective API) for flagged terms before publication.
 - Provide authors with legal acknowledgement for AI-generated content disclosure to stay compliant with platform policies.
+- Capture explicit consent for data handling and optional newsletter opt-in to satisfy privacy requirements.
 
 ## Integration with Existing System
 
-1. **Navigation:** Add CTAs to `/apply` from homepage hero/footers and `/account` dashboard. Once approved, show "Submit a story" CTA linking to `/submit`.
-2. **Onboarding linkage:** Extend `OnboardingFlow` to surface author program step if user expresses intent to contribute, pre-filling application data where possible.【F:src/components/auth/OnboardingFlow.tsx†L1-L114】
-3. **Admin workspace:** Introduce new tabs/cards inside `AdminDashboard` and `PostsTable` for "Community" pipelines, reusing existing table patterns, filters, and detail drawers.【F:README.md†L34-L68】
-4. **Supabase roles:** When an application is approved, assign a new role (`contributor`) via `profile_roles` to unlock submission routes. Declined applicants keep standard reader roles.
-5. **Publishing path:** Approved submissions feed the same `posts` table so analytics, newsletters, and topic explorers automatically pick up new stories without extra wiring.
-6. **Content lifecycle:** Use existing newsletter + changelog systems to announce new community authors, maintaining brand consistency.
+1. **Navigation:** Add CTA blocks on the homepage hero and footer pointing to `/apply/author`; surface a "Submit a story" button in user dashboards that routes approved contributors to `/creator/workspace`.
+2. **Onboarding linkage:** Extend `OnboardingFlow` to surface the author program step if a user opts into contributing, pre-filling application data where possible and linking back to `/apply/author`.【F:src/components/auth/OnboardingFlow.tsx†L1-L114】
+3. **Shared collateral:** Host contributor guidelines in `src/docs/author-guidelines.mdx` (new) and reuse across the landing page, confirmation screens, and workspace sidebar.
+4. **Admin workspace:** Introduce new tabs/cards inside `AdminDashboard` and `PostsTable` for "Community" pipelines, reusing existing table patterns, filters, and detail drawers.【F:README.md†L34-L68】 Add a dedicated `/admin/review-queue` view segmented by applications vs. drafts.
+5. **Supabase roles:** When an application is approved, assign a `contributor` role via `profile_roles` (or insert into `contributors`) to unlock workspace routes. Declined applicants keep standard reader roles.
+6. **Publishing path:** Approved submissions feed the same `posts` table so analytics, newsletters, and topic explorers automatically pick up new stories without extra wiring.
+7. **Notifications:** Reuse the newsletter/email infrastructure for transactional messages (application received, decision, draft feedback, publication) triggered from edge functions.
+8. **Analytics:** Track form conversion, draft progression, and publication outcomes through existing analytics utilities (`src/lib/analytics` if available) to measure program success.
+
+## Workflow States
+
+- **Applications:** `submitted → under_review → accepted/rejected → onboarding_complete`.
+- **Drafts:** `draft → submitted → in_review → needs_revision → approved → scheduled → published`.
+- Enforce transitions through Supabase RPCs or edge functions that validate permissions, capture audit entries (`submission_events`), and dispatch notifications.
+
+## Forms & UX Requirements
+
+- **Application form:** public route `/apply/author`, requires authentication, includes hCaptcha/reCAPTCHA, dedupe guardrail, and a confirmation view outlining the review timeline and linking to guidelines.
+- **Draft submission form:** protected route `/creator/workspace` built with existing UI primitives; autosaves via debounced Supabase writes, validates uploads with signed URLs, and surfaces last autosave timestamp.
+- **Status visibility:** applicants and contributors can view status from their dashboard cards, while editors access filtered queues and revision history threads.
 
 ## Implementation Roadmap
 
 1. **Schema migration:** Create tables, enums, policies, triggers.
 2. **API layer:** Implement route handlers with Supabase service role, integrate with existing logging and error utilities.
-3. **Frontend pages:** Build `/apply` and `/submit` using existing UI primitives (form components, markdown editor). Ensure responsive design and accessibility.
+3. **Frontend pages:** Build `/apply/author` and `/creator/workspace` using existing UI primitives (form components, markdown editor). Ensure responsive design, accessibility, and brand-aligned copy.
 4. **Admin extensions:** Add review queues, notifications, and analytics widgets.
 5. **QA & Testing:**
    - Unit test validation schemas.
@@ -102,7 +135,7 @@ The flow should mirror mature editorial platforms (Dev.to, Hashnode, Medium Part
 
 ## Sample Build Prompt
 
-> *"Extend Syntax & Sips with a community author program. Add an authenticated `/apply` page where logged-in readers submit an author application capturing expertise, writing samples, and policy acknowledgements. Persist applications in a new Supabase `author_applications` table with RLS so applicants can view their status. Build an `/submit` studio gated to approved contributors that provides metadata inputs, a markdown editor, compliance checkboxes, and actions to save drafts or request editorial review. Wire both flows to Next.js route handlers (`/api/community/author-applications`, `/api/community/submissions`) with shared Zod validation. Update the admin dashboard to surface review queues for applications and community submissions, enabling approve/decline/feedback operations that update Supabase and notify users. Reuse existing UI components, respect the neo-brutalist design system, and ensure security via rate limiting, content sanitization, and audit logging."*
+> *"Extend Syntax & Sips with a community author program. Add an authenticated `/apply/author` experience where logged-in readers review program benefits and submit an application capturing expertise, focus areas, writing samples, and policy acknowledgements (protected by hCaptcha and duplication checks). Persist applications in a Supabase `author_applications` table with RLS so applicants can view their status. Build a `/creator/workspace` studio gated to approved contributors that provides structured metadata inputs, MDX editor with autosave, editorial checklist, revision history, and actions to save drafts, submit for review, or withdraw. Wire both flows to Next.js route handlers (`/api/community/author-applications`, `/api/community/submissions`) with shared Zod validation and edge functions for notifications/moderation. Update the admin dashboard with a community review queue supporting approve/decline/feedback operations that update Supabase, emit audit events, and notify users. Reuse existing UI components, respect the neo-brutalist design system, and ensure security via rate limiting, content sanitization, and audit logging."*
 
 ## Competitive Notes
 

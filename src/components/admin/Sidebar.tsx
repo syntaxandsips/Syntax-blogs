@@ -92,6 +92,12 @@ export const Sidebar = ({
               isActive={currentView === 'posts'}
               onClick={() => onNavigate('posts')}
             />
+            <SidebarLink
+              icon={<LayoutDashboard />}
+              label="Community"
+              isActive={currentView === 'community'}
+              onClick={() => onNavigate('community')}
+            />
             {isAdmin && (
               <SidebarLink
                 icon={<MessageCircle />}

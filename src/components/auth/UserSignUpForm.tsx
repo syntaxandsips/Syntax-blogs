@@ -10,6 +10,11 @@ import { useSupabaseAuthSync } from '@/hooks/useSupabaseAuthSync';
 import '@/styles/neo-brutalism.css';
 import { getSiteUrl } from '@/lib/site-url';
 import { sanitizeRedirect } from '@/utils/sanitizeRedirect';
+import {
+  NeobrutalAlert,
+  NeobrutalAlertDescription,
+  NeobrutalAlertTitle,
+} from '@/components/neobrutal/alert';
 
 export const UserSignUpForm = () => {
   const router = useRouter();
@@ -99,23 +104,19 @@ export const UserSignUpForm = () => {
                 Join our community for developer stories, coding hangouts, and exclusive updates.
               </p>
 
-              {error && (
-                <div
-                  className="mt-6 rounded-lg border-2 border-red-500 bg-red-100 p-4 text-sm font-semibold text-red-700"
-                  role="alert"
-                >
-                  <p>{error}</p>
-                </div>
-              )}
+              {error ? (
+                <NeobrutalAlert tone="danger" className="mt-6">
+                  <NeobrutalAlertTitle>We could not create your account</NeobrutalAlertTitle>
+                  <NeobrutalAlertDescription>{error}</NeobrutalAlertDescription>
+                </NeobrutalAlert>
+              ) : null}
 
-              {info && (
-                <div
-                  className="mt-6 rounded-lg border-2 border-green-500 bg-green-100 p-4 text-sm font-semibold text-green-700"
-                  role="status"
-                >
-                  <p>{info}</p>
-                </div>
-              )}
+              {info ? (
+                <NeobrutalAlert tone="success" className="mt-6" role="status">
+                  <NeobrutalAlertTitle>Almost done</NeobrutalAlertTitle>
+                  <NeobrutalAlertDescription>{info}</NeobrutalAlertDescription>
+                </NeobrutalAlert>
+              ) : null}
 
               <form onSubmit={handleSubmit} className="mt-8 space-y-5">
                 <div className="space-y-2">

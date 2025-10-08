@@ -10,6 +10,11 @@ import { useSupabaseAuthSync } from '@/hooks/useSupabaseAuthSync';
 import '@/styles/neo-brutalism.css';
 import type { AuthenticatedProfileSummary } from '@/utils/types';
 import { sanitizeRedirect } from '@/utils/sanitizeRedirect';
+import {
+  NeobrutalAlert,
+  NeobrutalAlertDescription,
+  NeobrutalAlertTitle,
+} from '@/components/neobrutal/alert';
 
 export const UserSignInForm = () => {
   const router = useRouter();
@@ -156,23 +161,19 @@ export const UserSignInForm = () => {
                 Sign in with your Syntax &amp; Sips account to sync your reading list and follow the latest drops.
               </p>
 
-              {error && (
-                <div
-                  className="mt-6 rounded-lg border-2 border-red-500 bg-red-100 p-4 text-sm font-semibold text-red-700"
-                  role="alert"
-                >
-                  <p>{error}</p>
-                </div>
-              )}
+              {error ? (
+                <NeobrutalAlert tone="danger" className="mt-6">
+                  <NeobrutalAlertTitle>We could not sign you in</NeobrutalAlertTitle>
+                  <NeobrutalAlertDescription>{error}</NeobrutalAlertDescription>
+                </NeobrutalAlert>
+              ) : null}
 
-              {info && (
-                <div
-                  className="mt-6 rounded-lg border-2 border-green-500 bg-green-100 p-4 text-sm font-semibold text-green-700"
-                  role="status"
-                >
-                  <p>{info}</p>
-                </div>
-              )}
+              {info ? (
+                <NeobrutalAlert tone="success" className="mt-6" role="status">
+                  <NeobrutalAlertTitle>Success</NeobrutalAlertTitle>
+                  <NeobrutalAlertDescription>{info}</NeobrutalAlertDescription>
+                </NeobrutalAlert>
+              ) : null}
 
               <form onSubmit={handleSubmit} className="mt-8 space-y-5">
                 <div className="space-y-2">

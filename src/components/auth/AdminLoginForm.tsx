@@ -18,6 +18,11 @@ import '@/styles/neo-brutalism.css';
 import { createBrowserClient } from '@/lib/supabase/client';
 import { syncAuthState } from '@/lib/supabase/sync-auth-state';
 import { useSupabaseAuthSync } from '@/hooks/useSupabaseAuthSync';
+import {
+  NeobrutalAlert,
+  NeobrutalAlertDescription,
+  NeobrutalAlertTitle,
+} from '@/components/neobrutal/alert';
 
 export const AdminLoginForm = () => {
   const router = useRouter();
@@ -171,25 +176,24 @@ export const AdminLoginForm = () => {
                 Sign in with your admin credentials to publish updates, review pitches, and keep Syntax &amp; Sips running smoothly.
               </p>
 
-              {error && (
-                <div
-                  className="mt-6 flex items-start gap-3 rounded-2xl border-2 border-[#F87171] bg-[#7F1D1D]/60 p-4 text-sm font-semibold text-red-100"
-                  role="alert"
-                >
-                  <ShieldAlert className="mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden="true" />
-                  <p>{error}</p>
-                </div>
-              )}
+              {error ? (
+                <NeobrutalAlert tone="danger" className="mt-6" icon={<ShieldAlert className="h-5 w-5" />}>
+                  <NeobrutalAlertTitle>Admin access blocked</NeobrutalAlertTitle>
+                  <NeobrutalAlertDescription>{error}</NeobrutalAlertDescription>
+                </NeobrutalAlert>
+              ) : null}
 
-              {info && (
-                <div
-                  className="mt-6 flex items-start gap-3 rounded-2xl border-2 border-[#34D399] bg-[#064E3B]/60 p-4 text-sm font-semibold text-emerald-100"
+              {info ? (
+                <NeobrutalAlert
+                  tone="success"
+                  className="mt-6"
+                  icon={<ShieldCheck className="h-5 w-5" />}
                   role="status"
                 >
-                  <ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden="true" />
-                  <p>{info}</p>
-                </div>
-              )}
+                  <NeobrutalAlertTitle>Signed in</NeobrutalAlertTitle>
+                  <NeobrutalAlertDescription>{info}</NeobrutalAlertDescription>
+                </NeobrutalAlert>
+              ) : null}
 
               <form onSubmit={handleSubmit} className="mt-8 space-y-6">
                 <div className="space-y-2">

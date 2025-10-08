@@ -12,24 +12,23 @@ export function generateMetadata(): Metadata {
   const canonical = buildSiteUrl('/');
 
   return {
-    title: 'Machine Learning Tutorials, Data Science Guides & Tech Reviews',
+    title: 'Syntax & Sips — Build log & documentation',
     description:
-      'Syntax & Sips delivers step-by-step machine learning tutorials, quantum computing explainers, coding reviews, and creator interviews every week.',
+      'Follow the work as we build the Syntax & Sips editorial platform. Read progress notes, documentation drafts, and public release updates.',
     alternates: {
       canonical,
     },
     openGraph: {
       type: 'website',
       url: canonical,
-      title: 'Machine Learning Tutorials & AI Conversations | Syntax & Sips',
+      title: 'Syntax & Sips — Build log & documentation',
       description:
-        'Stay ahead in AI, ML, and quantum computing with Syntax & Sips guides, podcasts, and community deep dives.',
+        'Progress updates, changelog notes, and honest documentation about creating the Syntax & Sips platform.',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Syntax & Sips — AI & ML Tutorials',
-      description:
-        'Weekly walkthroughs on machine learning, data science, quantum breakthroughs, and creative coding.',
+      title: 'Syntax & Sips build log',
+      description: 'Progress notes and documentation from the Syntax & Sips team.',
     },
   };
 }

@@ -2,6 +2,11 @@
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Loader2, MessageCircle, Send } from 'lucide-react';
+import {
+  NeobrutalAlert,
+  NeobrutalAlertDescription,
+  NeobrutalAlertTitle,
+} from '@/components/neobrutal/alert';
 
 interface CommentAuthor {
   id: string | null;
@@ -163,11 +168,12 @@ export function CommentsSection({ postSlug }: CommentsSectionProps) {
         <h2 className="text-2xl font-black">Join the discussion</h2>
       </div>
 
-      {hasError && (
-        <div className="mb-4 rounded-md border-2 border-red-300 bg-red-50 p-4 text-red-700" role="alert">
-          {hasError}
-        </div>
-      )}
+      {hasError ? (
+        <NeobrutalAlert tone="danger" className="mb-4">
+          <NeobrutalAlertTitle>Comments are temporarily unavailable</NeobrutalAlertTitle>
+          <NeobrutalAlertDescription>{hasError}</NeobrutalAlertDescription>
+        </NeobrutalAlert>
+      ) : null}
 
       <form className="mb-6 space-y-3" onSubmit={handleSubmit}>
         <label htmlFor="comment-body" className="block text-sm font-semibold text-gray-700">
@@ -206,18 +212,18 @@ export function CommentsSection({ postSlug }: CommentsSectionProps) {
             )}
           </button>
         </div>
-        {submissionMessage && (
-          <p
-            className={`rounded-md border px-3 py-2 text-sm ${
-              submissionState === 'error'
-                ? 'border-red-200 bg-red-50 text-red-700'
-                : 'border-green-200 bg-green-50 text-green-700'
-            }`}
+        {submissionMessage ? (
+          <NeobrutalAlert
+            tone={submissionState === 'error' ? 'danger' : 'success'}
+            className="mt-2"
             role="status"
           >
-            {submissionMessage}
-          </p>
-        )}
+            <NeobrutalAlertTitle>
+              {submissionState === 'error' ? 'We could not submit your comment' : 'Comment received'}
+            </NeobrutalAlertTitle>
+            <NeobrutalAlertDescription>{submissionMessage}</NeobrutalAlertDescription>
+          </NeobrutalAlert>
+        ) : null}
       </form>
 
       {isLoading ? (

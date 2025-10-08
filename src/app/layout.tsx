@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import "@/styles/neo-brutalism.css";
 import ConditionalNavbar from "@/components/ConditionalNavbar";
@@ -61,6 +62,7 @@ export default async function RootLayout({
           <Loader />
           <ConditionalNavbar initialPathname={initialPathname} />
           {children}
+          <Analytics />
         </LoaderProvider>
       </body>
     </html>

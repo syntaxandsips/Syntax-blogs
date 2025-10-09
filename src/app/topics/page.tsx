@@ -62,6 +62,45 @@ const findSectionSlug = (slug: string | null): string | null => {
 
 const defaultRandomTopics = allTopicLeaves.map((topic) => ({ slug: topic.slug, label: topic.label }));
 
+const srgbChannelToLinear = (channel: number) =>
+  channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+
+const getContrastingTextColor = (hexColor: string | null | undefined) => {
+  if (!hexColor) {
+    return '#111827';
+  }
+
+  const normalized = hexColor.trim().replace(/^#/, '');
+
+  if (normalized.length !== 3 && normalized.length !== 6) {
+    return '#111827';
+  }
+
+  const expanded =
+    normalized.length === 3
+      ? normalized
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      : normalized;
+
+  const red = parseInt(expanded.slice(0, 2), 16);
+  const green = parseInt(expanded.slice(2, 4), 16);
+  const blue = parseInt(expanded.slice(4, 6), 16);
+
+  if (Number.isNaN(red) || Number.isNaN(green) || Number.isNaN(blue)) {
+    return '#111827';
+  }
+
+  const r = srgbChannelToLinear(red / 255);
+  const g = srgbChannelToLinear(green / 255);
+  const b = srgbChannelToLinear(blue / 255);
+
+  const relativeLuminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+  return relativeLuminance > 0.45 ? '#111827' : '#F8FAFC';
+};
+
 const groupPostsBySlug = (posts: Awaited<ReturnType<typeof getPublishedPosts>>) => {
   const map = new Map<string, typeof posts>();
 
@@ -164,7 +203,7 @@ const ActiveTopicPanel = ({
                     className="inline-flex items-center rounded-full border-2 border-black px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]"
                     style={{
                       backgroundColor: post.accentColor ?? '#FCD34D',
-                      color: '#111827',
+                      color: getContrastingTextColor(post.accentColor ?? '#FCD34D'),
                     }}
                   >
                     {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : 'Unscheduled'}
@@ -346,7 +385,7 @@ export default async function TopicsPage({ searchParams }: TopicsPageProps) {
                     className="inline-flex w-fit items-center gap-2 rounded-full border-2 border-black px-4 py-1 text-xs font-bold uppercase tracking-[0.18em]"
                     style={{
                       backgroundColor: cluster.accentColor,
-                      color: '#0F172A',
+                      color: getContrastingTextColor(cluster.accentColor),
                     }}
                   >
                     {cluster.label}

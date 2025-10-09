@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -20,6 +20,15 @@ import { CommentsSection } from '@/components/ui/CommentsSection';
 import { Breadcrumbs, type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import { NewFollowSection } from '@/components/ui/NewFollowSection';
 import type { BlogListPost, BlogPostDetail } from '@/lib/posts';
+import { BookmarkButton } from '@/components/library/BookmarkButton';
+import { HighlightSelector } from '@/components/library/HighlightSelector';
+import { useAuthenticatedProfile } from '@/hooks/useAuthenticatedProfile';
+import type { Bookmark, ReadingHistoryEntry } from '@/utils/types';
+import {
+  buildReadingHistoryPayload,
+  computeScrollProgress,
+  shouldPersistReadingHistory,
+} from '@/lib/library/reading-utils';
 
 interface BlogPostClientProps {
   post: BlogPostDetail;
@@ -43,6 +52,296 @@ export default function NewBlogPostClient({ post, relatedPosts, canonicalUrl, br
       // Intentionally swallow errors so UI rendering is unaffected.
     });
   }, [post.slug]);
+
+  const { profile, isLoading: profileLoading } = useAuthenticatedProfile();
+  const [initialBookmarkId, setInitialBookmarkId] = useState<string | null>(null);
+  const [libraryError, setLibraryError] = useState<string | null>(null);
+  const [libraryStateReady, setLibraryStateReady] = useState(false);
+  const historyIdRef = useRef<string | null>(null);
+  const readSecondsRef = useRef<number>(0);
+  const maxScrollRef = useRef<number>(0);
+  const lastPositionRef = useRef<number>(0);
+  const lastResumeRef = useRef<number | null>(null);
+  const flushTimeoutRef = useRef<number | null>(null);
+  const isFlushingRef = useRef(false);
+
+  useEffect(() => {
+    if (profileLoading) {
+      return;
+    }
+
+    if (!profile) {
+      setInitialBookmarkId(null);
+      setLibraryError(null);
+      setLibraryStateReady(true);
+      historyIdRef.current = null;
+      readSecondsRef.current = 0;
+      maxScrollRef.current = 0;
+      lastPositionRef.current = 0;
+      return;
+    }
+
+    let cancelled = false;
+    setLibraryError(null);
+    setLibraryStateReady(false);
+
+    const loadLibraryState = async () => {
+      try {
+        const [bookmarkResponse, historyResponse] = await Promise.all([
+          fetch(`/api/library/bookmarks?postId=${post.id}&limit=1`, {
+            method: 'GET',
+            credentials: 'include',
+            cache: 'no-store',
+          }),
+          fetch(`/api/library/history?postId=${post.id}&limit=1`, {
+            method: 'GET',
+            credentials: 'include',
+            cache: 'no-store',
+          }),
+        ]);
+
+        if (cancelled) {
+          return;
+        }
+
+        if (bookmarkResponse.ok) {
+          const { items } = (await bookmarkResponse.json()) as { items: Bookmark[] };
+          const [bookmark] = items;
+          setInitialBookmarkId(bookmark?.id ?? null);
+        } else if (bookmarkResponse.status !== 404) {
+          try {
+            const payload = (await bookmarkResponse.json()) as { error?: string };
+            setLibraryError(payload.error ?? 'Unable to sync your bookmarks right now.');
+          } catch (error) {
+            console.error('Failed to parse bookmark response', error);
+            setLibraryError('Unable to sync your bookmarks right now.');
+          }
+        }
+
+        if (historyResponse.ok) {
+          const { items } = (await historyResponse.json()) as { items: ReadingHistoryEntry[] };
+          const [entry] = items;
+
+          if (entry) {
+            historyIdRef.current = entry.id;
+            readSecondsRef.current = entry.readDurationSeconds ?? 0;
+            maxScrollRef.current = entry.scrollPercentage ?? 0;
+            lastPositionRef.current = entry.lastPosition ?? 0;
+          } else {
+            historyIdRef.current = null;
+            readSecondsRef.current = 0;
+            maxScrollRef.current = 0;
+            lastPositionRef.current = 0;
+          }
+        } else if (historyResponse.status !== 404) {
+          try {
+            const payload = (await historyResponse.json()) as { error?: string };
+            setLibraryError(
+              payload.error ?? 'Unable to sync your reading history at the moment.',
+            );
+          } catch (error) {
+            console.error('Failed to parse history response', error);
+            setLibraryError('Unable to sync your reading history at the moment.');
+          }
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to load library metadata', error);
+          setLibraryError('Unable to reach the library service. Try refreshing the page.');
+        }
+      } finally {
+        if (!cancelled) {
+          setLibraryStateReady(true);
+        }
+      }
+    };
+
+    void loadLibraryState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [post.id, profile, profileLoading]);
+
+  useEffect(() => {
+    if (!profile || !libraryStateReady) {
+      return;
+    }
+
+    let disposed = false;
+
+    const accumulateDuration = () => {
+      if (lastResumeRef.current === null) {
+        return;
+      }
+
+      const now = Date.now();
+      const deltaMs = Math.max(0, now - lastResumeRef.current);
+      readSecondsRef.current += deltaMs / 1000;
+      lastResumeRef.current = now;
+    };
+
+    const scheduleFlush = () => {
+      if (disposed) {
+        return;
+      }
+
+      if (flushTimeoutRef.current) {
+        window.clearTimeout(flushTimeoutRef.current);
+      }
+
+      flushTimeoutRef.current = window.setTimeout(() => {
+        void flushReading();
+      }, 20000);
+    };
+
+    const flushReading = async ({
+      immediate = false,
+      force = false,
+      shouldAccumulate = true,
+    }: {
+      immediate?: boolean;
+      force?: boolean;
+      shouldAccumulate?: boolean;
+    } = {}) => {
+      if (isFlushingRef.current || (disposed && !force)) {
+        return;
+      }
+
+      isFlushingRef.current = true;
+
+      if (shouldAccumulate) {
+        accumulateDuration();
+      }
+
+      const payload = buildReadingHistoryPayload({
+        historyId: historyIdRef.current,
+        postId: post.id,
+        readDurationSeconds: readSecondsRef.current,
+        scrollPercentage: maxScrollRef.current,
+        lastPosition: lastPositionRef.current,
+      });
+
+      const shouldPersist =
+        force ||
+        shouldPersistReadingHistory(
+          {
+            readDurationSeconds: payload.readDurationSeconds,
+            scrollPercentage: payload.scrollPercentage,
+            lastPosition: payload.lastPosition,
+          },
+          Boolean(historyIdRef.current),
+        );
+
+      if (!shouldPersist) {
+        isFlushingRef.current = false;
+        if (!immediate) {
+          scheduleFlush();
+        }
+        return;
+      }
+
+      const body = JSON.stringify(payload);
+
+      if (immediate && typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
+        navigator.sendBeacon('/api/library/history', new Blob([body], { type: 'application/json' }));
+        isFlushingRef.current = false;
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/library/history', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body,
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            disposed = true;
+          }
+
+          console.warn('Failed to persist reading history', await response.text());
+          return;
+        }
+
+        const { history } = (await response.json()) as { history: ReadingHistoryEntry };
+        historyIdRef.current = history.id;
+
+        if (typeof history.scrollPercentage === 'number') {
+          maxScrollRef.current = Math.max(maxScrollRef.current, history.scrollPercentage);
+        }
+
+        if (typeof history.readDurationSeconds === 'number') {
+          readSecondsRef.current = Math.max(readSecondsRef.current, history.readDurationSeconds);
+        }
+
+        if (typeof history.lastPosition === 'number') {
+          lastPositionRef.current = Math.max(lastPositionRef.current, history.lastPosition);
+        }
+      } catch (error) {
+        console.error('Failed to record reading history', error);
+      } finally {
+        isFlushingRef.current = false;
+        if (!immediate && !disposed) {
+          scheduleFlush();
+        }
+      }
+    };
+
+    const handleScroll = () => {
+      const documentElement = document.documentElement;
+      const scrollTop = Math.max(documentElement.scrollTop, document.body.scrollTop);
+      const scrollHeight = Math.max(documentElement.scrollHeight, document.body.scrollHeight);
+      const clientHeight = documentElement.clientHeight || window.innerHeight;
+      const percentage = computeScrollProgress(scrollTop, scrollHeight, clientHeight);
+
+      if (percentage > maxScrollRef.current) {
+        maxScrollRef.current = percentage;
+      }
+
+      lastPositionRef.current = scrollTop;
+      scheduleFlush();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        accumulateDuration();
+        void flushReading({ immediate: true, shouldAccumulate: false });
+        lastResumeRef.current = null;
+      } else {
+        lastResumeRef.current = Date.now();
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      accumulateDuration();
+      void flushReading({ immediate: true, force: true, shouldAccumulate: false });
+    };
+
+    lastResumeRef.current = Date.now();
+    handleScroll();
+    scheduleFlush();
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      disposed = true;
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+
+      if (flushTimeoutRef.current) {
+        window.clearTimeout(flushTimeoutRef.current);
+        flushTimeoutRef.current = null;
+      }
+
+      void flushReading({ immediate: true, force: true });
+    };
+  }, [libraryStateReady, post.id, profile]);
 
   const categoryBadge = (post.category.name ?? post.category.slug ?? 'Uncategorized')
     .replace(/[-\s]+/g, ' ')
@@ -178,9 +477,38 @@ export default function NewBlogPostClient({ post, relatedPosts, canonicalUrl, br
                     </div>
                   </div>
                 </div>
-                <div className="mb-6">
+                <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center">
                   <NewSummarizeButton content={post.content} />
+                  {profileLoading ? (
+                    <div className="inline-flex w-full items-center justify-center rounded-[24px] border-4 border-dashed border-black bg-white px-4 py-2 text-sm font-bold text-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] md:w-auto">
+                      Loading your account…
+                    </div>
+                  ) : profile ? (
+                    libraryStateReady ? (
+                      <BookmarkButton
+                        postId={post.id}
+                        initialBookmarkId={initialBookmarkId ?? null}
+                        className="inline-flex w-full justify-center md:w-auto"
+                      />
+                    ) : (
+                      <div className="inline-flex w-full items-center justify-center rounded-[24px] border-4 border-dashed border-black bg-[#87CEEB]/40 px-4 py-2 text-sm font-bold text-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)] md:w-auto">
+                        Syncing your library…
+                      </div>
+                    )
+                  ) : (
+                    <Link
+                      href={`/login?redirect=/blogs/${post.slug}`}
+                      className="inline-flex w-full items-center justify-center rounded-[24px] border-4 border-black bg-[#9723C9] px-4 py-2 text-sm font-black uppercase tracking-wide text-white shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black md:w-auto"
+                    >
+                      Sign in to save
+                    </Link>
+                  )}
                 </div>
+                {libraryError ? (
+                  <p className="mb-4 rounded-[24px] border-4 border-black bg-[#FF69B4]/20 px-4 py-2 text-sm font-semibold text-[#B91C1C] shadow-[6px_6px_0px_0px_rgba(0,0,0,0.1)]" aria-live="polite">
+                    {libraryError}
+                  </p>
+                ) : null}
               </div>
               <div className="p-6">
                 {post.featuredImageUrl && (
@@ -196,7 +524,28 @@ export default function NewBlogPostClient({ post, relatedPosts, canonicalUrl, br
                     />
                   </div>
                 )}
-                <NewMarkdownRenderer content={post.content} />
+                {profile ? (
+                  <HighlightSelector postId={post.id}>
+                    <NewMarkdownRenderer content={post.content} />
+                  </HighlightSelector>
+                ) : (
+                  <NewMarkdownRenderer content={post.content} />
+                )}
+
+                {!profile && !profileLoading ? (
+                  <div className="mt-6 rounded-[32px] border-4 border-dashed border-black bg-white px-5 py-4 text-sm font-semibold text-black shadow-[12px_12px_0px_0px_rgba(0,0,0,0.12)]">
+                    <p className="text-lg font-black">Highlight what inspires you.</p>
+                    <p className="mt-2 text-sm">
+                      Create highlights, track your reading journey, and build personal lists once you sign in.
+                    </p>
+                    <Link
+                      href={`/login?redirect=/blogs/${post.slug}`}
+                      className="mt-3 inline-flex items-center justify-center rounded-[24px] border-4 border-black bg-[#87CEEB] px-4 py-2 text-sm font-black uppercase tracking-wide text-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black"
+                    >
+                      Sign in to start highlighting
+                    </Link>
+                  </div>
+                ) : null}
 
                 <div className="mt-10 space-y-4 border-t-4 border-dashed border-black/20 pt-6">
                   <div className="flex items-center gap-3">

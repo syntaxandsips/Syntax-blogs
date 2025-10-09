@@ -183,6 +183,18 @@ touch src/components/library/HighlightSelector.tsx
    - Record reading time
    - Update history on page unload
 
+#### Blog Post Experience Wiring
+
+- File: `src/app/blogs/[slug]/NewBlogPostClient.tsx`
+- Wrap the markdown renderer with `HighlightSelector` when the reader is authenticated to enable inline saves.
+- Render the `BookmarkButton` beside the summarize action and hydrate it with the user's existing bookmark state.
+- Initialise the reading tracker by
+  - Fetching the latest bookmark and reading history entry via `/api/library/bookmarks` and `/api/library/history`.
+  - Tracking scroll percentage and time-on-page with debounced flushes to `/api/library/history`.
+  - Using `navigator.sendBeacon` as a fallback during `beforeunload` to guarantee persistence.
+- Display call-to-action banners for unauthenticated readers prompting a sign in flow using the neo-brutalist design tokens (border-4, bold fills, hard shadows).
+- Handle error feedback with accessible alerts (`aria-live="polite"`) so assistive tech announces sync issues.
+
 ### Step 7: Testing
 
 1. **Create test files**:

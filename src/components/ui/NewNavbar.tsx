@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { Menu, X, Coffee, Code, Search, UserRound, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
@@ -8,6 +8,8 @@ import clsx from 'clsx';
 import { GlobalSearch } from './GlobalSearch';
 import { useClientPathname } from '@/hooks/useClientPathname';
 import { useAuthenticatedProfile } from '@/hooks/useAuthenticatedProfile';
+import { useRouter } from 'next/navigation';
+import { createBrowserClient } from '@/lib/supabase/client';
 import type { AuthenticatedProfileSummary } from '@/utils/types';
 import {
   navigationCategories,
@@ -24,12 +26,20 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export const NewNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const pathname = useClientPathname();
-  const { profile } = useAuthenticatedProfile();
+  const { profile, refresh: refreshAuthenticatedProfile } = useAuthenticatedProfile();
   const needsOnboarding = Boolean(profile && profile.onboarding?.status !== 'completed');
 
   const isPathActive = (path: string) => {
@@ -82,7 +92,10 @@ export const NewNavbar = () => {
             <GlobalSearch />
             <div className="flex items-center gap-3">
               {profile ? (
-                <ProfileShortcut profile={profile} />
+                <ProfileShortcut
+                  profile={profile}
+                  refreshAuthenticatedProfile={refreshAuthenticatedProfile}
+                />
               ) : (
                 <>
                   <Link
@@ -202,50 +215,197 @@ export const NewNavbar = () => {
 
 interface ProfileShortcutProps {
   profile: AuthenticatedProfileSummary;
+  refreshAuthenticatedProfile: () => Promise<void>;
 }
 
-const ProfileShortcut = ({ profile }: ProfileShortcutProps) => {
+const ProfileShortcut = ({ profile, refreshAuthenticatedProfile }: ProfileShortcutProps) => {
   const onboardingStatus = profile.onboarding?.status ?? 'pending';
   const helperLabel = onboardingStatus === 'completed' ? 'Open dashboard' : 'Finish onboarding';
   const helperTone = onboardingStatus === 'completed' ? 'text-[#6C63FF]' : 'text-[#FF5252]';
   const hoverBadgeLabel = onboardingStatus === 'completed' ? 'View' : 'Resume';
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState<string | null>(null);
+  const supabase = useMemo(() => createBrowserClient(), []);
+  const router = useRouter();
+  const closeMenuTimerRef = useRef<number | null>(null);
+
+  const cancelPendingClose = useCallback(() => {
+    if (closeMenuTimerRef.current !== null) {
+      window.clearTimeout(closeMenuTimerRef.current);
+      closeMenuTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleMenuClose = useCallback(() => {
+    cancelPendingClose();
+    closeMenuTimerRef.current = window.setTimeout(() => {
+      setIsMenuOpen(false);
+    }, 120);
+  }, [cancelPendingClose]);
+
+  useEffect(() => () => cancelPendingClose(), [cancelPendingClose]);
+
+  const handleMenuOpen = useCallback(() => {
+    cancelPendingClose();
+    setIsMenuOpen(true);
+  }, [cancelPendingClose]);
+
+  const handleMenuClose = useCallback(() => {
+    scheduleMenuClose();
+  }, [scheduleMenuClose]);
+
+  const handleNavigate = useCallback(
+    (href: string, options?: { external?: boolean }) => {
+      setIsMenuOpen(false);
+
+      if (options?.external) {
+        if (typeof window !== 'undefined') {
+          window.open(href, '_blank', 'noopener');
+        }
+        return;
+      }
+
+      router.push(href);
+    },
+    [router],
+  );
+
+  const handleSignOut = useCallback(async () => {
+    setIsSigningOut(true);
+    setSignOutError(null);
+
+    try {
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        throw error;
+      }
+
+      await refreshAuthenticatedProfile().catch(() => {});
+      setIsMenuOpen(false);
+      router.push('/');
+      router.refresh();
+    } catch (error) {
+      console.error('Failed to sign out', error);
+      setSignOutError('Unable to sign out right now. Please try again.');
+    } finally {
+      setIsSigningOut(false);
+    }
+  }, [refreshAuthenticatedProfile, router, supabase]);
+
+  const menuItems = useMemo(
+    () => [
+      { label: 'Settings', href: '/account' },
+      {
+        label: 'Help',
+        href: 'https://github.com/prashant-andani/Syntax-blogs/discussions',
+        external: true,
+      },
+      { label: 'library', href: '/me' },
+      {
+        label: 'Become a Medium member',
+        href: 'https://medium.com/membership',
+        external: true,
+      },
+      {
+        label: 'Apply to the Partner Program',
+        href: '/apply/author',
+      },
+    ],
+    [],
+  );
 
   return (
-    <Link
-      href="/account"
-      className="group relative inline-flex items-center gap-3 rounded-full border-2 border-black bg-white px-2 py-1 pr-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.15)] transition hover:-translate-y-[1px] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,0.2)]"
-    >
-      <span className="relative inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 border-black bg-[#F6EDE3] text-sm font-black uppercase text-black">
-        {profile.avatarUrl ? (
-          <Image
-            src={profile.avatarUrl}
-            alt={`${profile.displayName}'s avatar`}
-            fill
-            sizes="40px"
-            className="object-cover"
-          />
-        ) : (
-          <UserRound className="h-5 w-5" aria-hidden="true" />
-        )}
-        {onboardingStatus !== 'completed' ? (
-          <span className="absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full border border-black bg-[#FF5252] text-[10px] font-black text-white">
-            !
+    <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          onMouseEnter={handleMenuOpen}
+          onMouseLeave={handleMenuClose}
+          className="group relative inline-flex items-center gap-3 rounded-full border-2 border-black bg-white px-2 py-1 pr-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.15)] transition hover:-translate-y-[1px] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,0.2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+          aria-haspopup="menu"
+          aria-expanded={isMenuOpen}
+        >
+          <span className="relative inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 border-black bg-[#F6EDE3] text-sm font-black uppercase text-black">
+            {profile.avatarUrl ? (
+              <Image
+                src={profile.avatarUrl}
+                alt={`${profile.displayName}'s avatar`}
+                fill
+                sizes="40px"
+                className="object-cover"
+              />
+            ) : (
+              <UserRound className="h-5 w-5" aria-hidden="true" />
+            )}
+            {onboardingStatus !== 'completed' ? (
+              <span className="absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full border border-black bg-[#FF5252] text-[10px] font-black text-white">
+                !
+              </span>
+            ) : null}
           </span>
+          <span className="hidden flex-col text-left xl:flex">
+            <span className="text-sm font-extrabold leading-tight text-black">
+              {profile.displayName}
+            </span>
+            <span className={`text-xs font-semibold uppercase tracking-wide ${helperTone}`}>
+              {helperLabel}
+            </span>
+          </span>
+          <ChevronDown className="h-4 w-4 text-black" aria-hidden="true" />
+          <span className="absolute -bottom-2 right-3 hidden rounded-full bg-[#6C63FF] px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)] group-hover:block">
+            {hoverBadgeLabel}
+          </span>
+          <span className="sr-only">Open profile options</span>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        onMouseEnter={handleMenuOpen}
+        onMouseLeave={handleMenuClose}
+        className="w-64 space-y-1"
+        align="end"
+      >
+        <DropdownMenuLabel className="text-xs font-bold uppercase tracking-[0.2em] text-black/60">
+          Account
+        </DropdownMenuLabel>
+        {menuItems.map((item) => (
+          <DropdownMenuItem
+            key={item.label}
+            onSelect={(event) => {
+              event.preventDefault();
+              handleNavigate(item.href, { external: item.external });
+            }}
+            className="justify-between"
+          >
+            <span>{item.label}</span>
+            {item.external ? (
+              <span aria-hidden="true" className="text-xs font-black uppercase text-black/40">
+                ↗
+              </span>
+            ) : null}
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          disabled={isSigningOut}
+          onSelect={(event) => {
+            event.preventDefault();
+            if (!isSigningOut) {
+              void handleSignOut();
+            }
+          }}
+          className="justify-between"
+        >
+          <span>{isSigningOut ? 'Signing out…' : 'Sign out'}</span>
+        </DropdownMenuItem>
+        {signOutError ? (
+          <div className="rounded-lg border-2 border-red-500 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600" role="status">
+            {signOutError}
+          </div>
         ) : null}
-      </span>
-      <span className="hidden flex-col text-left xl:flex">
-        <span className="text-sm font-extrabold leading-tight text-black">
-          {profile.displayName}
-        </span>
-        <span className={`text-xs font-semibold uppercase tracking-wide ${helperTone}`}>
-          {helperLabel}
-        </span>
-      </span>
-      <span className="absolute -bottom-2 right-3 hidden rounded-full bg-[#6C63FF] px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)] group-hover:block">
-        {hoverBadgeLabel}
-      </span>
-      <span className="sr-only">Go to your profile</span>
-    </Link>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

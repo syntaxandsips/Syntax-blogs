@@ -3,6 +3,7 @@ import type { NextWebVitalsMetric } from "next/app";
 import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import "@/styles/neo-brutalism.css";
 import ConditionalNavbar from "@/components/ConditionalNavbar";
@@ -110,6 +111,7 @@ export default async function RootLayout({
           <Toaster theme="light" position="bottom-right" richColors closeButton />
           {children}
           <Analytics />
+          <SpeedInsights />
         </LoaderProvider>
       </body>
     </html>

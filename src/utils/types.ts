@@ -16,6 +16,60 @@ export interface TagOption {
   slug: string
 }
 
+export interface AdminModelCategory {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  accentColor: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateModelCategoryPayload {
+  name: string
+  slug: string
+  description?: string | null
+  accentColor?: string | null
+}
+
+export type UpdateModelCategoryPayload = Partial<CreateModelCategoryPayload>
+
+export interface AdminModelSummary {
+  id: string
+  name: string
+  displayName: string
+  categoryId: string | null
+  categoryName: string | null
+  categorySlug: string | null
+  family: string | null
+  provider: string | null
+  version: string | null
+  description: string | null
+  iconUrl: string | null
+  parametersSchema: Record<string, unknown> | null
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateAdminModelPayload {
+  name: string
+  displayName: string
+  categoryId?: string | null
+  family?: string | null
+  provider?: string | null
+  version?: string | null
+  description?: string | null
+  iconUrl?: string | null
+  parametersSchema?: Record<string, unknown> | null
+  isActive?: boolean
+}
+
+export interface UpdateAdminModelPayload extends Partial<CreateAdminModelPayload> {
+  isActive?: boolean
+}
+
 export interface AdminPost {
   id: string
   title: string

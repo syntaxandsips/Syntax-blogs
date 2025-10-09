@@ -3,6 +3,13 @@
 import { useMemo, useState, useTransition } from 'react'
 import { PromptModel } from '@/lib/prompt-gallery/types'
 import { CreatePromptInput } from '@/lib/prompt-gallery/validation'
+import {
+  neoInputClass,
+  neoSelectClass,
+  neoTextareaClass,
+  neoCardClass,
+  neoBadgeClass,
+} from '@/components/ui/neobrutalistFieldStyles'
 
 interface PromptUploadWizardProps {
   models: PromptModel[]
@@ -163,7 +170,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
                 value={formData.title}
                 onChange={(event) => updateField('title', event.target.value)}
                 placeholder="Give your prompt a name"
-                className="mt-2 w-full rounded-2xl border-2 border-black bg-white px-4 py-3 text-sm shadow-[4px_4px_0_rgba(0,0,0,0.12)] focus:outline-none"
+                className={`mt-2 ${neoInputClass}`}
               />
             </div>
             <div>
@@ -172,7 +179,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
                 value={formData.description ?? ''}
                 onChange={(event) => updateField('description', event.target.value)}
                 placeholder="Describe what makes this prompt special"
-                className="mt-2 w-full rounded-2xl border-2 border-black bg-white px-4 py-3 text-sm shadow-[4px_4px_0_rgba(0,0,0,0.12)] focus:outline-none"
+                className={`mt-2 ${neoTextareaClass} min-h-[120px]`}
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -181,7 +188,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
                 <select
                   value={formData.mediaType}
                   onChange={(event) => updateField('mediaType', event.target.value as CreatePromptInput['mediaType'])}
-                  className="mt-2 w-full rounded-2xl border-2 border-black bg-white px-4 py-3 text-sm shadow-[4px_4px_0_rgba(0,0,0,0.12)] focus:outline-none"
+                  className={`mt-2 ${neoSelectClass}`}
                 >
                   {mediaOptions.map((option) => (
                     <option key={option} value={option}>
@@ -195,7 +202,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
                 <select
                   value={formData.difficulty}
                   onChange={(event) => updateField('difficulty', event.target.value as CreatePromptInput['difficulty'])}
-                  className="mt-2 w-full rounded-2xl border-2 border-black bg-white px-4 py-3 text-sm shadow-[4px_4px_0_rgba(0,0,0,0.12)] focus:outline-none"
+                  className={`mt-2 ${neoSelectClass}`}
                 >
                   {difficultyOptions.map((option) => (
                     <option key={option} value={option}>
@@ -211,7 +218,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
                 <input
                   value={formData.language}
                   onChange={(event) => updateField('language', event.target.value)}
-                  className="mt-2 w-full rounded-2xl border-2 border-black bg-white px-4 py-3 text-sm shadow-[4px_4px_0_rgba(0,0,0,0.12)] focus:outline-none"
+                  className={`mt-2 ${neoInputClass}`}
                 />
               </div>
               <div>
@@ -219,7 +226,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
                 <select
                   value={formData.monetizationType}
                   disabled
-                  className="mt-2 w-full cursor-not-allowed rounded-2xl border-2 border-dashed border-black/40 bg-[#F5F3FF] px-4 py-3 text-sm font-semibold uppercase text-black/50 shadow-[4px_4px_0_rgba(0,0,0,0.12)]"
+                  className={`mt-2 ${neoSelectClass} uppercase tracking-[0.2em] text-black/60`}
                 >
                   {monetizationOptions.map((option) => (
                     <option key={option} value={option}>
@@ -236,7 +243,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
                 <select
                   value={formData.visibility}
                   onChange={(event) => updateField('visibility', event.target.value as CreatePromptInput['visibility'])}
-                  className="mt-2 w-full rounded-2xl border-2 border-black bg-white px-4 py-3 text-sm shadow-[4px_4px_0_rgba(0,0,0,0.12)] focus:outline-none"
+                  className={`mt-2 ${neoSelectClass}`}
                 >
                   {visibilityOptions.map((option) => (
                     <option key={option} value={option}>
@@ -250,7 +257,8 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
                 <input
                   value="Coming soon"
                   readOnly
-                  className="mt-2 w-full cursor-not-allowed rounded-2xl border-2 border-dashed border-black/40 bg-[#F5F3FF] px-4 py-3 text-sm font-semibold uppercase text-black/50 shadow-[4px_4px_0_rgba(0,0,0,0.12)]"
+                  className={`mt-2 ${neoInputClass} uppercase tracking-[0.2em] text-black/60`}
+                  disabled
                 />
               </div>
             </div>
@@ -264,7 +272,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
               <textarea
                 value={formData.promptText}
                 onChange={(event) => updateField('promptText', event.target.value)}
-                className="mt-2 w-full min-h-[160px] rounded-2xl border-2 border-black bg-white px-4 py-3 text-sm shadow-[4px_4px_0_rgba(0,0,0,0.12)] focus:outline-none"
+                className={`mt-2 ${neoTextareaClass} min-h-[180px]`}
               />
             </div>
             <div>
@@ -272,7 +280,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
               <textarea
                 value={formData.negativePrompt ?? ''}
                 onChange={(event) => updateField('negativePrompt', event.target.value)}
-                className="mt-2 w-full min-h-[120px] rounded-2xl border-2 border-black bg-white px-4 py-3 text-sm shadow-[4px_4px_0_rgba(0,0,0,0.12)] focus:outline-none"
+                className={`mt-2 ${neoTextareaClass} min-h-[140px]`}
               />
             </div>
             <div>
@@ -288,7 +296,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
                     setErrorMessage('Parameters must be valid JSON.')
                   }
                 }}
-                className="mt-2 w-full min-h-[140px] rounded-2xl border-2 border-black bg-white px-4 py-3 text-sm shadow-[4px_4px_0_rgba(0,0,0,0.12)] focus:outline-none"
+                className={`mt-2 ${neoTextareaClass} min-h-[160px] font-mono`}
               />
             </div>
           </div>
@@ -301,20 +309,23 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
               <button
                 type="button"
                 onClick={addAsset}
-                className="rounded-full border-2 border-black bg-[#FFCA3A] px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-black shadow-[3px_3px_0_rgba(0,0,0,0.15)]"
+                className="rounded-full border-2 border-black bg-[#FFCA3A] px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-black shadow-[5px_5px_0_rgba(0,0,0,0.18)] transition-transform hover:-translate-y-0.5 hover:shadow-[7px_7px_0_rgba(0,0,0,0.2)]"
               >
                 Add asset
               </button>
             </div>
             {(formData.assets ?? []).map((asset, index) => (
-              <div key={index} className="rounded-2xl border-2 border-black bg-white p-4 shadow-[4px_4px_0_rgba(0,0,0,0.12)]">
+              <div
+                key={index}
+                className="rounded-[30px] border-[3px] border-black bg-white/90 p-4 shadow-[8px_8px_0_rgba(0,0,0,0.14)] backdrop-blur-sm"
+              >
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
                     <label className="text-xs font-black uppercase tracking-[0.2em] text-black/60">File URL</label>
                     <input
                       value={asset.file_url}
                       onChange={(event) => updateAsset(index, 'file_url', event.target.value)}
-                      className="mt-2 w-full rounded-2xl border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none"
+                      className={`mt-2 ${neoInputClass} px-4 py-2`}
                     />
                   </div>
                   <div>
@@ -322,7 +333,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
                     <input
                       value={asset.thumbnail_url ?? ''}
                       onChange={(event) => updateAsset(index, 'thumbnail_url', event.target.value)}
-                      className="mt-2 w-full rounded-2xl border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none"
+                      className={`mt-2 ${neoInputClass} px-4 py-2`}
                     />
                   </div>
                 </div>
@@ -330,7 +341,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
                   <button
                     type="button"
                     onClick={() => removeAsset(index)}
-                    className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-black"
+                    className="rounded-full border-2 border-black bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-black shadow-[4px_4px_0_rgba(0,0,0,0.12)] transition-transform hover:-translate-y-0.5 hover:shadow-[6px_6px_0_rgba(0,0,0,0.18)]"
                   >
                     Remove
                   </button>
@@ -350,27 +361,41 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
               <select
                 value={formData.primaryModelId}
                 onChange={(event) => updateField('primaryModelId', event.target.value)}
-                className="mt-2 w-full rounded-2xl border-2 border-black bg-white px-4 py-3 text-sm shadow-[4px_4px_0_rgba(0,0,0,0.12)] focus:outline-none"
+                className={`mt-2 ${neoSelectClass}`}
               >
-                {models.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.display_name} ({model.category})
-                  </option>
-                ))}
+                {models.map((model) => {
+                  const provider = model.provider ? ` • ${model.provider}` : ''
+                  const family = model.family ? ` — ${model.family}` : ''
+                  return (
+                    <option key={model.id} value={model.id}>
+                      {model.display_name}
+                      {provider}
+                      {family}
+                    </option>
+                  )
+                })}
               </select>
             </div>
             <div>
               <label className="text-xs font-black uppercase tracking-[0.2em] text-black/60">Secondary models</label>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <div className="mt-2 grid gap-3 sm:grid-cols-2">
                 {models.map((model) => (
-                  <label key={model.id} className="flex items-center gap-2 rounded-2xl border-2 border-black bg-white px-3 py-2 text-sm shadow-[3px_3px_0_rgba(0,0,0,0.12)]">
+                  <label
+                    key={model.id}
+                    className="flex items-center justify-between gap-3 rounded-[30px] border-[3px] border-black bg-white/95 px-4 py-3 text-sm font-semibold text-black shadow-[8px_8px_0_rgba(0,0,0,0.14)] transition-transform hover:-translate-y-0.5 hover:shadow-[11px_11px_0_rgba(0,0,0,0.2)]"
+                  >
                     <input
                       type="checkbox"
                       checked={formData.secondaryModelIds?.includes(model.id) ?? false}
                       onChange={() => toggleSecondaryModel(model.id)}
-                      className="h-4 w-4"
+                      className="h-4 w-4 accent-[#6C63FF]"
                     />
-                    <span>{model.display_name}</span>
+                    <div className="flex flex-1 flex-col text-left">
+                      <span className="font-black uppercase tracking-[0.1em]">{model.display_name}</span>
+                      <span className="text-xs text-black/60">
+                        {[model.provider, model.family, model.category].filter(Boolean).join(' • ')}
+                      </span>
+                    </div>
                   </label>
                 ))}
               </div>
@@ -379,9 +404,17 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
               <label className="text-xs font-black uppercase tracking-[0.2em] text-black/60">Tags</label>
               <input
                 value={(formData.tags ?? []).join(', ')}
-                onChange={(event) => updateField('tags', event.target.value.split(',').map((tag) => tag.trim()).filter(Boolean))}
+                onChange={(event) =>
+                  updateField(
+                    'tags',
+                    event.target.value
+                      .split(',')
+                      .map((tag) => tag.trim())
+                      .filter(Boolean),
+                  )
+                }
                 placeholder="marketing, cinematic, launch, ..."
-                className="mt-2 w-full rounded-2xl border-2 border-black bg-white px-4 py-3 text-sm shadow-[4px_4px_0_rgba(0,0,0,0.12)] focus:outline-none"
+                className={`mt-2 ${neoInputClass}`}
               />
               <p className="mt-2 text-xs text-black/60">Separate tags with commas. Max 12 tags.</p>
             </div>
@@ -391,16 +424,25 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
         return (
           <div className="space-y-4">
             <h3 className="text-sm font-black uppercase tracking-[0.2em] text-black/70">Review</h3>
-            <div className="rounded-2xl border-2 border-black bg-white p-4 shadow-[4px_4px_0_rgba(0,0,0,0.12)]">
+            <div className={`${neoCardClass} bg-white`}>
               <p className="text-base font-black text-black">{formData.title}</p>
               <p className="mt-1 text-sm text-black/70">{formData.description}</p>
-              <ul className="mt-3 space-y-1 text-sm text-black/80">
-                <li>Primary model: {models.find((model) => model.id === formData.primaryModelId)?.display_name ?? 'Not selected'}</li>
-                <li>Secondary models: {(formData.secondaryModelIds ?? []).length || 'None'}</li>
-                <li>Tags: {(formData.tags ?? []).join(', ') || 'None'}</li>
-                <li>Visibility: {formData.visibility}</li>
-                <li>Monetization: {formData.monetizationType}</li>
-              </ul>
+              {(() => {
+                const primaryModel = models.find((model) => model.id === formData.primaryModelId)
+                return (
+                  <ul className="mt-3 space-y-1 text-sm text-black/80">
+                    <li>
+                      Primary model: {primaryModel?.display_name ?? 'Not selected'}
+                    </li>
+                    <li>Provider: {primaryModel?.provider ?? 'Not specified'}</li>
+                    <li>Family: {primaryModel?.family ?? 'Not specified'}</li>
+                    <li>Secondary models: {(formData.secondaryModelIds ?? []).length || 'None'}</li>
+                    <li>Tags: {(formData.tags ?? []).join(', ') || 'None'}</li>
+                    <li>Visibility: {formData.visibility}</li>
+                    <li>Monetization: {formData.monetizationType}</li>
+                  </ul>
+                )
+              })()}
             </div>
           </div>
         )
@@ -410,7 +452,9 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
   }
 
   return (
-    <div className="space-y-6 rounded-3xl border-4 border-black bg-[#F9F7FF] p-6 shadow-[12px_12px_0_rgba(0,0,0,0.08)]">
+    <div
+      className={`${neoCardClass} space-y-6 bg-[radial-gradient(circle_at_top_left,#F9F7FF,white_55%,#E8E2FF)]`}
+    >
       <header className="flex flex-col gap-2">
         <p className="text-xs font-black uppercase tracking-[0.3em] text-black/60">Upload wizard</p>
         <h2 className="text-2xl font-black text-black">Share a new prompt</h2>
@@ -420,21 +464,17 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
       </header>
 
       {!models.length ? (
-        <div className="rounded-2xl border-2 border-black bg-[#FFADAD] px-4 py-3 text-sm font-semibold text-black">
-          No active AI models are configured yet. Ask an admin to add models before submitting prompts.
+        <div className={`${neoBadgeClass} w-full justify-center bg-[#FFADAD] text-black`}> 
+          No active AI models are configured yet. Ask an admin to add model families and providers in the dashboard.
         </div>
       ) : null}
 
       {statusMessage ? (
-        <div className="rounded-2xl border-2 border-black bg-[#B9FBC0] px-4 py-3 text-sm font-semibold text-black">
-          {statusMessage}
-        </div>
+        <div className={`${neoBadgeClass} w-full justify-center bg-[#B9FBC0] text-black`}>{statusMessage}</div>
       ) : null}
 
       {errorMessage ? (
-        <div className="rounded-2xl border-2 border-black bg-[#FFADAD] px-4 py-3 text-sm font-semibold text-black">
-          {errorMessage}
-        </div>
+        <div className={`${neoBadgeClass} w-full justify-center bg-[#FFADAD] text-black`}>{errorMessage}</div>
       ) : null}
 
       <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-black/60">
@@ -453,7 +493,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
           type="button"
           onClick={() => setStep((current) => Math.max(1, current - 1))}
           disabled={step === 1 || isSubmitting}
-          className="rounded-2xl border-2 border-black bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-black shadow-[4px_4px_0_rgba(0,0,0,0.12)] disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-[28px] border-[3px] border-black bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-black shadow-[6px_6px_0_rgba(0,0,0,0.14)] transition-transform hover:-translate-y-0.5 hover:shadow-[9px_9px_0_rgba(0,0,0,0.2)] disabled:cursor-not-allowed disabled:opacity-40 disabled:pointer-events-none"
         >
           Back
         </button>
@@ -462,7 +502,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
             type="button"
             onClick={() => setStep((current) => Math.min(5, current + 1))}
             disabled={!canContinue}
-            className="rounded-2xl border-2 border-black bg-[#6C63FF] px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white shadow-[4px_4px_0_rgba(0,0,0,0.2)] disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-[28px] border-[3px] border-black bg-[#6C63FF] px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white shadow-[6px_6px_0_rgba(0,0,0,0.2)] transition-transform hover:-translate-y-0.5 hover:shadow-[9px_9px_0_rgba(0,0,0,0.26)] disabled:cursor-not-allowed disabled:opacity-40 disabled:pointer-events-none"
           >
             Continue
           </button>
@@ -471,7 +511,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
             type="button"
             onClick={submitPrompt}
             disabled={isSubmitting}
-            className="rounded-2xl border-2 border-black bg-[#6C63FF] px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white shadow-[4px_4px_0_rgba(0,0,0,0.2)] disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-[28px] border-[3px] border-black bg-[#6C63FF] px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white shadow-[6px_6px_0_rgba(0,0,0,0.2)] transition-transform hover:-translate-y-0.5 hover:shadow-[9px_9px_0_rgba(0,0,0,0.26)] disabled:cursor-not-allowed disabled:opacity-40 disabled:pointer-events-none"
           >
             {isSubmitting ? 'Publishing…' : 'Submit for review'}
           </button>

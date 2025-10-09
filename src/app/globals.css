@@ -19,6 +19,15 @@
 @import "tw-animate-css";
 @tailwind utilities;
 
+@layer components {
+  .neo-select-arrow {
+    background-image: url("data:image/svg+xml,%3Csvg%20width='20'%20height='20'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3E%3Cpath%20d='M6%209l6%206%206-6'%20stroke='%23000000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 18px 18px;
+    background-position: calc(100% - 20px) 50%;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

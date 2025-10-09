@@ -14,6 +14,7 @@ import {
   Tag,
   Users,
   X,
+  Cpu,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -122,6 +123,14 @@ export const Sidebar = ({
                 label="Taxonomy"
                 isActive={currentView === 'taxonomy'}
                 onClick={() => onNavigate('taxonomy')}
+              />
+            )}
+            {isAdmin && (
+              <SidebarLink
+                icon={<Cpu />}
+                label="Models"
+                isActive={currentView === 'models'}
+                onClick={() => onNavigate('models')}
               />
             )}
             {isAdmin && (

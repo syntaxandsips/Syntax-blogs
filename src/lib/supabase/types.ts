@@ -117,10 +117,13 @@ export interface Database {
           name: string
           display_name: string
           category: string
+          category_id: string | null
           version: string | null
           description: string | null
           icon_url: string | null
           parameters_schema: Record<string, unknown> | null
+          family: string | null
+          provider: string | null
           is_active: boolean
           created_at: string
           updated_at: string
@@ -130,15 +133,39 @@ export interface Database {
           name: string
           display_name: string
           category: string
+          category_id?: string | null
           version?: string | null
           description?: string | null
           icon_url?: string | null
           parameters_schema?: Record<string, unknown> | null
+          family?: string | null
+          provider?: string | null
           is_active?: boolean
           created_at?: string
           updated_at?: string
         }
         Update: Partial<Database['public']['Tables']['ai_models']['Insert']>
+      }
+      ai_model_categories: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          description: string | null
+          accent_color: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          description?: string | null
+          accent_color?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['ai_model_categories']['Insert']>
       }
       prompt_collections: {
         Row: {

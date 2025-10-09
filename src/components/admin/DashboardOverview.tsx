@@ -5,8 +5,11 @@ import {
   Activity,
   BarChart2,
   Clock,
+  Cpu,
+  Layers,
   MessageSquare,
   PenTool,
+  Sparkles,
   TrendingUp,
   Users,
 } from "lucide-react";
@@ -18,6 +21,7 @@ interface DashboardOverviewProps {
   recentComments: AdminCommentSummary[];
   onNavigateToPosts: () => void;
   onNavigateToComments: () => void;
+  onNavigateToModels: () => void;
 }
 
 const formatDate = (value: string) =>
@@ -42,6 +46,7 @@ export function DashboardOverview({
   recentComments,
   onNavigateToPosts,
   onNavigateToComments,
+  onNavigateToModels,
 }: DashboardOverviewProps) {
   const [recentPosts, monthlyPublishing, categoryBreakdown, pipeline] = useMemo(() => {
     const sortedPosts = [...posts].sort(
@@ -110,6 +115,35 @@ export function DashboardOverview({
         <p className="text-sm text-[#2A2A2A]/70">
           Monitor publishing cadence, engagement, and moderation at a glance.
         </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <article className="rounded-[32px] border-[3px] border-black bg-white p-6 shadow-[12px_12px_0_rgba(0,0,0,0.08)]">
+          <header className="flex items-center gap-3">
+            <Cpu className="h-5 w-5 text-[#6C63FF]" aria-hidden="true" />
+            <h2 className="text-xl font-bold text-[#2A2A2A]">Connect your AI model catalog</h2>
+          </header>
+          <p className="mt-3 text-sm text-[#2A2A2A]/80">
+            Unlock richer prompt submissions by curating providers, families, and categories in the model manager.
+          </p>
+          <ul className="mt-4 space-y-2 text-sm text-[#2A2A2A]">
+            <li className="flex items-start gap-2">
+              <Layers className="mt-0.5 h-4 w-4 text-[#FF5252]" aria-hidden="true" />
+              Organize models into themed categories so creators can browse the right tooling.
+            </li>
+            <li className="flex items-start gap-2">
+              <Sparkles className="mt-0.5 h-4 w-4 text-[#6C63FF]" aria-hidden="true" />
+              Capture provider and family metadata so the upload wizard stays accurate.
+            </li>
+          </ul>
+          <button
+            type="button"
+            onClick={onNavigateToModels}
+            className="mt-5 inline-flex items-center gap-2 rounded-[28px] border-[3px] border-black bg-[#6C63FF] px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white shadow-[6px_6px_0_rgba(0,0,0,0.2)] transition-transform hover:-translate-y-0.5 hover:shadow-[9px_9px_0_rgba(0,0,0,0.26)]"
+          >
+            Manage models
+          </button>
+        </article>
       </div>
 
       <StatsSection posts={posts} />

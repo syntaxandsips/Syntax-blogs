@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Loader2, ArrowRight, Sparkles } from 'lucide-react'
 import type { LibraryStatsResponse, LibraryActivityEntry } from '@/lib/library/types'
 import type { Bookmark, Highlight, ReadingHistoryEntry } from '@/utils/types'
@@ -21,10 +22,19 @@ const rangeOptions: Array<{ label: string; value: StatsRange }> = [
   { label: '1 year', value: '365d' },
 ]
 
+const libraryNavigation = [
+  { href: '/me', label: 'Overview' },
+  { href: '/me/lists', label: 'Your lists' },
+  { href: '/me/saved-lists', label: 'Saved lists' },
+  { href: '/me/highlights', label: 'Highlights' },
+  { href: '/me/history', label: 'Reading history' },
+  { href: '/me/responses', label: 'Responses' },
+]
+
 const quickLinks = [
-  { href: '/me/lists', label: 'Create a list', color: '#9723C9' },
-  { href: '/me/highlights', label: 'Review highlights', color: '#FF69B4' },
-  { href: '/me/history', label: 'Continue reading', color: '#87CEEB' },
+  { href: '/me/lists', label: 'Create a list', color: '#FAD0C9' },
+  { href: '/me/highlights', label: 'Review highlights', color: '#C5F0D0' },
+  { href: '/me/history', label: 'Continue reading', color: '#C9E4FF' },
 ]
 
 export function LibraryDashboard({ initialStats, profileName }: LibraryDashboardProps) {
@@ -35,6 +45,12 @@ export function LibraryDashboard({ initialStats, profileName }: LibraryDashboard
   const [activity, setActivity] = useState<LibraryActivityEntry[]>([])
   const [loadingActivity, setLoadingActivity] = useState(true)
   const [activityError, setActivityError] = useState<string | null>(null)
+  const pathname = usePathname()
+  const normalizedPath = (() => {
+    const candidate = (pathname ?? '/me').replace(/\/$/, '')
+    return candidate.length > 0 ? candidate : '/me'
+  })()
+  const firstName = profileName.trim().split(/\s+/)[0] || 'friend'
 
   const fetchStats = useCallback(async (nextRange: StatsRange) => {
     setLoadingStats(true)
@@ -130,22 +146,26 @@ export function LibraryDashboard({ initialStats, profileName }: LibraryDashboard
       {
         label: 'Saved posts',
         value: stats.stats.totalBookmarks,
-        color: '#9723C9',
+        accent: '#3F2B96',
+        background: '#E9E4FF',
       },
       {
         label: 'Custom lists',
         value: stats.stats.totalLists,
-        color: '#FF69B4',
+        accent: '#D946AA',
+        background: '#FFE2F3',
       },
       {
         label: 'Highlights',
         value: stats.stats.totalHighlights,
-        color: '#87CEEB',
+        accent: '#0678A1',
+        background: '#D9F2FF',
       },
       {
         label: 'Reading streak',
         value: stats.stats.readingStreak,
-        color: '#90EE90',
+        accent: '#137B4D',
+        background: '#DDF8E7',
       },
     ],
     [stats],
@@ -160,80 +180,130 @@ export function LibraryDashboard({ initialStats, profileName }: LibraryDashboard
     })
 
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col gap-4 border-b-4 border-black pb-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="text-sm font-bold uppercase tracking-widest text-black/60">Your library</p>
-          <h1 className="text-4xl font-black text-black">Keep exploring, {profileName.split(' ')[0] ?? 'friend'}!</h1>
-          <p className="mt-2 max-w-2xl text-lg text-black/70">
-            Track everything you&apos;ve saved, highlighted, and read across Syntax &amp; Sips. Pick up right where you left off.
-          </p>
+    <div className="space-y-10">
+      <header className="rounded-[32px] border-4 border-black bg-[#F7F4FF] p-8 shadow-[12px_12px_0_rgba(0,0,0,0.18)]">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-3">
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-black/60">Library overview</p>
+            <h1 className="text-4xl font-black text-black">Your library</h1>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black/50">Keep exploring, {firstName}!</p>
+            <p className="max-w-2xl text-base leading-relaxed text-black/70">
+              Track everything you&apos;ve saved, highlighted, and read across Syntax &amp; Sips. Pick up right where you left off with
+              a layout that keeps things aligned and easy to scan.
+            </p>
+          </div>
+          <Link
+            href="/me/lists"
+            className="inline-flex items-center justify-center rounded-full border-4 border-black bg-black px-6 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[8px_8px_0_rgba(0,0,0,0.25)] transition-transform hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40"
+          >
+            Start a new list
+          </Link>
         </div>
-        <div className="flex gap-2">
-          {rangeOptions.map((option) => {
-            const isActive = option.value === range
+        <nav aria-label="Library sections" className="mt-6 flex flex-wrap gap-2">
+          {libraryNavigation.map((item) => {
+            const isActive = normalizedPath === item.href
             return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => {
-                  setRange(option.value)
-                  void fetchStats(option.value)
-                }}
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'rounded-[24px] border-4 border-black px-4 py-2 text-sm font-bold uppercase transition-transform hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/50',
-                  isActive ? 'bg-[#9723C9] text-white' : 'bg-white text-black',
+                  'rounded-full border-2 border-black px-4 py-2 text-sm font-semibold shadow-[4px_4px_0_rgba(0,0,0,0.18)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40',
+                  isActive ? 'bg-black text-white' : 'bg-white text-black',
                 )}
               >
-                {option.label}
-              </button>
+                {item.label}
+              </Link>
             )
           })}
-        </div>
+        </nav>
       </header>
 
-      {statsError ? (
-        <div className="rounded-[24px] border-4 border-black bg-[#FFB347] p-4 font-semibold text-black">
-          {statsError}
+      <section aria-labelledby="library-stats" className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 id="library-stats" className="text-xl font-black text-black">
+            Snapshot
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {rangeOptions.map((option) => {
+              const isActive = option.value === range
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    setRange(option.value)
+                    void fetchStats(option.value)
+                  }}
+                  className={cn(
+                    'rounded-full border-2 border-black px-4 py-2 text-xs font-bold uppercase tracking-wide shadow-[4px_4px_0_rgba(0,0,0,0.12)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40',
+                    isActive ? 'bg-[#111111] text-white' : 'bg-white text-black',
+                  )}
+                >
+                  {option.label}
+                </button>
+              )
+            })}
+          </div>
         </div>
-      ) : null}
 
-      <section aria-labelledby="library-stats" className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {statCards.map((card) => (
-          <article
-            key={card.label}
-            className="rounded-[32px] border-4 border-black bg-white p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.2)]"
-            style={{ backgroundColor: `${card.color}20` }}
-          >
-            <p className="text-sm font-bold uppercase text-black/70">{card.label}</p>
-            <p className="mt-3 text-4xl font-black text-black">{card.value.toLocaleString()}</p>
-          </article>
-        ))}
+        {statsError ? (
+          <div className="rounded-[24px] border-4 border-black bg-[#FFDC7C] p-4 text-sm font-semibold text-black">
+            {statsError}
+          </div>
+        ) : null}
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {statCards.map((card) => (
+            <article
+              key={card.label}
+              className="rounded-[28px] border-4 border-black p-6 shadow-[10px_10px_0_rgba(0,0,0,0.18)]"
+              style={{ backgroundColor: card.background }}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-sm font-bold uppercase tracking-wide text-black/70">{card.label}</p>
+                <span
+                  className="inline-flex h-3 w-3 rounded-full border-2 border-black"
+                  style={{ backgroundColor: card.accent }}
+                  aria-hidden="true"
+                />
+              </div>
+              <p className="mt-6 text-4xl font-black text-black">{card.value.toLocaleString()}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-3" aria-label="Library insights">
-        <article className="rounded-[32px] border-4 border-black bg-[#87CEEB]/40 p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.2)] lg:col-span-2">
+      <section aria-label="Library insights" className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <article className="rounded-[32px] border-4 border-black bg-[#C9E4FF] p-6 shadow-[12px_12px_0_rgba(0,0,0,0.18)]">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-black text-black">Reading timeline</h2>
             {loadingStats ? <Loader2 className="h-5 w-5 animate-spin text-black" aria-hidden="true" /> : null}
           </div>
           <p className="mt-2 text-sm text-black/70">Minutes read per day</p>
-          <div className="mt-6 grid grid-cols-7 gap-2 text-xs">
-            {stats.readingTimeline.map((entry) => (
-              <div key={entry.date} className="flex flex-col items-center gap-1">
-                <div
-                  className="w-full rounded-full border-2 border-black bg-[#9723C9]/30"
-                  style={{ height: `${Math.min(entry.minutes * 3, 120)}px` }}
-                  aria-hidden="true"
-                />
-                <span className="font-semibold text-black/70">{new Date(entry.date).getDate()}</span>
-              </div>
-            ))}
-          </div>
+          {stats.readingTimeline.length === 0 ? (
+            <p className="mt-6 rounded-[24px] border-4 border-dashed border-black/40 bg-white/70 px-4 py-4 text-sm font-semibold text-black/70">
+              We&apos;ll chart your reading streak once you dive into a story.
+            </p>
+          ) : (
+            <div className="mt-6 grid grid-cols-7 gap-3 text-xs sm:text-[0.7rem]">
+              {stats.readingTimeline.map((entry) => (
+                <div key={entry.date} className="flex flex-col items-center gap-2">
+                  <div
+                    className="w-full rounded-full border-2 border-black bg-[#3F2B96]/40"
+                    style={{ height: `${Math.min(entry.minutes * 3, 120)}px` }}
+                    aria-hidden="true"
+                  />
+                  <span className="font-semibold text-black/70">{new Date(entry.date).getDate()}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </article>
-        <article className="rounded-[32px] border-4 border-black bg-[#90EE90]/40 p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.2)]">
+        <article className="rounded-[32px] border-4 border-black bg-[#DDF8E7] p-6 shadow-[12px_12px_0_rgba(0,0,0,0.18)]">
           <h2 className="text-2xl font-black text-black">Highlight colors</h2>
-          <ul className="mt-4 space-y-3">
+          <p className="mt-2 text-sm text-black/70">See which shades you gravitate toward when something inspires you.</p>
+          <ul className="mt-5 space-y-3">
             {stats.highlightGroups.length === 0 ? (
               <li className="rounded-[24px] border-4 border-dashed border-black/40 bg-white/70 px-4 py-3 text-sm font-semibold text-black/70">
                 No highlights yet. Start capturing what matters!
@@ -256,32 +326,48 @@ export function LibraryDashboard({ initialStats, profileName }: LibraryDashboard
         </article>
       </section>
 
-      <section aria-labelledby="quick-actions" className="grid gap-4 md:grid-cols-3">
-        {quickLinks.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="flex items-center justify-between rounded-[32px] border-4 border-black px-6 py-5 font-black text-black shadow-[12px_12px_0px_0px_rgba(0,0,0,0.2)] transition-transform hover:-translate-y-1"
-            style={{ backgroundColor: link.color }}
-          >
-            <span>{link.label}</span>
-            <ArrowRight className="h-6 w-6" aria-hidden="true" />
-          </Link>
-        ))}
+      <section
+        aria-labelledby="quick-actions"
+        className="rounded-[32px] border-4 border-black bg-white p-6 shadow-[12px_12px_0_rgba(0,0,0,0.18)]"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 id="quick-actions" className="text-2xl font-black text-black">
+            Quick actions
+          </h2>
+          <p className="max-w-xl text-sm text-black/60">
+            Shortcuts to keep your reading queue tidy and discoverable.
+          </p>
+        </div>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {quickLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="flex items-center justify-between rounded-[28px] border-4 border-black px-5 py-4 text-sm font-black text-black shadow-[10px_10px_0_rgba(0,0,0,0.18)] transition-transform hover:-translate-y-1"
+              style={{ backgroundColor: link.color }}
+            >
+              <span>{link.label}</span>
+              <ArrowRight className="h-5 w-5" aria-hidden="true" />
+            </Link>
+          ))}
+        </div>
       </section>
 
-      <section aria-labelledby="recent-activity" className="rounded-[32px] border-4 border-black bg-white p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.2)]">
-        <div className="flex items-center justify-between">
-          <div>
+      <section
+        aria-labelledby="recent-activity"
+        className="rounded-[32px] border-4 border-black bg-[#FDF7FF] p-6 shadow-[12px_12px_0_rgba(0,0,0,0.18)]"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-1">
             <h2 id="recent-activity" className="text-2xl font-black text-black">
               Recent activity
             </h2>
             <p className="text-sm text-black/70">A snapshot of your latest saves, highlights, and reading sessions.</p>
           </div>
-          <Sparkles className="h-6 w-6 text-[#9723C9]" aria-hidden="true" />
+          <Sparkles className="h-6 w-6 text-[#3F2B96]" aria-hidden="true" />
         </div>
         {activityError ? (
-          <div className="mt-4 rounded-[24px] border-4 border-black bg-[#FFB347] px-4 py-3 font-semibold text-black">
+          <div className="mt-4 rounded-[24px] border-4 border-black bg-[#FFDC7C] px-4 py-3 text-sm font-semibold text-black">
             {activityError}
           </div>
         ) : null}
@@ -292,14 +378,14 @@ export function LibraryDashboard({ initialStats, profileName }: LibraryDashboard
         ) : (
           <ul className="mt-6 space-y-3">
             {activity.length === 0 ? (
-              <li className="rounded-[24px] border-4 border-dashed border-black/40 bg-[#FDF7FF] px-4 py-4 text-sm font-semibold text-black/70">
+              <li className="rounded-[24px] border-4 border-dashed border-black/40 bg-white/70 px-4 py-4 text-sm font-semibold text-black/70">
                 No activity yet. Explore posts and start building your library.
               </li>
             ) : (
               activity.map((item) => (
                 <li
                   key={item.id}
-                  className="flex items-center justify-between rounded-[24px] border-4 border-black bg-[#FDF7FF] px-4 py-3 text-black"
+                  className="flex flex-col gap-2 rounded-[24px] border-4 border-black bg-white px-4 py-3 text-black sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
                     <p className="text-lg font-bold">
@@ -312,7 +398,7 @@ export function LibraryDashboard({ initialStats, profileName }: LibraryDashboard
                     </p>
                     <p className="text-sm text-black/70">{item.subtitle}</p>
                   </div>
-                  <span className="text-sm font-semibold text-black/80">{formatDate(item.occurredAt)}</span>
+                  <span className="text-sm font-semibold text-black/70">{formatDate(item.occurredAt)}</span>
                 </li>
               ))
             )}

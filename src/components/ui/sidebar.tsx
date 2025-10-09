@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronRight, PanelLeftClose, PanelLeftOpen } from "lucide-react"
+import { ChevronRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -99,7 +99,7 @@ const SidebarTrigger = React.forwardRef<HTMLButtonElement, React.ComponentPropsW
         {...props}
       >
         <span className="sr-only">Toggle sidebar</span>
-        <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+        <ChevronRight className="h-5 w-5" aria-hidden="true" />
       </button>
     )
   },
@@ -257,7 +257,7 @@ const SidebarMenuSubButton = React.forwardRef<HTMLAnchorElement, React.Component
 SidebarMenuSubButton.displayName = "SidebarMenuSubButton"
 
 const SidebarRail = ({ className, ...props }: React.ComponentPropsWithoutRef<"div">) => {
-  const { isOpen, toggle } = useSidebar()
+  const { isOpen, isMobile, toggle } = useSidebar()
   return (
     <div
       className={cn(
@@ -274,7 +274,7 @@ const SidebarRail = ({ className, ...props }: React.ComponentPropsWithoutRef<"di
           !isOpen && !isMobile && "rotate-180",
         )}
       >
-        <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+        <ChevronRight className="h-5 w-5" aria-hidden="true" />
         <span className="sr-only">Collapse sidebar</span>
       </button>
     </div>

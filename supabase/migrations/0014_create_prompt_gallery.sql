@@ -5,6 +5,16 @@ set idle_in_transaction_session_timeout = 0;
 set client_encoding = 'UTF8';
 set standard_conforming_strings = on;
 
+create or replace function public.trigger_update_timestamp()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = timezone('utc', now());
+  return new;
+end;
+$$;
+
 create type prompt_media_type as enum ('image', 'video', 'text', 'audio', '3d', 'workflow');
 create type prompt_difficulty_level as enum ('beginner', 'intermediate', 'advanced');
 create type prompt_visibility as enum ('public', 'unlisted', 'draft');
@@ -29,7 +39,7 @@ create table public.ai_models (
 
 create trigger update_ai_models_updated_at
 before update on public.ai_models
-for each row execute procedure trigger_update_timestamp();
+for each row execute function trigger_update_timestamp();
 
 create table public.prompt_collections (
   id uuid primary key default gen_random_uuid(),
@@ -79,7 +89,7 @@ create index prompts_visibility_idx on public.prompts (visibility);
 create index prompts_published_at_idx on public.prompts (published_at desc);
 create trigger update_prompts_updated_at
 before update on public.prompts
-for each row execute procedure trigger_update_timestamp();
+for each row execute function trigger_update_timestamp();
 
 create table public.prompt_models (
   prompt_id uuid references public.prompts (id) on delete cascade,
@@ -186,7 +196,7 @@ create table public.prompt_comments (
 
 create trigger update_prompt_comments_updated_at
 before update on public.prompt_comments
-for each row execute procedure trigger_update_timestamp();
+for each row execute function trigger_update_timestamp();
 
 create index prompt_comments_prompt_idx on public.prompt_comments (prompt_id);
 create index prompt_comments_parent_idx on public.prompt_comments (parent_id);

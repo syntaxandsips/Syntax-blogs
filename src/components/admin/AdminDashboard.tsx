@@ -16,6 +16,7 @@ import { TaxonomyManager } from './TaxonomyManager'
 import { DashboardOverview } from './DashboardOverview'
 import { AnalyticsPanel } from './AnalyticsPanel'
 import { SettingsPanel } from './SettingsPanel'
+import { PromptMonetizationPanel } from './PromptMonetizationPanel'
 import {
   CommunityQueueApplication,
   CommunityQueueSubmission,
@@ -1071,6 +1072,8 @@ const DashboardContent = ({
         )
       case 'analytics':
         return <AnalyticsPanel posts={posts} recentComments={recentComments} />
+      case 'monetization':
+        return <PromptMonetizationPanel />
       case 'settings':
         return <SettingsPanel />
       default:

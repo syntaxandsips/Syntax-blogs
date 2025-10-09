@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Menu, X, Coffee, Code, Search, UserRound, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
+import clsx from 'clsx';
 import { GlobalSearch } from './GlobalSearch';
 import { useClientPathname } from '@/hooks/useClientPathname';
 import { useAuthenticatedProfile } from '@/hooks/useAuthenticatedProfile';
@@ -14,15 +15,22 @@ import {
   type NavigationCategory,
   type NavigationItem,
 } from '@/lib/navigation';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from '@/components/ui/navigation-menu';
 
 export const NewNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [openCategory, setOpenCategory] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const pathname = useClientPathname();
   const { profile } = useAuthenticatedProfile();
   const needsOnboarding = Boolean(profile && profile.onboarding?.status !== 'completed');
-  const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const isPathActive = (path: string) => {
     if (path === '/') {
@@ -35,27 +43,10 @@ export const NewNavbar = () => {
     category.sections.some((section) => section.items.some((item) => isPathActive(item.href)));
 
   useEffect(() => {
-    if (!openCategory) {
-      return undefined;
-    }
-
-    const handleClickOutside = (event: MouseEvent) => {
-      const container = dropdownRefs.current[openCategory];
-      if (container && !container.contains(event.target as Node)) {
-        setOpenCategory(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [openCategory]);
-
-  useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setOpenCategory(null);
+        setIsOpen(false);
+        setExpandedSection(null);
       }
     };
 
@@ -68,7 +59,6 @@ export const NewNavbar = () => {
   // Close menus when navigating
   useEffect(() => {
     setIsOpen(false);
-    setOpenCategory(null);
     setExpandedSection(null);
   }, [pathname]);
 
@@ -84,21 +74,11 @@ export const NewNavbar = () => {
                 {item.label}
               </NavLink>
             ))}
-            {navigationCategories.map((category) => (
-              <DesktopNavDropdown
-                key={category.label}
-                category={category}
-                isActive={isCategoryActive(category)}
-                isOpen={openCategory === category.label}
-                onToggle={(label) =>
-                  setOpenCategory((previous) => (previous === label ? null : label))
-                }
-                registerNode={(node) => {
-                  dropdownRefs.current[category.label] = node;
-                }}
-                isPathActive={isPathActive}
-              />
-            ))}
+            <DesktopCategoryMenu
+              categories={navigationCategories}
+              isCategoryActive={isCategoryActive}
+              isPathActive={isPathActive}
+            />
             <GlobalSearch />
             <div className="flex items-center gap-3">
               {profile ? (
@@ -335,100 +315,70 @@ const MobileNavLink = ({ href, children, isActive, description }: MobileNavLinkP
   </Link>
 );
 
-interface DesktopNavDropdownProps {
-  category: NavigationCategory;
-  isOpen: boolean;
-  isActive: boolean;
-  onToggle: (label: string) => void;
-  registerNode: (node: HTMLDivElement | null) => void;
+interface DesktopCategoryMenuProps {
+  categories: NavigationCategory[];
+  isCategoryActive: (category: NavigationCategory) => boolean;
   isPathActive: (path: string) => boolean;
 }
 
-const DesktopNavDropdown = ({
-  category,
-  isOpen,
-  isActive,
-  onToggle,
-  registerNode,
+const DesktopCategoryMenu = ({
+  categories,
+  isCategoryActive,
   isPathActive,
-}: DesktopNavDropdownProps) => (
-  <div
-    ref={registerNode}
-    className="relative"
-  >
-    <button
-      type="button"
-      onClick={() => onToggle(category.label)}
-      className={`group inline-flex items-center gap-2 rounded-full border-2 border-black bg-white px-4 py-2 text-lg font-extrabold uppercase tracking-wide shadow-[4px_4px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px] ${
-        isActive ? 'text-[#6C63FF]' : 'text-black'
-      }`}
-      aria-expanded={isOpen}
-      aria-haspopup="true"
-    >
-      {category.label}
-      <ChevronDown
-        className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-        aria-hidden="true"
-      />
-      <span className="sr-only">Toggle {category.label} menu</span>
-    </button>
-    {isOpen ? (
-      <div
-        role="menu"
-        className="absolute left-1/2 top-full z-40 mt-3 w-[min(680px,90vw)] -translate-x-1/2 rounded-3xl border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)]"
-      >
-        {category.description ? (
-          <p className="text-sm font-semibold leading-snug text-gray-700">
-            {category.description}
-          </p>
-        ) : null}
-        <div className="mt-4 grid gap-6 md:grid-cols-2">
-          {category.sections.map((section) => (
-            <div key={section.title} className="space-y-3">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
-                {section.title}
-              </p>
-              <ul className="space-y-2">
-                {section.items.map((item) => (
-                  <li key={item.href}>
-                    <DesktopDropdownLink item={item} isActive={isPathActive(item.href)} />
-                  </li>
+}: DesktopCategoryMenuProps) => (
+  <NavigationMenu className="hidden lg:flex">
+    <NavigationMenuList>
+      {categories.map((category) => (
+        <NavigationMenuItem key={category.label}>
+          <NavigationMenuTrigger
+            className={clsx(
+              navigationMenuTriggerStyle(),
+              'rounded-full border-2 border-black bg-white text-sm font-extrabold uppercase tracking-[0.2em] shadow-[4px_4px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black',
+              isCategoryActive(category) ? 'text-[#6C63FF]' : 'text-black',
+            )}
+          >
+            {category.label}
+          </NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <div className="w-[min(680px,90vw)] space-y-4 p-4">
+              {category.description ? (
+                <p className="text-sm font-semibold leading-snug text-black/70">{category.description}</p>
+              ) : null}
+              <div className="grid gap-4 md:grid-cols-2">
+                {category.sections.map((section) => (
+                  <div
+                    key={section.title}
+                    className="space-y-3 rounded-2xl border-2 border-black bg-white p-4 shadow-[6px_6px_0_rgba(0,0,0,0.12)]"
+                  >
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-black/60">{section.title}</p>
+                    <ul className="space-y-2">
+                      {section.items.map((item) => (
+                        <li key={item.href}>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              href={item.href}
+                              className={`flex flex-col gap-1 rounded-xl border-2 border-transparent px-3 py-2 transition hover:border-black hover:bg-[#F5F3FF] ${
+                                isPathActive(item.href) ? 'border-black bg-[#FFEE88]' : ''
+                              }`}
+                            >
+                              <span className="text-sm font-bold text-black">{item.label}</span>
+                              {item.description ? (
+                                <span className="text-xs text-black/60">{item.description}</span>
+                              ) : null}
+                            </Link>
+                          </NavigationMenuLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
-          ))}
-        </div>
-      </div>
-    ) : null}
-  </div>
-);
-
-const DesktopDropdownLink = ({
-  item,
-  isActive,
-}: {
-  item: NavigationItem;
-  isActive: boolean;
-}) => (
-  <Link
-    href={item.href}
-    className={`group block rounded-2xl border-2 border-black px-4 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px] ${
-      isActive
-        ? 'bg-[#6C63FF] text-white shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)]'
-        : 'bg-[#f9f9f9] text-black hover:bg-white'
-    }`}
-  >
-    <span className="text-base font-extrabold leading-snug">{item.label}</span>
-    {item.description ? (
-      <span
-        className={`mt-2 block text-sm font-semibold leading-snug ${
-          isActive ? 'text-white/80' : 'text-gray-600'
-        }`}
-      >
-        {item.description}
-      </span>
-    ) : null}
-  </Link>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+      ))}
+    </NavigationMenuList>
+  </NavigationMenu>
 );
 
 interface MobileNavSectionProps {

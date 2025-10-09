@@ -106,6 +106,24 @@ body {
       background-position: 100% 50%;
     }
   }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+
+  @keyframes marquee2 {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(0%);
+    }
+  }
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -148,6 +166,8 @@ body {
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --animate-marquee: marquee 14s linear infinite;
+  --animate-marquee2: marquee2 14s linear infinite;
 }
 
 :root {

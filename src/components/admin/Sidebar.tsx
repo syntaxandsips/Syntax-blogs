@@ -1,6 +1,7 @@
 import React from 'react'
 import {
   BarChart,
+  CreditCard,
   Coffee,
   Code,
   FileText,
@@ -131,6 +132,12 @@ export const Sidebar = ({
                 onClick={() => onNavigate('gamification')}
               />
             )}
+            <SidebarLink
+              icon={<CreditCard />}
+              label="Monetization"
+              isActive={currentView === 'monetization'}
+              onClick={() => onNavigate('monetization')}
+            />
             <SidebarLink
               icon={<BarChart />}
               label="Analytics"

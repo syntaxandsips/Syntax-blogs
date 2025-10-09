@@ -116,7 +116,7 @@ export function DashboardOverview({
 
       <div className="grid gap-6 lg:grid-cols-3">
         <article className="lg:col-span-2 rounded-xl border-4 border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.08)]">
-          <header className="mb-4 flex items-center justify-between">
+          <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <Activity className="h-5 w-5 text-[#6C63FF]" aria-hidden="true" />
               <h2 className="text-xl font-bold text-[#2A2A2A]">Recent publishing</h2>
@@ -204,23 +204,25 @@ export function DashboardOverview({
             <TrendingUp className="h-5 w-5 text-[#6C63FF]" aria-hidden="true" />
             <h2 className="text-xl font-bold text-[#2A2A2A]">Publishing cadence</h2>
           </header>
-          <div className="flex items-end gap-4">
-            {monthlyPublishing.map((month) => {
-              const height = month.published === 0 ? 4 : Math.min(96, month.published * 22);
-              return (
-                <div key={month.key} className="flex flex-1 flex-col items-center gap-2">
-                  <div
-                    className="flex h-24 w-full items-end justify-center rounded-md border-2 border-black bg-[#e7e7ff]"
-                    style={{ height: `${Math.max(height, 6)}px` }}
-                  >
-                    <span className="text-xs font-bold text-[#2A2A2A]">{month.published}</span>
+          <div className="overflow-x-auto pb-2">
+            <div className="flex min-w-[520px] items-end gap-4">
+              {monthlyPublishing.map((month) => {
+                const height = month.published === 0 ? 4 : Math.min(96, month.published * 22);
+                return (
+                  <div key={month.key} className="flex flex-1 flex-col items-center gap-2">
+                    <div
+                      className="flex h-24 w-full items-end justify-center rounded-md border-2 border-black bg-[#e7e7ff]"
+                      style={{ height: `${Math.max(height, 6)}px` }}
+                    >
+                      <span className="text-xs font-bold text-[#2A2A2A]">{month.published}</span>
+                    </div>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-[#2A2A2A]/60">
+                      {month.label}
+                    </span>
                   </div>
-                  <span className="text-xs font-semibold uppercase tracking-wide text-[#2A2A2A]/60">
-                    {month.label}
-                  </span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
           <p className="mt-4 text-xs text-gray-500">
             Shows the number of published posts per month across the last six months.
@@ -228,7 +230,7 @@ export function DashboardOverview({
         </section>
 
         <section className="lg:col-span-2 rounded-xl border-4 border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.08)]">
-          <header className="mb-4 flex items-center gap-3">
+          <header className="mb-4 flex flex-wrap items-center gap-3">
             <Users className="h-5 w-5 text-[#FF5252]" aria-hidden="true" />
             <h2 className="text-xl font-bold text-[#2A2A2A]">Content pipeline</h2>
           </header>

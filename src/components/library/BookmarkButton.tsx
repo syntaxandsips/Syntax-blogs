@@ -32,7 +32,7 @@ export function BookmarkButton({ postId, initialBookmarkId, className }: Bookmar
       setLoading(false)
     }
     setError(null)
-  }, [profile?.profileId])
+  }, [profile])
 
   useEffect(() => {
     if (!profile || typeof initialBookmarkId !== 'undefined') {
@@ -87,7 +87,7 @@ export function BookmarkButton({ postId, initialBookmarkId, className }: Bookmar
     return () => {
       cancelled = true
     }
-  }, [initialBookmarkId, postId, profile?.profileId])
+  }, [initialBookmarkId, postId, profile])
 
   const toggleBookmark = async () => {
     if (!profile) {

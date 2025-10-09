@@ -51,6 +51,7 @@ import {
   MAX_PROFILE_PHOTO_SIZE,
   getObjectPathFromPublicUrl,
 } from '@/lib/storage/profile-photos'
+import { cn } from '@/lib/utils'
 import { useAuthenticatedProfile } from '@/hooks/useAuthenticatedProfile'
 import '@/styles/neo-brutalism.css'
 import { GamificationOverview } from '@/components/gamification/GamificationOverview'
@@ -71,6 +72,7 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface UserAccountPanelProps {
   profile: AuthenticatedProfileSummary
@@ -611,7 +613,8 @@ const AccountWorkspaceSidebar = ({
   sections: SidebarSection[]
 }) => {
   const router = useRouter()
-  const { isMobile, setOpen } = useSidebar()
+  const { isMobile, isOpen, setOpen } = useSidebar()
+  const isCollapsed = !isOpen && !isMobile
 
   const handleNavigateToSection = useCallback(
     (sectionId: string) => {
@@ -678,42 +681,84 @@ const AccountWorkspaceSidebar = ({
   )
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className="border-r-4 border-black bg-white shadow-[12px_0_0_rgba(0,0,0,0.12)] lg:sticky lg:top-10 lg:h-[calc(100vh-5rem)] lg:flex-shrink-0"
-    >
-      <SidebarHeader className="bg-[#F9F5FF]">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-black/60">Workspace</p>
-            <p className="text-lg font-black text-gray-900">Account HQ</p>
-          </div>
+    <TooltipProvider delayDuration={150}>
+      <Sidebar
+        collapsible="icon"
+        className={cn(
+          'border-r-4 border-black bg-white shadow-[12px_0_0_rgba(0,0,0,0.12)] lg:sticky lg:top-10 lg:h-[calc(100vh-5rem)] lg:flex-shrink-0',
+          isCollapsed && 'items-center'
+        )}
+      >
+      <SidebarHeader className={cn('bg-[#F9F5FF]', isCollapsed && 'px-2 py-4')}>
+        <div className={cn('flex items-center justify-between gap-3', isCollapsed && 'justify-center')}>
+          {!isCollapsed ? (
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.3em] text-black/60">Workspace</p>
+              <p className="text-lg font-black text-gray-900">Account HQ</p>
+            </div>
+          ) : null}
           <SidebarTrigger className="lg:hidden" />
         </div>
-        <div className="mt-5 flex items-center gap-4">
-          <SidebarAvatar name={profile.displayName} avatarUrl={profile.avatarUrl} />
-          <div>
-            <p className="text-sm font-black text-gray-900">{profile.displayName}</p>
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Member since {formatDate(profile.createdAt)}
-            </p>
+
+        {!isCollapsed ? (
+          <>
+            <div className="mt-5 flex items-center gap-4">
+              <SidebarAvatar name={profile.displayName} avatarUrl={profile.avatarUrl} />
+              <div>
+                <p className="text-sm font-black text-gray-900">{profile.displayName}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Member since {formatDate(profile.createdAt)}
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 grid grid-cols-2 gap-4 text-center">
+              <div className="rounded-2xl border-2 border-black bg-[#F6EDE3] px-3 py-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Posts</p>
+                <p className="text-xl font-black text-gray-900">{totals.publishedPosts}</p>
+              </div>
+              <div className="rounded-2xl border-2 border-black bg-[#E8F5FF] px-3 py-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Comments</p>
+                <p className="text-xl font-black text-gray-900">{totals.totalComments}</p>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="mt-4 flex flex-col items-center gap-4">
+            <div className="relative">
+              <SidebarAvatar name={profile.displayName} avatarUrl={profile.avatarUrl} />
+              <span className="sr-only">
+                {profile.displayName} — member since {formatDate(profile.createdAt)}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border-2 border-black bg-[#F6EDE3] shadow-[4px_4px_0_rgba(0,0,0,0.18)]">
+                    <PenSquare className="h-4 w-4 text-[#FF8A65]" aria-hidden="true" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  {totals.publishedPosts} published {totals.publishedPosts === 1 ? 'story' : 'stories'}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border-2 border-black bg-[#E8F5FF] shadow-[4px_4px_0_rgba(0,0,0,0.18)]">
+                    <MessageCircle className="h-4 w-4 text-[#6C63FF]" aria-hidden="true" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  {totals.totalComments} {totals.totalComments === 1 ? 'comment logged' : 'comments logged'}
+                </TooltipContent>
+              </Tooltip>
+            </div>
           </div>
-        </div>
-        <div className="mt-5 grid grid-cols-2 gap-4 text-center">
-          <div className="rounded-2xl border-2 border-black bg-[#F6EDE3] px-3 py-2">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Posts</p>
-            <p className="text-xl font-black text-gray-900">{totals.publishedPosts}</p>
-          </div>
-          <div className="rounded-2xl border-2 border-black bg-[#E8F5FF] px-3 py-2">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Comments</p>
-            <p className="text-xl font-black text-gray-900">{totals.totalComments}</p>
-          </div>
-        </div>
+        )}
       </SidebarHeader>
 
       <SidebarContent className="space-y-6">
         <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          {!isCollapsed ? <SidebarGroupLabel>Workspace</SidebarGroupLabel> : null}
           <SidebarGroupContent>
             <SidebarMenu>
               {sections.map((section) => (
@@ -721,10 +766,15 @@ const AccountWorkspaceSidebar = ({
                   <SidebarMenuButton
                     onClick={() => handleNavigateToSection(section.id)}
                     tooltip={section.label}
-                    className="justify-start gap-3 border-2 border-black bg-white text-sm font-bold"
+                    className={cn(
+                      'border-2 border-black bg-white text-sm font-bold',
+                      !isCollapsed && 'justify-start gap-3'
+                    )}
                   >
                     <section.icon className="h-4 w-4 text-[#6C63FF]" aria-hidden="true" />
-                    <span>{section.label}</span>
+                    <span className="group-data-[sidebar-collapsed=true]/sidebar-button:hidden">
+                      {section.label}
+                    </span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -733,17 +783,23 @@ const AccountWorkspaceSidebar = ({
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Shortcuts</SidebarGroupLabel>
+          {!isCollapsed ? <SidebarGroupLabel>Shortcuts</SidebarGroupLabel> : null}
           <SidebarGroupContent>
             <SidebarMenu>
               {shortcuts.map((shortcut) => (
                 <SidebarMenuItem key={shortcut.id}>
                   <SidebarMenuButton
                     onClick={() => handleShortcutNavigate(shortcut.href)}
-                    className="justify-start gap-3 border-2 border-black bg-[#0B0B0F] text-sm font-semibold text-white"
+                    tooltip={shortcut.label}
+                    className={cn(
+                      'border-2 border-black bg-[#0B0B0F] text-sm font-semibold text-white',
+                      !isCollapsed && 'justify-start gap-3'
+                    )}
                   >
                     <shortcut.icon className={`h-4 w-4 ${shortcut.accent}`} aria-hidden="true" />
-                    <span>{shortcut.label}</span>
+                    <span className="group-data-[sidebar-collapsed=true]/sidebar-button:hidden">
+                      {shortcut.label}
+                    </span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -752,14 +808,25 @@ const AccountWorkspaceSidebar = ({
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
-          Stay brilliant ✨
-        </p>
+      <SidebarFooter className={cn(isCollapsed && 'flex justify-center px-2 py-3')}>
+        {isCollapsed ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-black bg-white shadow-[4px_4px_0_rgba(0,0,0,0.16)]">
+                <Sparkles className="h-4 w-4 text-[#6C63FF]" aria-hidden="true" />
+                <span className="sr-only">Stay brilliant</span>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="right">Stay brilliant ✨</TooltipContent>
+          </Tooltip>
+        ) : (
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">Stay brilliant ✨</p>
+        )}
       </SidebarFooter>
 
       <SidebarRail />
     </Sidebar>
+    </TooltipProvider>
   )
 }
 
@@ -1286,14 +1353,14 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
 
   return (
     <SidebarProvider>
-      <div className="neo-brutalism flex min-h-screen flex-col bg-gradient-to-br from-[#FFF5F1] via-[#F8F0FF] to-[#E3F2FF] lg:flex-row lg:items-start lg:gap-6">
+      <div className="neo-brutalism flex min-h-screen flex-col bg-gradient-to-br from-[#FFF5F1] via-[#F8F0FF] to-[#E3F2FF] lg:flex-row lg:items-start lg:gap-4">
         <AccountWorkspaceSidebar
           profile={currentProfile}
           totals={contributions.totals}
           sections={navigationSections}
         />
 
-        <SidebarInset className="flex-1 min-w-0 px-4 py-10 sm:px-6 lg:px-8">
+        <SidebarInset className="flex-1 min-w-0 px-4 py-10 sm:px-6 lg:px-6">
           <div className="mx-auto w-full max-w-7xl">
             <div className="mb-6 flex items-center justify-between gap-3 lg:hidden">
               <SidebarTrigger />

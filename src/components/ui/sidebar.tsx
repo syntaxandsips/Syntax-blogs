@@ -4,6 +4,7 @@ import * as React from "react"
 import { ChevronRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 type SidebarContextValue = {
   isOpen: boolean
@@ -121,9 +122,17 @@ const SidebarInset = ({ className, ...props }: React.ComponentPropsWithoutRef<"d
 }
 SidebarInset.displayName = "SidebarInset"
 
-const SidebarContent = ({ className, ...props }: React.ComponentPropsWithoutRef<"div">) => (
-  <div className={cn("flex-1 overflow-y-auto px-4 py-6", className)} {...props} />
-)
+const SidebarContent = ({ className, ...props }: React.ComponentPropsWithoutRef<"div">) => {
+  const { isOpen, isMobile } = useSidebar()
+  const isCollapsed = !isOpen && !isMobile
+
+  return (
+    <div
+      className={cn("flex-1 overflow-y-auto px-4 py-6", isCollapsed && "px-2", className)}
+      {...props}
+    />
+  )
+}
 SidebarContent.displayName = "SidebarContent"
 
 const SidebarHeader = ({ className, ...props }: React.ComponentPropsWithoutRef<"div">) => (
@@ -170,18 +179,43 @@ SidebarMenuItem.displayName = "SidebarMenuItem"
 const SidebarMenuButton = React.forwardRef<
   HTMLButtonElement,
   React.ComponentPropsWithoutRef<"button"> & { tooltip?: string }
->(({ className, tooltip, ...props }, ref) => (
-  <button
-    ref={ref}
-    type="button"
-    data-tooltip={tooltip}
-    className={cn(
-      "flex w-full items-center gap-3 rounded-2xl border-2 border-black bg-white px-3 py-2 text-left text-sm font-semibold text-black shadow-[4px_4px_0_rgba(0,0,0,0.2)] transition-transform hover:-translate-y-0.5",
-      className,
-    )}
-    {...props}
-  />
-))
+>(({ className, tooltip, children, ...props }, ref) => {
+  const { isOpen, isMobile } = useSidebar()
+  const isCollapsed = !isOpen && !isMobile
+
+  const mergedProps: React.ComponentPropsWithoutRef<"button"> = { ...props }
+
+  if (!mergedProps["aria-label"] && tooltip) {
+    mergedProps["aria-label"] = tooltip
+  }
+
+  const button = (
+    <button
+      ref={ref}
+      type="button"
+      data-sidebar-collapsed={isCollapsed ? "true" : "false"}
+      className={cn(
+        "group/sidebar-button flex w-full items-center gap-3 rounded-2xl border-2 border-black bg-white px-3 py-2 text-left text-sm font-semibold text-black shadow-[4px_4px_0_rgba(0,0,0,0.2)] transition-transform hover:-translate-y-0.5",
+        isCollapsed && "justify-center gap-0 px-0",
+        className,
+      )}
+      {...mergedProps}
+    >
+      {children}
+    </button>
+  )
+
+  if (isCollapsed && tooltip) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipContent side="right">{tooltip}</TooltipContent>
+      </Tooltip>
+    )
+  }
+
+  return button
+})
 SidebarMenuButton.displayName = "SidebarMenuButton"
 
 const SidebarMenuAction = React.forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRef<"button">>(

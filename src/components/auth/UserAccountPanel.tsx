@@ -69,6 +69,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
   SidebarRail,
+  useSidebar,
 } from '@/components/ui/sidebar'
 
 interface UserAccountPanelProps {

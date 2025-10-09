@@ -48,6 +48,7 @@ Welcome to **Syntax & Sips**, a Next.js 15 + Supabase editorial platform featuri
   - Default to **Server Components** for static content or data fetching without client interactivity.
   - Promote **Client Components** (add `'use client'`) for interactivity, Supabase auth hooks, or stateful UI.
   - Compose UI through reusable primitives; avoid deep prop drilling—consider context providers for shared state.
+  - When adopting components from [neobrutalism.dev](https://neobrutalism.dev), install them via the official registry using the npm-based Shadcn CLI (for example `npx shadcn@latest add https://neobrutalism.dev/r/[component].json`) before wiring them up. Follow the setup notes in [`neobrutalismthemecomp.MD`](./neobrutalismthemecomp.MD) and avoid copy-pasting untracked snippets.
 - **File Organization**:
   - Feature-first structure: group routes, components, hooks, tests within feature directories.
   - File naming: kebab-case for route folders/files, PascalCase for component files, camelCase for helpers.

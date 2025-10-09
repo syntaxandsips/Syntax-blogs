@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { useToast } from './ToastProvider'
 
 type ApplicationAction = 'approve' | 'decline' | 'needs_more_info'
 type SubmissionAction = 'approve' | 'decline' | 'feedback'
@@ -55,8 +56,7 @@ export const CommunityReviewQueue = ({
   onSubmissionAction,
 }: CommunityReviewQueueProps) => {
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const { showToast } = useToast()
   const [noteValue, setNoteValue] = useState('')
   const [noteComposer, setNoteComposer] = useState<
     | {
@@ -81,27 +81,36 @@ export const CommunityReviewQueue = ({
   >(null)
 
   const runAction = async (fn: () => Promise<void>, message: string): Promise<boolean> => {
-    setError(null)
-    setSuccess(null)
     try {
       await fn()
-      setSuccess(message)
+      showToast({
+        variant: 'success',
+        title: 'Action completed',
+        description: message,
+      })
       await onRefresh()
       return true
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Unable to complete action.')
+      showToast({
+        variant: 'error',
+        title: 'Unable to complete action',
+        description:
+          error instanceof Error ? error.message : 'Unable to complete action.',
+      })
       return false
     }
   }
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
-    setError(null)
-    setSuccess(null)
     try {
       await onRefresh()
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Unable to refresh queue.')
+      showToast({
+        variant: 'error',
+        title: 'Unable to refresh queue',
+        description: error instanceof Error ? error.message : 'Unable to refresh queue.',
+      })
     } finally {
       setIsRefreshing(false)
     }
@@ -172,17 +181,6 @@ export const CommunityReviewQueue = ({
         Triage author applications and community submissions awaiting editorial decisions. Actions fire notifications, update
         Supabase, and log moderation events.
       </p>
-      {error ? (
-        <div className="rounded-3xl border-4 border-[#FF5252] bg-[#FFE6E0] px-4 py-3 text-sm font-semibold text-[#B71C1C]">
-          {error}
-        </div>
-      ) : null}
-      {success ? (
-        <div className="rounded-3xl border-4 border-[#4CAF50] bg-[#E8F5E9] px-4 py-3 text-sm font-semibold text-[#1B5E20]">
-          {success}
-        </div>
-      ) : null}
-
       <section className="space-y-4">
         <header className="flex items-center justify-between">
           <h3 className="text-lg font-black uppercase text-[#121212]">Author applications</h3>

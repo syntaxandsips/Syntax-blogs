@@ -21,6 +21,7 @@ import {
   CommunityQueueSubmission,
   CommunityReviewQueue,
 } from './CommunityReviewQueue'
+import { ToastProvider, useToast } from './ToastProvider'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { Menu } from 'lucide-react'
 import {
@@ -43,18 +44,14 @@ export interface AdminDashboardProps {
   isAdmin: boolean
 }
 
-interface FeedbackState {
-  type: 'success' | 'error'
-  message: string
-}
-
-const AdminDashboard = ({
+const DashboardContent = ({
   profileId,
   displayName,
   isAdmin,
 }: AdminDashboardProps) => {
   const router = useRouter()
   const supabase = useMemo(() => createBrowserClient(), [])
+  const { showToast } = useToast()
   const [currentView, setCurrentView] = useState<string>('overview')
   const [posts, setPosts] = useState<AdminPost[]>([])
   const [categories, setCategories] = useState<CategoryOption[]>([])
@@ -63,7 +60,6 @@ const AdminDashboard = ({
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshingPosts, setIsRefreshingPosts] = useState(false)
   const [isPostSaving, setIsPostSaving] = useState(false)
-  const [feedback, setFeedback] = useState<FeedbackState | null>(null)
   const [users, setUsers] = useState<AdminUserSummary[]>([])
   const [roles, setRoles] = useState<AdminRole[]>([])
   const [isLoadingUsers, setIsLoadingUsers] = useState(false)
@@ -160,7 +156,6 @@ const AdminDashboard = ({
 
   const loadInitialData = useCallback(async () => {
     setIsLoading(true)
-    setFeedback(null)
 
     try {
       const [
@@ -198,9 +193,10 @@ const AdminDashboard = ({
       }
       setRecentComments(recentCommentResult)
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message:
+      showToast({
+        variant: 'error',
+        title: 'Dashboard data failed to load',
+        description:
           error instanceof Error
             ? error.message
             : 'Unable to load dashboard data.',
@@ -208,7 +204,13 @@ const AdminDashboard = ({
     } finally {
       setIsLoading(false)
     }
-  }, [fetchPosts, fetchRecentComments, fetchCommunityQueue, supabase])
+  }, [
+    fetchPosts,
+    fetchRecentComments,
+    fetchCommunityQueue,
+    showToast,
+    supabase,
+  ])
 
   useEffect(() => {
     void loadInitialData()
@@ -221,20 +223,19 @@ const AdminDashboard = ({
   }, [currentView, fetchCommunityQueue])
 
   const handleRefreshPosts = useCallback(async () => {
-    setFeedback(null)
-
     try {
       await fetchPosts()
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message:
+      showToast({
+        variant: 'error',
+        title: 'Unable to refresh posts',
+        description:
           error instanceof Error
             ? error.message
             : 'Unable to refresh posts.',
       })
     }
-  }, [fetchPosts])
+  }, [fetchPosts, showToast])
 
   const handleCreatePost = () => {
     setEditingPost(null)
@@ -249,7 +250,6 @@ const AdminDashboard = ({
 
   const handleSavePost = async (values: PostFormValues) => {
     setIsPostSaving(true)
-    setFeedback(null)
 
     try {
       const endpoint = values.id
@@ -275,17 +275,21 @@ const AdminDashboard = ({
         throw new Error(result.error ?? 'Unable to save the post.')
       }
 
-      setFeedback({
-        type: 'success',
-        message: values.id ? 'Post updated successfully.' : 'Post created successfully.',
+      showToast({
+        variant: 'success',
+        title: values.id ? 'Post updated' : 'Post created',
+        description: values.id
+          ? 'Post updated successfully.'
+          : 'Post created successfully.',
       })
       setCurrentView('posts')
       setEditingPost(null)
       await fetchPosts()
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message:
+      showToast({
+        variant: 'error',
+        title: 'Unable to save post',
+        description:
           error instanceof Error ? error.message : 'Unable to save the post.',
       })
     } finally {
@@ -498,16 +502,19 @@ const AdminDashboard = ({
 
   const runTaxonomyAction = useCallback(
     async (operation: () => Promise<void>, successMessage: string) => {
-      setFeedback(null)
-
       try {
         await operation()
-        setFeedback({ type: 'success', message: successMessage })
+        showToast({
+          variant: 'success',
+          title: 'Content taxonomy updated',
+          description: successMessage,
+        })
         return true
       } catch (error) {
-        setFeedback({
-          type: 'error',
-          message:
+        showToast({
+          variant: 'error',
+          title: 'Unable to update taxonomy',
+          description:
             error instanceof Error
               ? error.message
               : 'Unable to update content taxonomy.',
@@ -515,7 +522,7 @@ const AdminDashboard = ({
         return false
       }
     },
-    [],
+    [showToast],
   )
 
   const requestCreateCategory = useCallback(
@@ -571,8 +578,6 @@ const AdminDashboard = ({
   )
 
   const handleDeletePost = async (id: string) => {
-    setFeedback(null)
-
     try {
       const response = await fetch(`/api/admin/posts/${id}`, {
         method: 'DELETE',
@@ -583,12 +588,17 @@ const AdminDashboard = ({
         throw new Error(payload.error ?? 'Unable to delete the post.')
       }
 
-      setFeedback({ type: 'success', message: 'Post deleted successfully.' })
+      showToast({
+        variant: 'success',
+        title: 'Post deleted',
+        description: 'Post deleted successfully.',
+      })
       await fetchPosts()
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message:
+      showToast({
+        variant: 'error',
+        title: 'Unable to delete post',
+        description:
           error instanceof Error
             ? error.message
             : 'Unable to delete the post.',
@@ -597,8 +607,6 @@ const AdminDashboard = ({
   }
 
   const handlePublishPost = async (id: string) => {
-    setFeedback(null)
-
     try {
       const response = await fetch(`/api/admin/posts/${id}`, {
         method: 'PATCH',
@@ -618,12 +626,17 @@ const AdminDashboard = ({
         throw new Error(payload.error ?? 'Unable to publish the post.')
       }
 
-      setFeedback({ type: 'success', message: 'Post published successfully.' })
+      showToast({
+        variant: 'success',
+        title: 'Post published',
+        description: 'Post published successfully.',
+      })
       await fetchPosts()
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message:
+      showToast({
+        variant: 'error',
+        title: 'Unable to publish post',
+        description:
           error instanceof Error
             ? error.message
             : 'Unable to publish the post.',
@@ -659,15 +672,16 @@ const AdminDashboard = ({
       setRoles((payload.roles ?? []) as AdminRole[])
       setHasLoadedUsers(true)
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message:
+      showToast({
+        variant: 'error',
+        title: 'Unable to load users',
+        description:
           error instanceof Error ? error.message : 'Unable to load users.',
       })
     } finally {
       setIsLoadingUsers(false)
     }
-  }, [])
+  }, [showToast])
 
   useEffect(() => {
     if (currentView === 'users' && !hasLoadedUsers && !isLoadingUsers) {
@@ -693,15 +707,16 @@ const AdminDashboard = ({
       setHasLoadedComments(true)
       setRecentComments((payload.comments ?? []).slice(0, 8))
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message:
+      showToast({
+        variant: 'error',
+        title: 'Unable to load comments',
+        description:
           error instanceof Error ? error.message : 'Unable to load comments.',
       })
     } finally {
       setIsLoadingComments(false)
     }
-  }, [])
+  }, [showToast])
 
   useEffect(() => {
     if (currentView === 'comments' && !hasLoadedComments && !isLoadingComments) {
@@ -711,7 +726,6 @@ const AdminDashboard = ({
 
   const handleCreateUser = async (values: CreateAdminUserPayload) => {
     setIsUserMutationInFlight(true)
-    setFeedback(null)
 
     try {
       const response = await fetch('/api/admin/users', {
@@ -735,15 +749,17 @@ const AdminDashboard = ({
         return [createdUser, ...filtered]
       })
 
-      setFeedback({
-        type: 'success',
-        message: 'User created successfully.',
+      showToast({
+        variant: 'success',
+        title: 'User created',
+        description: 'User created successfully.',
       })
       return true
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message:
+      showToast({
+        variant: 'error',
+        title: 'Unable to create user',
+        description:
           error instanceof Error ? error.message : 'Unable to create user.',
       })
       return false
@@ -757,7 +773,6 @@ const AdminDashboard = ({
     values: UpdateAdminUserPayload,
   ) => {
     setIsUserMutationInFlight(true)
-    setFeedback(null)
 
     try {
       const response = await fetch(`/api/admin/users/${profileId}`, {
@@ -781,15 +796,17 @@ const AdminDashboard = ({
         return [updatedUser, ...others]
       })
 
-      setFeedback({
-        type: 'success',
-        message: 'User updated successfully.',
+      showToast({
+        variant: 'success',
+        title: 'User updated',
+        description: 'User updated successfully.',
       })
       return true
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message:
+      showToast({
+        variant: 'error',
+        title: 'Unable to update user',
+        description:
           error instanceof Error ? error.message : 'Unable to update user.',
       })
       return false
@@ -800,15 +817,15 @@ const AdminDashboard = ({
 
   const handleDeleteUser = async (targetProfileId: string) => {
     if (targetProfileId === profileId) {
-      setFeedback({
-        type: 'error',
-        message: 'You cannot delete your own account.',
+      showToast({
+        variant: 'error',
+        title: 'Action not allowed',
+        description: 'You cannot delete your own account.',
       })
       return false
     }
 
     setIsUserMutationInFlight(true)
-    setFeedback(null)
 
     try {
       const response = await fetch(`/api/admin/users/${targetProfileId}`, {
@@ -823,15 +840,17 @@ const AdminDashboard = ({
 
       setUsers((prev) => prev.filter((user) => user.profileId !== targetProfileId))
 
-      setFeedback({
-        type: 'success',
-        message: 'User deleted successfully.',
+      showToast({
+        variant: 'success',
+        title: 'User deleted',
+        description: 'User deleted successfully.',
       })
       return true
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message:
+      showToast({
+        variant: 'error',
+        title: 'Unable to delete user',
+        description:
           error instanceof Error ? error.message : 'Unable to delete user.',
       })
       return false
@@ -870,10 +889,16 @@ const AdminDashboard = ({
             : comment,
         ),
       )
+      showToast({
+        variant: 'success',
+        title: 'Comment approved',
+        description: 'The comment is now visible to readers.',
+      })
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message:
+      showToast({
+        variant: 'error',
+        title: 'Unable to approve comment',
+        description:
           error instanceof Error ? error.message : 'Unable to approve comment.',
       })
     }
@@ -909,10 +934,16 @@ const AdminDashboard = ({
             : comment,
         ),
       )
+      showToast({
+        variant: 'success',
+        title: 'Comment rejected',
+        description: 'The comment will no longer appear publicly.',
+      })
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message:
+      showToast({
+        variant: 'error',
+        title: 'Unable to reject comment',
+        description:
           error instanceof Error ? error.message : 'Unable to reject comment.',
       })
     }
@@ -932,10 +963,16 @@ const AdminDashboard = ({
 
       setComments((prev) => prev.filter((comment) => comment.id !== id))
       setRecentComments((prev) => prev.filter((comment) => comment.id !== id))
+      showToast({
+        variant: 'success',
+        title: 'Comment deleted',
+        description: 'The comment has been removed.',
+      })
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message:
+      showToast({
+        variant: 'error',
+        title: 'Unable to delete comment',
+        description:
           error instanceof Error ? error.message : 'Unable to delete comment.',
       })
     }
@@ -1104,22 +1141,19 @@ const AdminDashboard = ({
         </header>
         <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
           <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-            {feedback && (
-              <div
-                className={`rounded-md border-2 p-4 font-semibold ${
-                  feedback.type === 'success'
-                    ? 'border-green-500/30 bg-green-50 text-green-700'
-                    : 'border-red-500/30 bg-red-50 text-red-700'
-                }`}
-              >
-                {feedback.message}
-              </div>
-            )}
             {renderContent()}
           </div>
         </main>
       </div>
     </div>
+  )
+}
+
+const AdminDashboard = (props: AdminDashboardProps) => {
+  return (
+    <ToastProvider>
+      <DashboardContent {...props} />
+    </ToastProvider>
   )
 }
 

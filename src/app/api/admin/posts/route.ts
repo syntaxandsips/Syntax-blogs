@@ -226,6 +226,27 @@ export async function POST(request: Request) {
     )
   }
 
+  const serviceClient = createServiceRoleClient()
+
+  const duplicateSlugMessage =
+    'A post with that slug already exists. Please choose a different slug.'
+
+  const { count: existingSlugCount, error: existingSlugError } = await serviceClient
+    .from('posts')
+    .select('id', { head: true, count: 'exact' })
+    .eq('slug', slug)
+
+  if (existingSlugError) {
+    return NextResponse.json(
+      { error: `Unable to validate slug uniqueness: ${existingSlugError.message}` },
+      { status: 400 },
+    )
+  }
+
+  if ((existingSlugCount ?? 0) > 0) {
+    return NextResponse.json({ error: duplicateSlugMessage }, { status: 409 })
+  }
+
   let publishedAt: string | null = null
   let scheduledFor: string | null = null
 
@@ -251,7 +272,6 @@ export async function POST(request: Request) {
     publishedAt = null
   }
 
-  const serviceClient = createServiceRoleClient()
   const { data, error } = await serviceClient
     .from('posts')
     .insert({
@@ -274,6 +294,9 @@ export async function POST(request: Request) {
     .single()
 
   if (error) {
+    if (typeof error === 'object' && error && 'code' in error && error.code === '23505') {
+      return NextResponse.json({ error: duplicateSlugMessage }, { status: 409 })
+    }
     return NextResponse.json(
       { error: `Unable to create post: ${error.message}` },
       { status: 400 },

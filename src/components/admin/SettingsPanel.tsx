@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Check, Loader2, ShieldCheck, SlidersHorizontal, Sparkles } from "lucide-react";
+import { useToast } from "./ToastProvider";
 
 interface DashboardSettings {
   newsletterDoubleOptIn: boolean;
@@ -37,9 +38,7 @@ export function SettingsPanel() {
   const [settings, setSettings] = useState<DashboardSettings>(DEFAULT_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(
-    null,
-  );
+  const { showToast } = useToast();
 
   const mergedSettings = useMemo(() => ({
     ...DEFAULT_SETTINGS,
@@ -49,7 +48,6 @@ export function SettingsPanel() {
   useEffect(() => {
     const loadSettings = async () => {
       setIsLoading(true);
-      setFeedback(null);
 
       try {
         const response = await fetch("/api/admin/settings", {
@@ -67,9 +65,10 @@ export function SettingsPanel() {
           setSettings((prev) => ({ ...prev, ...payload.settings }));
         }
       } catch (error) {
-        setFeedback({
-          type: "error",
-          message: error instanceof Error ? error.message : "Unable to load settings.",
+        showToast({
+          variant: "error",
+          title: "Unable to load settings",
+          description: error instanceof Error ? error.message : "Unable to load settings.",
         });
       } finally {
         setIsLoading(false);
@@ -77,12 +76,11 @@ export function SettingsPanel() {
     };
 
     void loadSettings();
-  }, []);
+  }, [showToast]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSaving(true);
-    setFeedback(null);
 
     try {
       const response = await fetch("/api/admin/settings", {
@@ -99,14 +97,16 @@ export function SettingsPanel() {
         throw new Error(payload.error ?? "Unable to save settings.");
       }
 
-      setFeedback({
-        type: "success",
-        message: payload.message ?? "Settings updated successfully.",
+      showToast({
+        variant: "success",
+        title: "Settings saved",
+        description: payload.message ?? "Settings updated successfully.",
       });
     } catch (error) {
-      setFeedback({
-        type: "error",
-        message: error instanceof Error ? error.message : "Unable to save settings.",
+      showToast({
+        variant: "error",
+        title: "Unable to save settings",
+        description: error instanceof Error ? error.message : "Unable to save settings.",
       });
     } finally {
       setIsSaving(false);
@@ -121,18 +121,6 @@ export function SettingsPanel() {
           Configure moderation rules, newsletter preferences, and dashboard theming.
         </p>
       </div>
-
-      {feedback && (
-        <div
-          className={`rounded-md border-2 p-4 font-semibold ${
-            feedback.type === "success"
-              ? "border-green-500/40 bg-green-50 text-green-700"
-              : "border-red-500/40 bg-red-50 text-red-700"
-          }`}
-        >
-          {feedback.message}
-        </div>
-      )}
 
       <form
         onSubmit={handleSubmit}

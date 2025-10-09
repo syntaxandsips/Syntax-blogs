@@ -3,6 +3,17 @@
 import { useMemo, useState } from 'react'
 import { Loader2, Pencil, Plus, RefreshCcw, Trash2 } from 'lucide-react'
 import type { CategoryOption, TagOption } from '@/utils/types'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 interface TaxonomyManagerProps {
   categories: CategoryOption[]
@@ -355,15 +366,32 @@ export function TaxonomyManager({
                             >
                               <Pencil className="h-4 w-4" /> Edit
                             </button>
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                await onDeleteCategory(category.id)
-                              }}
-                              className="inline-flex items-center gap-2 rounded-md bg-[#FF5252] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:opacity-90"
-                            >
-                              <Trash2 className="h-4 w-4" /> Delete
-                            </button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center gap-2 rounded-md bg-[#FF5252] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:opacity-90"
+                                >
+                                  <Trash2 className="h-4 w-4" /> Delete
+                                </button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete category?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will permanently delete the &quot;{category.name}&quot; category. This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={async () => {
+                                    await onDeleteCategory(category.id)
+                                  }}>
+                                    Delete Category
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </div>
                       )}
@@ -515,15 +543,32 @@ export function TaxonomyManager({
                             >
                               <Pencil className="h-4 w-4" /> Edit
                             </button>
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                await onDeleteTag(tag.id)
-                              }}
-                              className="inline-flex items-center gap-2 rounded-md bg-[#FF5252] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:opacity-90"
-                            >
-                              <Trash2 className="h-4 w-4" /> Delete
-                            </button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center gap-2 rounded-md bg-[#FF5252] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:opacity-90"
+                                >
+                                  <Trash2 className="h-4 w-4" /> Delete
+                                </button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete tag?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will permanently delete the &quot;{tag.name}&quot; tag. This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={async () => {
+                                    await onDeleteTag(tag.id)
+                                  }}>
+                                    Delete Tag
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </div>
                       )}

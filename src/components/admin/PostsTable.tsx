@@ -9,6 +9,17 @@ import {
   RotateCcw,
 } from 'lucide-react'
 import { AdminPost, PostStatus } from '../../utils/types'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 interface PostsTableProps {
   posts: AdminPost[]
@@ -144,6 +155,7 @@ export const PostsTable = ({
                     </div>
                     <div className="flex flex-wrap gap-2 pt-2">
                       <button
+                        type="button"
                         onClick={() => onEdit(post)}
                         className="flex flex-1 items-center justify-center gap-1 rounded-md bg-[#6C63FF] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
                         title="Edit"
@@ -151,21 +163,57 @@ export const PostsTable = ({
                         <Pencil className="h-4 w-4" /> Edit
                       </button>
                       {post.status !== PostStatus.PUBLISHED && (
-                        <button
-                          onClick={() => onPublish(post.id)}
-                          className="flex flex-1 items-center justify-center gap-1 rounded-md bg-[#06D6A0] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-                          title="Publish"
-                        >
-                          <ArrowUpRight className="h-4 w-4" /> Publish
-                        </button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <button
+                              type="button"
+                              className="flex flex-1 items-center justify-center gap-1 rounded-md bg-[#06D6A0] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+                              title="Publish"
+                            >
+                              <ArrowUpRight className="h-4 w-4" /> Publish
+                            </button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Publish this post?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will make &quot;{post.title}&quot; visible to all readers. You can unpublish it later if needed.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => onPublish(post.id)}>
+                                Publish Now
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       )}
-                      <button
-                        onClick={() => onDelete(post.id)}
-                        className="flex flex-1 items-center justify-center gap-1 rounded-md bg-[#FF5252] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-                        title="Delete"
-                      >
-                        <Trash2 className="h-4 w-4" /> Delete
-                      </button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <button
+                            type="button"
+                            className="flex flex-1 items-center justify-center gap-1 rounded-md bg-[#FF5252] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" /> Delete
+                          </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete &quot;{post.title}&quot;. This action cannot be undone and will remove all associated data.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => onDelete(post.id)}>
+                              Delete Post
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </article>
@@ -232,6 +280,7 @@ export const PostsTable = ({
                         <td className="p-4">
                           <div className="flex items-center justify-end gap-2">
                             <button
+                              type="button"
                               onClick={() => onEdit(post)}
                               className="rounded-md bg-[#6C63FF] p-2 text-white transition hover:opacity-90"
                               title="Edit"
@@ -239,21 +288,57 @@ export const PostsTable = ({
                               <Pencil className="h-4 w-4" />
                             </button>
                             {post.status !== PostStatus.PUBLISHED && (
-                              <button
-                                onClick={() => onPublish(post.id)}
-                                className="rounded-md bg-[#06D6A0] p-2 text-white transition hover:opacity-90"
-                                title="Publish"
-                              >
-                                <ArrowUpRight className="h-4 w-4" />
-                              </button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <button
+                                    type="button"
+                                    className="rounded-md bg-[#06D6A0] p-2 text-white transition hover:opacity-90"
+                                    title="Publish"
+                                  >
+                                    <ArrowUpRight className="h-4 w-4" />
+                                  </button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Publish this post?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will make &quot;{post.title}&quot; visible to all readers. You can unpublish it later if needed.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => onPublish(post.id)}>
+                                      Publish Now
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             )}
-                            <button
-                              onClick={() => onDelete(post.id)}
-                              className="rounded-md bg-[#FF5252] p-2 text-white transition hover:opacity-90"
-                              title="Delete"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <button
+                                  type="button"
+                                  className="rounded-md bg-[#FF5252] p-2 text-white transition hover:opacity-90"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will permanently delete &quot;{post.title}&quot;. This action cannot be undone and will remove all associated data.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => onDelete(post.id)}>
+                                    Delete Post
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </td>
                       </tr>

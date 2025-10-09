@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Alert Dialog Component**: Installed neo-brutalism styled alert-dialog component from neobrutalism.dev
+- **Confirmation Dialogs**: Implemented confirmation dialogs for all major destructive actions across the application
+  - Post deletion and publishing in PostsTable (mobile and desktop views)
+  - User account deletion in UserManagement (mobile and desktop views)
+  - Category and tag deletion in TaxonomyManager
+  - Comment deletion in CommentsModeration
+  - Sign out action in UserAccountPanel
+- **Improved UX**: Replaced native `window.confirm` dialogs with accessible, styled AlertDialog components
+- **Consistent Design**: All confirmation dialogs follow neo-brutalism theme with clear action descriptions
+
+### Changed
+
+- Updated PostsTable to use AlertDialog for delete and publish confirmations
+- Updated UserManagement to use AlertDialog for user deletion with proper context
+- Updated TaxonomyManager to use AlertDialog for category and tag deletions
+- Updated CommentsModeration to use AlertDialog for comment deletion
+- Updated UserAccountPanel to use AlertDialog for sign out confirmation
+- Removed `window.confirm` usage in favor of accessible AlertDialog components
+
 ### Planned - Library Feature
 - **User Library System**: Complete Medium-style library feature for saving and organizing content
   - Your Library: Central dashboard for all saved content

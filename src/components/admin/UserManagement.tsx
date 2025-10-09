@@ -8,6 +8,17 @@ import {
   CreateAdminUserPayload,
   UpdateAdminUserPayload,
 } from '@/utils/types'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 interface UserManagementProps {
   users: AdminUserSummary[]
@@ -162,14 +173,6 @@ export const UserManagement = ({
       return
     }
 
-    const confirmed = window.confirm(
-      `Delete ${user.displayName || user.email}? This action cannot be undone.`,
-    )
-
-    if (!confirmed) {
-      return
-    }
-
     const success = await onDeleteUser(user.profileId)
 
     if (success) {
@@ -321,20 +324,37 @@ export const UserManagement = ({
                           >
                             <Pencil className="h-4 w-4" aria-hidden="true" />
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteClick(user)}
-                            className="neo-button px-3 py-2 text-xs font-bold bg-white text-[#FF5252]"
-                            disabled={isSaving || user.profileId === currentProfileId}
-                            title={
-                              user.profileId === currentProfileId
-                                ? 'You cannot delete your own account'
-                                : 'Delete user'
-                            }
-                            aria-label="Delete user"
-                          >
-                            <Trash2 className="h-4 w-4" aria-hidden="true" />
-                          </button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <button
+                                type="button"
+                                className="neo-button px-3 py-2 text-xs font-bold bg-white text-[#FF5252]"
+                                disabled={isSaving || user.profileId === currentProfileId}
+                                title={
+                                  user.profileId === currentProfileId
+                                    ? 'You cannot delete your own account'
+                                    : 'Delete user'
+                                }
+                                aria-label="Delete user"
+                              >
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                              </button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete user account?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will permanently delete {user.displayName || user.email}&apos;s account. This action cannot be undone and will remove all associated data.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteClick(user)}>
+                                  Delete User
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     </div>
@@ -392,20 +412,37 @@ export const UserManagement = ({
                               >
                                 <Pencil className="h-4 w-4" aria-hidden="true" />
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteClick(user)}
-                                className="neo-button px-3 py-2 text-xs font-bold bg-white text-[#FF5252]"
-                                disabled={isSaving || user.profileId === currentProfileId}
-                                title={
-                                  user.profileId === currentProfileId
-                                    ? 'You cannot delete your own account'
-                                    : 'Delete user'
-                                }
-                                aria-label="Delete user"
-                              >
-                                <Trash2 className="h-4 w-4" aria-hidden="true" />
-                              </button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <button
+                                    type="button"
+                                    className="neo-button px-3 py-2 text-xs font-bold bg-white text-[#FF5252]"
+                                    disabled={isSaving || user.profileId === currentProfileId}
+                                    title={
+                                      user.profileId === currentProfileId
+                                        ? 'You cannot delete your own account'
+                                        : 'Delete user'
+                                    }
+                                    aria-label="Delete user"
+                                  >
+                                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                                  </button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete user account?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will permanently delete {user.displayName || user.email}&apos;s account. This action cannot be undone and will remove all associated data.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteClick(user)}>
+                                      Delete User
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </td>
                         </tr>

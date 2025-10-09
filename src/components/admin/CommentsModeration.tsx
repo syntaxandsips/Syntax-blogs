@@ -3,6 +3,17 @@
 import { useMemo } from 'react'
 import { Check, Loader2, MessageSquareWarning, RefreshCcw, Trash2, XCircle } from 'lucide-react'
 import { CommentStatus, type AdminCommentSummary } from '@/utils/types'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 interface CommentsModerationProps {
   comments: AdminCommentSummary[]
@@ -163,13 +174,30 @@ export const CommentsModeration = ({
                   >
                     <XCircle className="h-4 w-4" aria-hidden="true" /> Reject
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => onDelete(comment.id)}
-                    className="inline-flex items-center gap-1 rounded-md border-2 border-red-500/40 px-3 py-1 text-sm font-semibold text-red-600 transition hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" aria-hidden="true" /> Delete
-                  </button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 rounded-md border-2 border-red-500/40 px-3 py-1 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden="true" /> Delete
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete comment?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete this comment from {comment.authorName}. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => onDelete(comment.id)}>
+                          Delete Comment
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </li>
             ))}

@@ -29,6 +29,17 @@ import {
   UserRound,
   UsersRound,
 } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import type {
   AuthenticatedProfileSummary,
   OnboardingAccountability,
@@ -1667,15 +1678,32 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
                   Session stays active until you sign out. Close your browser without worry—your reading queue and drafts follow you.
                 </p>
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <button
-                    type="button"
-                    onClick={handleSignOut}
-                    disabled={isSigningOut}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-md border-2 border-black bg-[#FF5252] px-4 py-2 text-sm font-black uppercase tracking-wide text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
-                    title="Sign out of your Syntax &amp; Sips account"
-                  >
-                    {isSigningOut ? 'Signing out…' : 'Sign out securely'}
-                  </button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button
+                        type="button"
+                        disabled={isSigningOut}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-md border-2 border-black bg-[#FF5252] px-4 py-2 text-sm font-black uppercase tracking-wide text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+                        title="Sign out of your Syntax &amp; Sips account"
+                      >
+                        {isSigningOut ? 'Signing out…' : 'Sign out securely'}
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Sign out of your account?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          You will be signed out of your Syntax &amp; Sips account. Your reading queue and drafts will be saved and available when you sign back in.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleSignOut}>
+                          Sign Out
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                   <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Need to switch accounts? Sign out first.
                   </span>

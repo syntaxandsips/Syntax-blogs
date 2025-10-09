@@ -6,6 +6,7 @@ import { NeobrutalCard } from '@/components/neobrutal/card'
 import { NeobrutalProgressBar } from '@/components/neobrutal/progress-bar'
 import { cn } from '@/lib/utils'
 import { isRecordLike, toNumber } from '@/lib/gamification/utils'
+import { useToast } from './ToastProvider'
 
 interface BadgeFormState {
   id?: string
@@ -190,11 +191,10 @@ export const GamificationPanel = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isSavingBadge, setIsSavingBadge] = useState(false)
   const [isSavingChallenge, setIsSavingChallenge] = useState(false)
-  const [feedback, setFeedback] = useState<string | null>(null)
+  const { showToast } = useToast()
 
   const fetchAll = useCallback(async () => {
     setIsLoading(true)
-    setFeedback(null)
 
     try {
       const [analyticsResponse, badgesResponse, challengesResponse] = await Promise.all([
@@ -243,11 +243,18 @@ export const GamificationPanel = () => {
       )
     } catch (error) {
       console.error('Failed to load gamification admin data', error)
-      setFeedback(error instanceof Error ? error.message : 'Unable to load gamification data.')
+      showToast({
+        variant: 'error',
+        title: 'Unable to load gamification data',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Unable to load gamification data.',
+      })
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [showToast])
 
   useEffect(() => {
     void fetchAll()
@@ -256,7 +263,6 @@ export const GamificationPanel = () => {
   const handleBadgeSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setIsSavingBadge(true)
-    setFeedback(null)
 
     try {
       const response = await fetch('/api/admin/gamification/badges', {
@@ -280,11 +286,19 @@ export const GamificationPanel = () => {
       }
 
       setBadgeForm(defaultBadge)
-      setFeedback('Badge saved successfully.')
+      showToast({
+        variant: 'success',
+        title: 'Badge saved',
+        description: 'Badge saved successfully.',
+      })
       await fetchAll()
     } catch (error) {
       console.error('Failed to save badge', error)
-      setFeedback(error instanceof Error ? error.message : 'Unable to save badge.')
+      showToast({
+        variant: 'error',
+        title: 'Unable to save badge',
+        description: error instanceof Error ? error.message : 'Unable to save badge.',
+      })
     } finally {
       setIsSavingBadge(false)
     }
@@ -293,7 +307,6 @@ export const GamificationPanel = () => {
   const handleChallengeSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setIsSavingChallenge(true)
-    setFeedback(null)
 
     try {
       const response = await fetch('/api/admin/gamification/challenges', {
@@ -316,11 +329,20 @@ export const GamificationPanel = () => {
       }
 
       setChallengeForm(defaultChallenge)
-      setFeedback('Challenge saved successfully.')
+      showToast({
+        variant: 'success',
+        title: 'Challenge saved',
+        description: 'Challenge saved successfully.',
+      })
       await fetchAll()
     } catch (error) {
       console.error('Failed to save challenge', error)
-      setFeedback(error instanceof Error ? error.message : 'Unable to save challenge.')
+      showToast({
+        variant: 'error',
+        title: 'Unable to save challenge',
+        description:
+          error instanceof Error ? error.message : 'Unable to save challenge.',
+      })
     } finally {
       setIsSavingChallenge(false)
     }
@@ -346,12 +368,6 @@ export const GamificationPanel = () => {
           <RefreshCcw className="h-4 w-4" /> Refresh
         </button>
       </div>
-
-      {feedback ? (
-        <div className="rounded-xl border-2 border-black bg-[#FFF1D6] p-4 text-sm font-semibold text-black shadow-[6px_6px_0px_rgba(0,0,0,0.12)]">
-          {feedback}
-        </div>
-      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <NeobrutalCard className="bg-white">

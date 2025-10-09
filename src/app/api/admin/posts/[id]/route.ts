@@ -234,7 +234,7 @@ export async function PATCH(
 
   const { error: existingError, data: existing } = await serviceClient
     .from('posts')
-    .select('id')
+    .select('id, slug')
     .eq('id', id)
     .maybeSingle()
 
@@ -249,6 +249,38 @@ export async function PATCH(
     return NextResponse.json({ error: 'Post not found.' }, { status: 404 })
   }
 
+  const duplicateSlugMessage =
+    'A post with that slug already exists. Please choose a different slug.'
+
+  if (typeof updates.slug === 'string' && updates.slug.trim().length > 0) {
+    const normalizedSlug = updates.slug.trim()
+    const existingSlug =
+      typeof (existing as { slug?: string }).slug === 'string'
+        ? ((existing as { slug?: string }).slug as string)
+        : null
+
+    if (!existingSlug || existingSlug !== normalizedSlug) {
+      const { count: slugCount, error: slugCheckError } = await serviceClient
+        .from('posts')
+        .select('id', { head: true, count: 'exact' })
+        .eq('slug', normalizedSlug)
+        .neq('id', id)
+
+      if (slugCheckError) {
+        return NextResponse.json(
+          {
+            error: `Unable to validate slug uniqueness: ${slugCheckError.message}`,
+          },
+          { status: 400 },
+        )
+      }
+
+      if ((slugCount ?? 0) > 0) {
+        return NextResponse.json({ error: duplicateSlugMessage }, { status: 409 })
+      }
+    }
+  }
+
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: 'No updates provided.' }, { status: 400 })
   }
@@ -261,6 +293,9 @@ export async function PATCH(
     .maybeSingle()
 
   if (error) {
+    if (typeof error === 'object' && error && 'code' in error && error.code === '23505') {
+      return NextResponse.json({ error: duplicateSlugMessage }, { status: 409 })
+    }
     return NextResponse.json(
       { error: `Unable to update post: ${error.message}` },
       { status: 400 },

@@ -12,8 +12,8 @@ export function NewFollowSection({ topics }: NewFollowSectionProps) {
   const displayedTopics = topics.slice(0, 7);
 
   return (
-    <div className="space-y-8">
-      <div className="bg-white border-4 border-black p-6 rounded-lg transform rotate-1 shadow-[8px_8px_0px_0px_rgba(0,0,0)]">
+    <div className="space-y-8 py-2">
+      <div className="bg-white border-4 border-black p-6 rounded-lg transform rotate-1 shadow-[8px_8px_0px_0px_rgba(0,0,0)] transition-transform hover:rotate-0">
         <h3 className="text-xl font-black mb-4">Recommended topics</h3>
         {displayedTopics.length > 0 ? (
           <div className="flex flex-wrap gap-2">
@@ -30,7 +30,7 @@ export function NewFollowSection({ topics }: NewFollowSectionProps) {
           See more topics
         </Link>
       </div>
-      <div className="bg-white border-4 border-black p-6 rounded-lg transform -rotate-1 shadow-[8px_8px_0px_0px_rgba(0,0,0)]">
+      <div className="bg-white border-4 border-black p-6 rounded-lg transform -rotate-1 shadow-[8px_8px_0px_0px_rgba(0,0,0)] transition-transform hover:rotate-0">
         <h3 className="text-xl font-black mb-4">Where to follow</h3>
         <div className="space-y-4">
           <SocialFollowButton

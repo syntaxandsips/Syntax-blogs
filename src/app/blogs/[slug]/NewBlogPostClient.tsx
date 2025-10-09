@@ -147,8 +147,8 @@ export default function NewBlogPostClient({ post, relatedPosts, canonicalUrl, br
         >
           <ArrowLeft size={18} /> BACK TO BLOGS
         </Link>
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 lg:items-start">
+          <div className="lg:col-span-2 lg:overflow-y-auto">
             <article className="bg-white border-4 border-black rounded-lg overflow-hidden">
               <div className="p-6 border-b-4 border-black">
                 <div className="bg-[#FF5252] text-white px-3 py-1 text-sm font-bold inline-block mb-4">
@@ -283,11 +283,11 @@ export default function NewBlogPostClient({ post, relatedPosts, canonicalUrl, br
               </div>
             </article>
           </div>
-          <div className="lg:col-span-1 lg:self-start">
-            <div className="lg:sticky lg:top-24">
+          <aside className="lg:col-span-1 lg:sticky lg:top-24 lg:self-start">
+            <div className="px-2 lg:px-0">
               <NewFollowSection topics={recommendedTopics} />
             </div>
-          </div>
+          </aside>
         </div>
       </div>
     </div>

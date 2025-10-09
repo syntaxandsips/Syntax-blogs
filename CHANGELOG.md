@@ -5,6 +5,38 @@ All notable changes to the SyntaxBlogs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.9] - 2025-02-27
+
+### Fixed
+
+- Fixed excessive spacing between sidebar and main content on the account page when sidebar is open
+- Improved sidebar collapsed state with better icon sizing, padding, and button layouts
+- Enhanced sidebar toggle button visibility and positioning with improved hover effects
+- Optimized content area width and padding for better professional appearance
+- Added proper transitions and hover states for sidebar menu items in both expanded and collapsed states
+- Hidden profile stats (posts/comments) icons when sidebar is collapsed for cleaner appearance
+- Fixed blogs page layout to have sticky right sidebar with "Recommended topics" and "Where to follow" sections
+- Preserved neo-brutalism design with rotated cards and shadows on sticky sidebar
+- Removed scrollbar from sidebar by eliminating max-height constraint for better UX
+
+### Changed
+
+- Removed automatic margin adjustments from `SidebarInset` component for more predictable layout behavior
+- Updated sidebar to be full-height (`lg:h-screen`) and sticky from top of viewport
+- Improved sidebar header and footer styling with better borders and spacing
+- Enhanced collapsed sidebar icons to be larger (20px) and properly centered in square buttons
+- Adjusted main content max-width from `max-w-7xl` to `max-w-6xl` for better readability
+- Replaced chevron icon with intuitive `PanelLeftClose`/`PanelLeftOpen` icons for sidebar toggle button
+- Changed toggle button shape from circular to rounded square for better visual clarity
+- Added tooltip to toggle button showing "Collapse sidebar" or "Expand sidebar"
+- Consolidated profile information into a single tooltip when sidebar is collapsed
+- Added active state animation to toggle button (press effect)
+- Updated blogs page layout to use sticky positioning for right sidebar (`lg:sticky lg:top-24`)
+- Applied same sticky sidebar layout to individual blog post pages for consistency
+- Added hover effects to sidebar cards (`transition-transform hover:rotate-0`)
+- Added padding wrapper (`px-2 lg:px-0`) to prevent rotated card clipping
+- Removed max-height and overflow constraints from sidebar for full content visibility
+
 ## [1.12.8] - 2025-02-26
 
 ### Added

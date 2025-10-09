@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronRight } from "lucide-react"
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -111,8 +111,7 @@ const SidebarInset = ({ className, ...props }: React.ComponentPropsWithoutRef<"d
   return (
     <div
       className={cn(
-        "transition-[margin] duration-300 lg:ml-72",
-        !isOpen && !isMobile && "lg:ml-16",
+        "transition-[margin] duration-300",
         isMobile && "ml-0",
         className,
       )}
@@ -267,17 +266,28 @@ const SidebarRail = ({ className, ...props }: React.ComponentPropsWithoutRef<"di
       )}
       {...props}
     >
-      <button
-        type="button"
-        onClick={() => toggle()}
-        className={cn(
-          "absolute -right-4 top-24 hidden h-10 w-10 items-center justify-center rounded-full border-2 border-black bg-white text-black shadow-[4px_4px_0_rgba(0,0,0,0.2)] transition-transform hover:-translate-y-0.5 lg:inline-flex",
-          !isOpen && !isMobile && "rotate-180",
-        )}
-      >
-        <ChevronRight className="h-5 w-5" aria-hidden="true" />
-        <span className="sr-only">Collapse sidebar</span>
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={() => toggle()}
+            className={cn(
+              "absolute -right-4 top-6 hidden h-11 w-11 items-center justify-center rounded-xl border-3 border-black bg-white text-black shadow-[4px_4px_0_rgba(0,0,0,0.25)] transition-all hover:shadow-[6px_6px_0_rgba(0,0,0,0.3)] hover:scale-105 active:shadow-[2px_2px_0_rgba(0,0,0,0.25)] active:translate-x-0.5 active:translate-y-0.5 lg:inline-flex z-10",
+            )}
+            aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+          >
+            {isOpen ? (
+              <PanelLeftClose className="h-5 w-5" aria-hidden="true" />
+            ) : (
+              <PanelLeftOpen className="h-5 w-5" aria-hidden="true" />
+            )}
+            <span className="sr-only">{isOpen ? "Collapse sidebar" : "Expand sidebar"}</span>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="right" className="font-semibold">
+          {isOpen ? "Collapse sidebar" : "Expand sidebar"}
+        </TooltipContent>
+      </Tooltip>
     </div>
   )
 }

@@ -164,8 +164,8 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
   return (
     <div className="container mx-auto px-4 pb-14 pt-10">
       <NewBlogsHeader />
-      <div className="mt-8 flex flex-col gap-10 lg:flex-row lg:items-start">
-        <div className="w-full lg:w-8/12">
+      <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+        <div className="w-full lg:w-8/12 lg:overflow-y-auto">
           <NeobrutalCard className="flex flex-col gap-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="relative w-full md:max-w-sm">
@@ -235,11 +235,11 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
             </div>
           </NeobrutalCard>
         </div>
-        <div className="w-full lg:w-4/12 lg:self-start">
-          <div className="lg:sticky lg:top-24">
+        <aside className="w-full lg:w-4/12 lg:sticky lg:top-24 lg:self-start">
+          <div className="px-2 lg:px-0">
             <NewFollowSection topics={recommendedTopics} />
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   );

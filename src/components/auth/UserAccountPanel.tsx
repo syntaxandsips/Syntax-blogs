@@ -685,11 +685,11 @@ const AccountWorkspaceSidebar = ({
       <Sidebar
         collapsible="icon"
         className={cn(
-          'border-r-4 border-black bg-white shadow-[12px_0_0_rgba(0,0,0,0.12)] lg:sticky lg:top-10 lg:h-[calc(100vh-5rem)] lg:flex-shrink-0',
+          'border-r-4 border-black bg-white shadow-[8px_0_0_rgba(0,0,0,0.1)] lg:sticky lg:top-0 lg:h-screen lg:flex-shrink-0',
           isCollapsed && 'items-center'
         )}
       >
-      <SidebarHeader className={cn('bg-[#F9F5FF]', isCollapsed && 'px-2 py-4')}>
+      <SidebarHeader className={cn('bg-[#F9F5FF] border-b-2 border-black/10', isCollapsed ? 'px-2 py-4' : 'px-4 py-5')}>
         <div className={cn('flex items-center justify-between gap-3', isCollapsed && 'justify-center')}>
           {!isCollapsed ? (
             <div>
@@ -723,55 +723,44 @@ const AccountWorkspaceSidebar = ({
             </div>
           </>
         ) : (
-          <div className="mt-4 flex flex-col items-center gap-4">
-            <div className="relative">
-              <SidebarAvatar name={profile.displayName} avatarUrl={profile.avatarUrl} />
-              <span className="sr-only">
-                {profile.displayName} — member since {formatDate(profile.createdAt)}
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border-2 border-black bg-[#F6EDE3] shadow-[4px_4px_0_rgba(0,0,0,0.18)]">
-                    <PenSquare className="h-4 w-4 text-[#FF8A65]" aria-hidden="true" />
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  {totals.publishedPosts} published {totals.publishedPosts === 1 ? 'story' : 'stories'}
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border-2 border-black bg-[#E8F5FF] shadow-[4px_4px_0_rgba(0,0,0,0.18)]">
-                    <MessageCircle className="h-4 w-4 text-[#6C63FF]" aria-hidden="true" />
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  {totals.totalComments} {totals.totalComments === 1 ? 'comment logged' : 'comments logged'}
-                </TooltipContent>
-              </Tooltip>
-            </div>
+          <div className="mt-4 flex flex-col items-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="relative">
+                  <SidebarAvatar name={profile.displayName} avatarUrl={profile.avatarUrl} />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="max-w-xs">
+                <div className="space-y-1">
+                  <p className="font-bold">{profile.displayName}</p>
+                  <p className="text-xs text-gray-400">Member since {formatDate(profile.createdAt)}</p>
+                  <div className="mt-2 flex gap-3 text-xs">
+                    <span>{totals.publishedPosts} posts</span>
+                    <span>{totals.totalComments} comments</span>
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
           </div>
         )}
       </SidebarHeader>
 
-      <SidebarContent className="space-y-6">
+      <SidebarContent className={cn('space-y-6', isCollapsed && 'px-2')}>
         <SidebarGroup>
           {!isCollapsed ? <SidebarGroupLabel>Workspace</SidebarGroupLabel> : null}
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className={cn(isCollapsed && 'space-y-2')}>
               {sections.map((section) => (
                 <SidebarMenuItem key={section.id}>
                   <SidebarMenuButton
                     onClick={() => handleNavigateToSection(section.id)}
                     tooltip={section.label}
                     className={cn(
-                      'border-2 border-black bg-white text-sm font-bold',
-                      !isCollapsed && 'justify-start gap-3'
+                      'border-2 border-black bg-white text-sm font-bold transition-all hover:bg-[#6C63FF]/10',
+                      isCollapsed ? 'w-10 h-10 p-0 justify-center' : 'justify-start gap-3'
                     )}
                   >
-                    <section.icon className="h-4 w-4 text-[#6C63FF]" aria-hidden="true" />
+                    <section.icon className={cn('h-4 w-4 text-[#6C63FF]', isCollapsed && 'h-5 w-5')} aria-hidden="true" />
                     <span className="group-data-[sidebar-collapsed=true]/sidebar-button:hidden">
                       {section.label}
                     </span>
@@ -785,18 +774,18 @@ const AccountWorkspaceSidebar = ({
         <SidebarGroup>
           {!isCollapsed ? <SidebarGroupLabel>Shortcuts</SidebarGroupLabel> : null}
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className={cn(isCollapsed && 'space-y-2')}>
               {shortcuts.map((shortcut) => (
                 <SidebarMenuItem key={shortcut.id}>
                   <SidebarMenuButton
                     onClick={() => handleShortcutNavigate(shortcut.href)}
                     tooltip={shortcut.label}
                     className={cn(
-                      'border-2 border-black bg-[#0B0B0F] text-sm font-semibold text-white',
-                      !isCollapsed && 'justify-start gap-3'
+                      'border-2 border-black bg-[#0B0B0F] text-sm font-semibold text-white transition-all hover:bg-[#1A1A1F]',
+                      isCollapsed ? 'w-10 h-10 p-0 justify-center' : 'justify-start gap-3'
                     )}
                   >
-                    <shortcut.icon className={`h-4 w-4 ${shortcut.accent}`} aria-hidden="true" />
+                    <shortcut.icon className={cn(`h-4 w-4 ${shortcut.accent}`, isCollapsed && 'h-5 w-5')} aria-hidden="true" />
                     <span className="group-data-[sidebar-collapsed=true]/sidebar-button:hidden">
                       {shortcut.label}
                     </span>
@@ -808,12 +797,12 @@ const AccountWorkspaceSidebar = ({
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className={cn(isCollapsed && 'flex justify-center px-2 py-3')}>
+      <SidebarFooter className={cn('border-t-2 border-black/10', isCollapsed ? 'flex justify-center px-2 py-4' : 'px-4 py-3')}>
         {isCollapsed ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-black bg-white shadow-[4px_4px_0_rgba(0,0,0,0.16)]">
-                <Sparkles className="h-4 w-4 text-[#6C63FF]" aria-hidden="true" />
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-black bg-white shadow-[4px_4px_0_rgba(0,0,0,0.16)] transition-transform hover:scale-105">
+                <Sparkles className="h-5 w-5 text-[#6C63FF]" aria-hidden="true" />
                 <span className="sr-only">Stay brilliant</span>
               </span>
             </TooltipTrigger>
@@ -1353,15 +1342,15 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
 
   return (
     <SidebarProvider>
-      <div className="neo-brutalism flex min-h-screen flex-col bg-gradient-to-br from-[#FFF5F1] via-[#F8F0FF] to-[#E3F2FF] lg:flex-row lg:items-start lg:gap-4">
+      <div className="neo-brutalism flex min-h-screen flex-col bg-gradient-to-br from-[#FFF5F1] via-[#F8F0FF] to-[#E3F2FF] lg:flex-row lg:items-start">
         <AccountWorkspaceSidebar
           profile={currentProfile}
           totals={contributions.totals}
           sections={navigationSections}
         />
 
-        <SidebarInset className="flex-1 min-w-0 px-4 py-10 sm:px-6 lg:px-6">
-          <div className="mx-auto w-full max-w-7xl">
+        <SidebarInset className="flex-1 min-w-0 px-4 py-10 sm:px-6 lg:px-8 lg:pl-6">
+          <div className="mx-auto w-full max-w-6xl">
             <div className="mb-6 flex items-center justify-between gap-3 lg:hidden">
               <SidebarTrigger />
               <p className="text-xs font-black uppercase tracking-[0.3em] text-gray-600">Open workspace navigation</p>

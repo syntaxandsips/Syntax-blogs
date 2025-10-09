@@ -1,0 +1,83 @@
+I need you to implement a comprehensive library feature for Syntax & Sips (Next.js 15 + Supabase platform).
+
+STUDY THESE DOCUMENTS FIRST (in order):
+1. docs/library/LIBRARY_FEATURE_PLAN.md - Executive overview and roadmap
+2. docs/library/library-feature-summary.md - Detailed feature specifications
+3. docs/library/library-feature-implementation-plan.md - Technical roadmap
+4. docs/library/library-technical-spec.md - Complete database schema and SQL
+5. docs/library/library-implementation-guide.md - Step-by-step implementation guide
+
+IMPLEMENTATION REQUIREMENTS:
+
+Phase 1: Database Schema (START HERE)
+- Create: supabase/migrations/0015_create_user_library_schema.sql
+- Include: All 6 tables (user_lists, list_items, saved_lists, highlights, reading_history, bookmarks)
+- Add: All indexes, RLS policies, triggers, constraints
+- Follow: Exact schema from library-technical-spec.md
+
+Phase 2: TypeScript Types
+- Update: src/utils/types.ts (add all library types)
+- Create: src/lib/library/validation.ts (Zod schemas)
+- Create: src/lib/library/types.ts (helper types)
+- Follow: Type definitions from library-technical-spec.md
+
+Phase 3: Backend API Routes
+- Create: src/app/api/library/* (complete API structure)
+- Routes: /lists, /highlights, /history, /bookmarks, /saved-lists, /stats
+- Include: Authentication, validation, error handling, RLS
+- Follow: Existing patterns in src/app/api/admin/posts/route.ts
+
+Phase 4: Frontend Routes
+- Migrate: /me from admin redirect to library dashboard
+- Create: /me/lists, /me/highlights, /me/history, /me/responses, /me/accounts
+- Add: Authentication guards, loading states, error boundaries
+- Follow: Next.js 15 App Router patterns
+
+Phase 5: UI Components
+- Create: src/components/library/* (all components)
+- Style: Neo-brutalism (thick borders, hard shadows, bold colors)
+- Include: LibraryDashboard, ListsManager, HighlightsViewer, ReadingHistory, BookmarkButton
+- Follow: Design system in neobrutalismthemecomp.MD
+
+Phase 6: Integration
+- Add: Bookmark buttons to post pages
+- Add: Highlight selection UI
+- Add: Reading history tracking
+- Connect: All features end-to-end
+
+CRITICAL RULES:
+1. Study ALL documentation before starting
+2. Follow existing codebase patterns (check src/app/api/*, src/components/*)
+3. Use createServerComponentClient() for server, createBrowserClient() for client
+4. Implement RLS policies on ALL tables
+5. Use Zod for ALL input validation
+6. Follow neo-brutalism design system exactly
+7. Add proper error handling and loading states
+8. Ensure WCAG 2.1 AA accessibility
+9. Write tests for all functionality
+10. Update documentation as you implement
+
+STUDY THESE EXISTING FILES FOR PATTERNS:
+- supabase/migrations/0012_create_gamification_schema.sql (complex schema)
+- src/app/api/admin/posts/route.ts (CRUD operations)
+- src/components/auth/UserAccountPanel.tsx (complex dashboard)
+- src/lib/gamification/types.ts (type patterns)
+
+START WITH: Creating the database migration file following the exact schema in library-technical-spec.md
+
+SECURITY CHECKLIST:
+✓ RLS enabled on all tables
+✓ Authentication validated in all routes
+✓ Input validation with Zod
+✓ No SQL injection vulnerabilities
+✓ Proper error messages (no sensitive data)
+
+DESIGN CHECKLIST:
+✓ Thick black borders (border-4 border-black)
+✓ Hard shadows (shadow-[16px_16px_0px_0px_rgba(0,0,0,0.2)])
+✓ Bold colors (#9723C9, #FF69B4, #87CEEB, #90EE90)
+✓ Rounded corners (rounded-[32px])
+✓ Mobile-first responsive design
+
+Ready to start? Begin with Phase 1: Database Migration.
+

@@ -5,6 +5,28 @@ All notable changes to the SyntaxBlogs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Planned - Library Feature
+- **User Library System**: Complete Medium-style library feature for saving and organizing content
+  - Your Library: Central dashboard for all saved content
+  - Your Lists: Create and manage custom lists of posts
+  - Saved Lists: Save and follow lists from other users
+  - Highlights: Text highlighting with notes and color coding
+  - Reading History: Track reading activity and progress
+  - Responses: Manage all comments and interactions
+- **Database Schema**: New tables for user_lists, list_items, saved_lists, highlights, reading_history, bookmarks
+- **API Routes**: Complete REST API for library operations at /api/library/*
+- **UI Components**: Neo-brutalism styled components for all library features
+- **Route Migration**: /me route migrated from admin redirect to user library dashboard
+- **Privacy Controls**: Granular privacy settings for lists and highlights
+- **Documentation**: Comprehensive guides for library feature implementation
+
+### Documentation
+- Added `docs/library-feature-implementation-plan.md` - Complete implementation roadmap
+- Added `docs/library-feature-summary.md` - Executive summary and feature overview
+- Added `docs/library-technical-spec.md` - Detailed technical specifications and database schema
+
 ## [1.12.9] - 2025-02-27
 
 ### Fixed

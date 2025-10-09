@@ -20,7 +20,11 @@ interface ToastOptions {
   duration?: number
 }
 
-interface ToastRecord extends Required<Omit<ToastOptions, 'duration'>> {
+interface ToastRecord {
+  id: string
+  title?: string
+  description: string
+  variant: ToastVariant
   duration: number
 }
 

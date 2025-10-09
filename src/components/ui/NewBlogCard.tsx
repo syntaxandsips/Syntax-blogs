@@ -1,39 +1,42 @@
-"use client";
+'use client'
 
-import React, { useEffect, useState, useRef } from 'react';
-import Link from 'next/link';
-import { MoreHorizontal, Calendar, Clock } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react'
+import Link from 'next/link'
+import { MoreHorizontal, Calendar, Clock } from 'lucide-react'
 
-import { NeobrutalCard } from '@/components/neobrutal/card';
+import { NeobrutalCard } from '@/components/neobrutal/card'
+import { BookmarkButton } from '@/components/library/BookmarkButton'
 
 interface BlogCardProps {
-  title: string;
-  categoryLabel: string;
-  accentColor?: string | null;
-  date: string;
-  views: number;
-  excerpt: string;
-  slug: string;
+  postId: string
+  title: string
+  categoryLabel: string
+  accentColor?: string | null
+  date: string
+  views: number
+  excerpt: string
+  slug: string
 }
 
-const colorPalette = ['#6C63FF', '#FF5252', '#06D6A0', '#FFD166', '#118AB2'];
+const colorPalette = ['#6C63FF', '#FF5252', '#06D6A0', '#FFD166', '#118AB2']
 
 const getFallbackColor = (label: string) => {
   if (!label) {
-    return colorPalette[0];
+    return colorPalette[0]
   }
 
-  const normalized = label.toLowerCase();
-  let hash = 0;
+  const normalized = label.toLowerCase()
+  let hash = 0
 
   for (let index = 0; index < normalized.length; index += 1) {
-    hash = (hash + normalized.charCodeAt(index)) % colorPalette.length;
+    hash = (hash + normalized.charCodeAt(index)) % colorPalette.length
   }
 
-  return colorPalette[hash];
-};
+  return colorPalette[hash]
+}
 
 export function NewBlogCard({
+  postId,
   title,
   categoryLabel,
   accentColor,
@@ -42,49 +45,50 @@ export function NewBlogCard({
   excerpt,
   slug,
 }: BlogCardProps) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
+        setMenuOpen(false)
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside)
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const handleShare = () => {
     if (navigator.share) {
-      navigator.share({
-        title: title,
-        text: excerpt,
-        url: window.location.origin + '/blogs/' + slug,
-      }).catch(console.error);
+      navigator
+        .share({
+          title,
+          text: excerpt,
+          url: window.location.origin + '/blogs/' + slug,
+        })
+        .catch(console.error)
     } else {
-      // Fallback for browsers that don't support the Web Share API
-      navigator.clipboard.writeText(window.location.origin + '/blogs/' + slug)
+      navigator.clipboard
+        .writeText(window.location.origin + '/blogs/' + slug)
         .then(() => alert('Link copied to clipboard!'))
-        .catch(console.error);
+        .catch(console.error)
     }
-    setMenuOpen(false);
-  };
+    setMenuOpen(false)
+  }
 
   const handleGenerateWithAI = () => {
-    // This would be implemented with your AI generation functionality
-    alert('Generate with AI functionality would go here');
-    setMenuOpen(false);
-  };
+    alert('Generate with AI functionality would go here')
+    setMenuOpen(false)
+  }
 
-  const badgeColor = accentColor ?? getFallbackColor(categoryLabel);
+  const badgeColor = accentColor ?? getFallbackColor(categoryLabel)
 
   return (
     <NeobrutalCard as="article" className="overflow-hidden p-0">
       <div className="space-y-4 p-6">
-        <div className="flex justify-between items-start mb-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <span
             className="px-3 py-1 text-white font-bold rounded-md transform -rotate-2"
             style={{
@@ -93,33 +97,36 @@ export function NewBlogCard({
           >
             {categoryLabel}
           </span>
-          <div className="relative" ref={menuRef}>
-            <button
-              type="button"
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              aria-label="Open menu"
-            >
-              <MoreHorizontal size={20} />
-            </button>
-            {menuOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-lg border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0)] z-50">
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  className="w-full text-left px-4 py-2 text-sm font-bold hover:bg-gray-100"
-                >
-                  Share
-                </button>
-                <button
-                  type="button"
-                  onClick={handleGenerateWithAI}
-                  className="w-full text-left px-4 py-2 text-sm font-bold hover:bg-gray-100"
-                >
-                  Generate Post
-                </button>
-              </div>
-            )}
+          <div className="flex flex-col items-end gap-3 sm:flex-row sm:items-center sm:gap-4">
+            <BookmarkButton postId={postId} className="flex flex-col items-end gap-1" />
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Open menu"
+              >
+                <MoreHorizontal size={20} />
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 mt-2 w-48 rounded-lg border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0)] z-50">
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="w-full text-left px-4 py-2 text-sm font-bold hover:bg-gray-100"
+                  >
+                    Share
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleGenerateWithAI}
+                    className="w-full text-left px-4 py-2 text-sm font-bold hover:bg-gray-100"
+                  >
+                    Generate Post
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <h3 className="text-xl font-black mb-3">{title}</h3>
@@ -144,5 +151,5 @@ export function NewBlogCard({
         </div>
       </div>
     </NeobrutalCard>
-  );
+  )
 }

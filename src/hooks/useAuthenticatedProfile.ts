@@ -1,6 +1,15 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import type { AuthenticatedProfileSummary } from '@/utils/types'
 import { createBrowserClient } from '@/lib/supabase/client'
 
@@ -10,15 +19,37 @@ interface UseAuthenticatedProfileResult {
   refresh: () => Promise<void>
 }
 
-export const useAuthenticatedProfile = (): UseAuthenticatedProfileResult => {
+interface AuthenticatedProfileProviderProps {
+  children: ReactNode
+  initialProfile?: AuthenticatedProfileSummary | null
+}
+
+const AuthenticatedProfileContext = createContext<UseAuthenticatedProfileResult | null>(null)
+
+const useProvideAuthenticatedProfile = (
+  initialProfile: AuthenticatedProfileProviderProps['initialProfile'],
+): UseAuthenticatedProfileResult => {
   const supabase = useMemo(() => createBrowserClient(), [])
   const mountedRef = useRef(true)
-  const [profile, setProfile] = useState<AuthenticatedProfileSummary | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const hasInitialProfile = typeof initialProfile !== 'undefined'
+  const [profile, setProfile] = useState<AuthenticatedProfileSummary | null>(
+    hasInitialProfile ? initialProfile ?? null : null,
+  )
+  const [isLoading, setIsLoading] = useState(!hasInitialProfile)
 
-  useEffect(() => () => {
-    mountedRef.current = false
-  }, [])
+  useEffect(
+    () => () => {
+      mountedRef.current = false
+    },
+    [],
+  )
+
+  useEffect(() => {
+    if (hasInitialProfile) {
+      setProfile(initialProfile ?? null)
+      setIsLoading(false)
+    }
+  }, [hasInitialProfile, initialProfile])
 
   const loadProfile = useCallback(async () => {
     setIsLoading(true)
@@ -85,4 +116,27 @@ export const useAuthenticatedProfile = (): UseAuthenticatedProfileResult => {
   }, [loadProfile])
 
   return { profile, isLoading, refresh }
+}
+
+export const AuthenticatedProfileProvider = ({
+  children,
+  initialProfile,
+}: AuthenticatedProfileProviderProps) => {
+  const value = useProvideAuthenticatedProfile(initialProfile)
+
+  return (
+    <AuthenticatedProfileContext.Provider value={value}>
+      {children}
+    </AuthenticatedProfileContext.Provider>
+  )
+}
+
+export const useAuthenticatedProfile = (): UseAuthenticatedProfileResult => {
+  const context = useContext(AuthenticatedProfileContext)
+
+  if (!context) {
+    throw new Error('useAuthenticatedProfile must be used within an AuthenticatedProfileProvider')
+  }
+
+  return context
 }

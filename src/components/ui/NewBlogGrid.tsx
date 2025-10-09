@@ -1,18 +1,19 @@
-import React from 'react';
-import { NewBlogCard } from './NewBlogCard';
+import React from 'react'
+import { NewBlogCard } from './NewBlogCard'
 
 export interface BlogGridItem {
-  slug: string;
-  title: string;
-  excerpt: string;
-  categoryLabel: string;
-  dateLabel: string;
-  views: number;
-  accentColor: string | null;
+  postId: string
+  slug: string
+  title: string
+  excerpt: string
+  categoryLabel: string
+  dateLabel: string
+  views: number
+  accentColor: string | null
 }
 
 interface BlogGridProps {
-  blogs: BlogGridItem[];
+  blogs: BlogGridItem[]
 }
 
 export function NewBlogGrid({ blogs }: BlogGridProps) {
@@ -22,6 +23,7 @@ export function NewBlogGrid({ blogs }: BlogGridProps) {
         blogs.map((blog) => (
           <NewBlogCard
             key={blog.slug}
+            postId={blog.postId}
             title={blog.title}
             categoryLabel={blog.categoryLabel}
             accentColor={blog.accentColor}
@@ -38,5 +40,5 @@ export function NewBlogGrid({ blogs }: BlogGridProps) {
         </div>
       )}
     </div>
-  );
+  )
 }

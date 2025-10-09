@@ -47,7 +47,7 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
         year: 'numeric',
         timeZone: 'UTC',
       }),
-    []
+    [],
   );
 
   const allBlogs = useMemo(() => {
@@ -57,6 +57,7 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
       const publishedAt = post.publishedAt ?? null;
 
       return {
+        postId: post.id,
         slug: post.slug,
         title: post.title,
         excerpt: post.excerpt ?? '',
@@ -138,6 +139,7 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
     const end = start + PAGE_SIZE;
 
     return sortedBlogs.slice(start, end).map((blog) => ({
+      postId: blog.postId,
       slug: blog.slug,
       title: blog.title,
       excerpt: blog.excerpt,

@@ -14,6 +14,14 @@ import { SiteNavigationJsonLd } from "@/components/seo/SiteNavigationJsonLd";
 import { getSiteUrl } from "@/lib/site-url";
 import { sendToAnalytics } from "@/lib/analytics/report-web-vitals";
 import { Toaster } from "sonner";
+import { AuthenticatedProfileProvider } from "@/hooks/useAuthenticatedProfile";
+import { createServerComponentClient } from "@/lib/supabase/server-client";
+import type { Database } from "@/lib/supabase/types";
+import {
+  AuthenticatedProfileResolutionError,
+  resolveAuthenticatedProfile,
+} from "@/lib/auth/authenticated-profile";
+import type { AuthenticatedProfileSummary } from "@/utils/types";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -78,6 +86,21 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = createServerComponentClient<Database>();
+  let initialProfile: AuthenticatedProfileSummary | null = null;
+
+  try {
+    initialProfile = await resolveAuthenticatedProfile(supabase);
+  } catch (error) {
+    if (error instanceof AuthenticatedProfileResolutionError) {
+      if (error.status !== 401 && error.status !== 404) {
+        console.error("Unable to prefetch authenticated profile", error);
+      }
+    } else {
+      console.error("Unexpected error while prefetching authenticated profile", error);
+    }
+  }
+
   const headersList = await headers();
   const nextUrlHeader =
     headersList.get("x-next-url") ??
@@ -104,14 +127,16 @@ export default async function RootLayout({
         suppressHydrationWarning
       >
         <LoaderProvider>
-          <Loader />
-          <SiteNavigationJsonLd />
-          <GoogleAnalytics />
-          <ConditionalNavbar initialPathname={initialPathname} />
-          <Toaster theme="light" position="bottom-right" richColors closeButton />
-          {children}
-          <Analytics />
-          <SpeedInsights />
+          <AuthenticatedProfileProvider initialProfile={initialProfile}>
+            <Loader />
+            <SiteNavigationJsonLd />
+            <GoogleAnalytics />
+            <ConditionalNavbar initialPathname={initialPathname} />
+            <Toaster theme="light" position="bottom-right" richColors closeButton />
+            {children}
+            <Analytics />
+            <SpeedInsights />
+          </AuthenticatedProfileProvider>
         </LoaderProvider>
       </body>
     </html>

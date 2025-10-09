@@ -257,7 +257,7 @@ const SidebarMenuSubButton = React.forwardRef<HTMLAnchorElement, React.Component
 SidebarMenuSubButton.displayName = "SidebarMenuSubButton"
 
 const SidebarRail = ({ className, ...props }: React.ComponentPropsWithoutRef<"div">) => {
-  const { isOpen, toggle, isMobile } = useSidebar()
+  const { isOpen, isMobile, toggle } = useSidebar()
   return (
     <div
       className={cn(

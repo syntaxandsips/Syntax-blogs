@@ -271,6 +271,82 @@ body {
   border-radius: 0.25rem;
 }
 
+.markdown-content {
+  color: rgb(17 24 39);
+  font-size: 1.05rem;
+  line-height: 1.85;
+  word-break: break-word;
+}
+
+.markdown-content > *:first-child {
+  margin-top: 0;
+}
+
+.markdown-content p,
+.markdown-content ul,
+.markdown-content ol,
+.markdown-content blockquote,
+.markdown-content pre,
+.markdown-content table,
+.markdown-content img,
+.markdown-content figure {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4 {
+  font-weight: 800;
+  color: rgb(17 24 39);
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.25;
+}
+
+.markdown-content h2 {
+  font-size: clamp(1.75rem, 2vw + 1rem, 2.25rem);
+}
+
+.markdown-content h3 {
+  font-size: clamp(1.5rem, 1.5vw + 1rem, 1.75rem);
+}
+
+.markdown-content h4 {
+  font-size: clamp(1.25rem, 1.2vw + 0.9rem, 1.5rem);
+}
+
+.markdown-content ul {
+  padding-left: 1.5rem;
+  list-style-type: disc;
+}
+
+.markdown-content ol {
+  padding-left: 1.5rem;
+  list-style-type: decimal;
+}
+
+.markdown-content li + li {
+  margin-top: 0.75rem;
+}
+
+.markdown-content blockquote {
+  border-left: 4px solid rgb(108 99 255);
+  padding-left: 1.25rem;
+  font-style: italic;
+  background-color: rgba(108, 99, 255, 0.08);
+  border-radius: 0.5rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.markdown-content code:not([class]) {
+  background-color: rgb(229 231 235);
+  padding: 0.25rem 0.4rem;
+  border-radius: 0.4rem;
+  font-size: 0.95em;
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);

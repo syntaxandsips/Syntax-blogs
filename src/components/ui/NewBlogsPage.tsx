@@ -162,9 +162,9 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 pb-14 pt-10">
       <NewBlogsHeader />
-      <div className="mt-8 flex flex-col gap-10 lg:flex-row">
+      <div className="mt-8 flex flex-col gap-10 lg:flex-row lg:items-start">
         <div className="w-full lg:w-8/12">
           <NeobrutalCard className="flex flex-col gap-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -235,8 +235,10 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
             </div>
           </NeobrutalCard>
         </div>
-        <div className="w-full lg:w-4/12">
-          <NewFollowSection topics={recommendedTopics} />
+        <div className="w-full lg:w-4/12 lg:self-start">
+          <div className="lg:sticky lg:top-24">
+            <NewFollowSection topics={recommendedTopics} />
+          </div>
         </div>
       </div>
     </div>

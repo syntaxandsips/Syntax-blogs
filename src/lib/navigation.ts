@@ -78,6 +78,16 @@ export const navigationCategories: NavigationCategory[] = [
           },
         ],
       },
+      {
+        title: 'Experiments',
+        items: [
+          {
+            label: 'Prompt Gallery',
+            href: '/explore/prompt-gallery',
+            description: 'Browse community prompts with rich filters, comments, and reusable assets.',
+          },
+        ],
+      },
     ],
   },
   {
@@ -112,12 +122,6 @@ export const navigationCategories: NavigationCategory[] = [
             label: 'Resources Hub',
             href: '/resources',
             description: 'Download templates, cheat sheets, and engineering accelerators.',
-          },
-          {
-            label: 'Prompt Gallery',
-            href: '/resources/prompt-gallery',
-            description:
-              'Browse community prompts with rich filters, comments, and reusable assets.',
           },
           {
             label: 'Newsletter',

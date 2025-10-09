@@ -1,0 +1,21 @@
+Syntax & Sips Community Source License 1.0
+
+Copyright (c) 2024 Syntax & Sips contributors
+
+Permission is hereby granted to any individual or organization obtaining a copy of this software and associated documentation files (the "Software") to:
+
+1. View and study the source code for the sole purpose of evaluation.
+2. Run the Software for personal, non-commercial use.
+
+All other rights are reserved. Without prior written permission from the maintainers (contact: licensing@syntax-sips.dev), you may not:
+
+- Use the Software, in whole or in part, for any commercial purpose.
+- Modify, merge, publish, distribute, sublicense, and/or sell copies of the Software.
+- Create derivative works based on the Software, except for the purpose of submitting contributions back to this repository under the project's contribution guidelines.
+- Remove or alter copyright notices.
+
+Contributions intentionally submitted to the project shall be licensed to the project under this same license once merged. Contributors represent that they have the right to submit their contributions and that doing so does not violate any third-party rights.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+For any use case beyond the permissions granted above, including commercial deployments, hosted services, training datasets, or redistribution, please contact the maintainers at [licensing@syntax-sips.dev](mailto:licensing@syntax-sips.dev) to request a custom license.

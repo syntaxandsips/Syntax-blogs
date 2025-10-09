@@ -284,19 +284,26 @@ Security highlights:
 
 ## <img src="https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/pencil.svg" alt="Contributing" width="22" height="22" /> Contributing
 
-1. Fork the repository.
-2. Create a feature branch: `git checkout -b feature/your-feature`.
-3. Commit changes following Conventional Commits: `git commit -m "feat(scope): description"`.
-4. Push to your fork: `git push origin feature/your-feature`.
-5. Open a Pull Request describing motivation, user impact, and validation, including screenshots for UI updates.
+We welcome thoughtful proposals that make Syntax &amp; Sips more resilient, inclusive, and delightful. Before you begin:
 
-Consult [`docs/code-review.md`](./docs/code-review.md) for architectural guardrails and follow the testing guidance before requesting review.
+- Read the [Contributing Guide](CONTRIBUTING.md) for branching strategy, coding standards, and release readiness checks.
+- Follow the [Code of Conduct](CODE_OF_CONDUCT.md) to help maintain a respectful community.
+- Review [`docs/code-review.md`](./docs/code-review.md) for architectural guardrails and quality expectations.
+
+When you are ready to contribute:
+
+1. Fork the repository and create a topic branch: `git checkout -b feature/your-feature`.
+2. Develop your change locally, keeping tests and linting (`npm run lint`, `npm run type-check`, `npm test`) green.
+3. Update documentation or runbooks impacted by the change.
+4. Complete the pull request template with context, validation notes, and screenshots for UI work.
+
+Need help? Start a [discussion](https://github.com/prashant-andani/Syntax-blogs/discussions) before diving in so we can collaborate on scope.
 
 ---
 
 ## <img src="https://raw.githubusercontent.com/tabler/tabler-icons/master/icons/outline/license.svg" alt="License" width="22" height="22" /> License
 
-Licensed under the MIT License. See [LICENSE](LICENSE) for the full terms.
+This project is made available under the **Syntax &amp; Sips Community Source License 1.0**. You may review, study, and run the software for personal, non-commercial purposes. Any commercial use, redistribution, or modification requires prior written permission from the maintainers—see [LICENSE](LICENSE) for the full terms and contact details.
 
 ---
 

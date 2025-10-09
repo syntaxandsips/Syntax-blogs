@@ -8,7 +8,7 @@ Setting your project up for community contributions requires more than flipping 
 
 **How to do it:**
 
-1. Pick a license that matches your goals—MIT for maximum reuse, Apache 2.0 for patent protections, GPLv3 for copyleft requirements.
+1. Pick a license that matches your goals—MIT for maximum reuse, Apache 2.0 for patent protections, GPLv3 for copyleft requirements, or a custom community-source license if you require explicit permission for derivative or commercial use.
 2. When creating a new GitHub repository, select a license through the setup UI so GitHub seeds a `LICENSE` file automatically.
 3. For existing repositories, add the full license text manually in a `LICENSE` file at the root of the repo.
 4. Link to [GitHub's licensing guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) for future reference.

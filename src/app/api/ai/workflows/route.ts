@@ -13,6 +13,54 @@ const CreateWorkflowSchema = z.object({
 
 export async function GET() {
   try {
+    const supabase = createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError) {
+      return NextResponse.json(
+        { error: `Unable to verify session: ${authError.message}` },
+        { status: 500 },
+      );
+    }
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (profileError) {
+      return NextResponse.json(
+        { error: `Unable to load profile: ${profileError.message}` },
+        { status: 500 },
+      );
+    }
+
+    if (!profile?.is_admin) {
+      const { data: hasRole, error: roleError } = await supabase.rpc(
+        'user_has_any_role',
+        { role_slugs: ['admin', 'editor'] },
+      );
+
+      if (roleError) {
+        return NextResponse.json(
+          { error: `Unable to verify privileges: ${roleError.message}` },
+          { status: 500 },
+        );
+      }
+
+      if (!hasRole) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
     const workflows = await listWorkflows();
     return NextResponse.json({ workflows });
   } catch (error) {

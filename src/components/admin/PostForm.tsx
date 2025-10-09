@@ -3,7 +3,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Calendar, Clock, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { Calendar } from '@/components/ui/calendar'
 import {
   AdminPost,
   CategoryOption,
@@ -41,7 +42,7 @@ export const PostForm = ({
   const [categoryId, setCategoryId] = useState<string>('')
   const [accentColor, setAccentColor] = useState('#6C63FF')
   const [status, setStatus] = useState<PostStatus>(PostStatus.DRAFT)
-  const [publishDate, setPublishDate] = useState('')
+  const [publishDate, setPublishDate] = useState<Date | undefined>(undefined)
   const [publishTime, setPublishTime] = useState('')
   const [seoTitle, setSeoTitle] = useState('')
   const [seoDescription, setSeoDescription] = useState('')
@@ -73,11 +74,11 @@ export const PostForm = ({
       setStatus(post.status)
       if (post.status === PostStatus.SCHEDULED && post.scheduledFor) {
         const date = new Date(post.scheduledFor)
-        setPublishDate(date.toISOString().split('T')[0])
+        setPublishDate(date)
         setPublishTime(date.toTimeString().split(' ')[0].slice(0, 5))
       } else if (post.publishedAt) {
         const date = new Date(post.publishedAt)
-        setPublishDate(date.toISOString().split('T')[0])
+        setPublishDate(date)
         setPublishTime(date.toTimeString().split(' ')[0].slice(0, 5))
       }
     } else {
@@ -93,7 +94,7 @@ export const PostForm = ({
       setSocialImageUrl('')
       setSelectedTagIds([])
       setStatus(PostStatus.DRAFT)
-      setPublishDate('')
+      setPublishDate(undefined)
       setPublishTime('')
     }
   }, [post, categories])
@@ -186,9 +187,17 @@ export const PostForm = ({
     let publishedAt: string | null = post?.publishedAt ?? null
     let scheduledFor: string | null = post?.scheduledFor ?? null
 
-    if (status === PostStatus.SCHEDULED && publishDate) {
-      const dateTime = `${publishDate}T${publishTime || '00:00'}`
-      scheduledFor = new Date(dateTime).toISOString()
+    if (status === PostStatus.SCHEDULED) {
+      if (!publishDate) {
+        setFormError('Please select a publication date to schedule the post.')
+        return
+      }
+
+      const scheduledDate = new Date(publishDate)
+      const [hours = '00', minutes = '00'] = publishTime.split(':')
+      scheduledDate.setHours(Number(hours) || 0, Number(minutes) || 0, 0, 0)
+
+      scheduledFor = scheduledDate.toISOString()
       publishedAt = null
     } else if (status === PostStatus.PUBLISHED) {
       publishedAt = post?.publishedAt ?? new Date().toISOString()
@@ -626,24 +635,31 @@ export const PostForm = ({
                     </label>
                   </div>
                   {status === PostStatus.SCHEDULED && (
-                    <div className="ml-7 mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div className="flex items-center gap-2 overflow-hidden rounded-md border-4 border-black">
-                        <label htmlFor="publish-date" className="sr-only">
-                          Publication Date
-                        </label>
-                        <div className="bg-black p-2 text-white">
-                          <Calendar className="h-5 w-5" />
+                    <div className="ml-7 mt-3 grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
+                      <div className="space-y-3 overflow-hidden rounded-md border-4 border-black bg-white p-3 shadow-[6px_6px_0_0_rgba(0,0,0,0.15)]">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-black text-white">
+                              <CalendarIcon className="h-5 w-5" aria-hidden="true" />
+                            </span>
+                            <span className="font-bold">Publication Date</span>
+                          </div>
+                          <span className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                            {publishDate
+                              ? publishDate.toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                })
+                              : 'Not set'}
+                          </span>
                         </div>
-                        <input
-                          id="publish-date"
-                          type="date"
-                          value={publishDate}
-                          onChange={(e) => setPublishDate(e.target.value)}
-                          className="flex-1 p-2 focus:outline-none"
-                          required={status === PostStatus.SCHEDULED}
+                        <Calendar
+                          mode="single"
+                          selected={publishDate}
+                          onSelect={setPublishDate}
+                          initialFocus
                           aria-label="Publication date"
-                          title="Select the publication date"
-                          placeholder="Select date"
                         />
                       </div>
                       <div className="flex items-center gap-2 overflow-hidden rounded-md border-4 border-black">

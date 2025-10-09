@@ -17,12 +17,23 @@ export const NeobrutalToggleSwitch = forwardRef<
   NeobrutalToggleSwitchProps
 >(
   (
-    { checked, onCheckedChange, label, onLabel = 'On', offLabel = 'Off', className, ...rest },
+    {
+      checked,
+      onCheckedChange,
+      label,
+      onLabel = 'On',
+      offLabel = 'Off',
+      className,
+      'aria-label': ariaLabel,
+      ...rest
+    },
     ref,
   ) => {
     const handleClick = () => {
       onCheckedChange?.(!checked)
     }
+
+    const accessibleLabel = ariaLabel ?? (checked ? onLabel : offLabel)
 
     return (
       <div className={cn('flex items-center gap-3', className)}>
@@ -36,6 +47,7 @@ export const NeobrutalToggleSwitch = forwardRef<
           type="button"
           role="switch"
           aria-checked={checked}
+          aria-label={accessibleLabel}
           onClick={handleClick}
           className={cn(
             'relative grid h-10 w-36 grid-cols-2 items-center rounded-full border-4 border-black bg-white text-[11px] font-black uppercase tracking-wide transition-shadow duration-200 ease-out',
@@ -54,6 +66,7 @@ export const NeobrutalToggleSwitch = forwardRef<
             )}
           />
           <span
+            aria-hidden
             className={cn(
               'relative z-10 text-center transition-colors duration-200 ease-out',
               checked ? 'text-black' : 'text-white drop-shadow-[1px_1px_0px_rgba(0,0,0,0.45)]',
@@ -62,6 +75,7 @@ export const NeobrutalToggleSwitch = forwardRef<
             {offLabel}
           </span>
           <span
+            aria-hidden
             className={cn(
               'relative z-10 text-center transition-colors duration-200 ease-out',
               checked ? 'text-white drop-shadow-[1px_1px_0px_rgba(0,0,0,0.45)]' : 'text-black',

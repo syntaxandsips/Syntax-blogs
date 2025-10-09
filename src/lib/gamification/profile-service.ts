@@ -373,9 +373,33 @@ const mapLeaderboardEntries = (rows: unknown[]): LeaderboardEntry[] =>
           ? profileSource.avatar_url
           : null
 
-      const badgeSlugs = (Array.isArray(row.badges) ? row.badges : [])
-        .map((badge) => (isRecordLike(badge) && typeof badge.slug === 'string' ? badge.slug : null))
-        .filter((slug): slug is string => Boolean(slug))
+      const badgeSources: unknown[] = []
+
+      if (Array.isArray(row.badges)) {
+        badgeSources.push(...row.badges)
+      }
+
+      if (isRecordLike(profileSource) && Array.isArray(profileSource.profile_badges)) {
+        badgeSources.push(...profileSource.profile_badges)
+      }
+
+      const badgeSlugs = Array.from(
+        new Set(
+          badgeSources
+            .map((badge) => {
+              if (isRecordLike(badge) && typeof badge.slug === 'string') {
+                return badge.slug
+              }
+
+              if (isRecordLike(badge) && isRecordLike(badge.badge) && typeof badge.badge.slug === 'string') {
+                return badge.badge.slug
+              }
+
+              return null
+            })
+            .filter((slug): slug is string => Boolean(slug)),
+        ),
+      )
 
       return {
         profileId,
@@ -413,7 +437,23 @@ export const fetchLeaderboard = async (
 
   const { data, error } = await supabase
     .from('gamification_profiles')
-    .select('profile_id, xp_total, level, current_streak, profiles:profile_id (display_name, avatar_url), badges:profile_badges!left (slug)')
+    .select(
+      `
+        profile_id,
+        xp_total,
+        level,
+        current_streak,
+        profiles:profile_id (
+          display_name,
+          avatar_url,
+          profile_badges (
+            badge:badge_id (
+              slug
+            )
+          )
+        )
+      `,
+    )
     .order('xp_total', { ascending: false })
     .limit(filters.limit ?? 10)
 

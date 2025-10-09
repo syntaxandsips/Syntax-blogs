@@ -680,7 +680,7 @@ const AccountWorkspaceSidebar = ({
   return (
     <Sidebar
       collapsible="icon"
-      className="border-r-4 border-black bg-white shadow-[12px_0_0_rgba(0,0,0,0.12)] lg:sticky lg:top-10 lg:h-[calc(100vh-5rem)]"
+      className="border-r-4 border-black bg-white shadow-[12px_0_0_rgba(0,0,0,0.12)] lg:sticky lg:top-10 lg:h-[calc(100vh-5rem)] lg:flex-shrink-0"
     >
       <SidebarHeader className="bg-[#F9F5FF]">
         <div className="flex items-center justify-between gap-3">
@@ -1286,14 +1286,14 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
 
   return (
     <SidebarProvider>
-      <div className="neo-brutalism min-h-screen bg-gradient-to-br from-[#FFF5F1] via-[#F8F0FF] to-[#E3F2FF]">
+      <div className="neo-brutalism flex min-h-screen flex-col bg-gradient-to-br from-[#FFF5F1] via-[#F8F0FF] to-[#E3F2FF] lg:flex-row lg:items-start lg:gap-6">
         <AccountWorkspaceSidebar
           profile={currentProfile}
           totals={contributions.totals}
           sections={navigationSections}
         />
 
-        <SidebarInset className="px-4 py-10 sm:px-6 lg:px-8">
+        <SidebarInset className="flex-1 min-w-0 px-4 py-10 sm:px-6 lg:px-8">
           <div className="mx-auto w-full max-w-7xl">
             <div className="mb-6 flex items-center justify-between gap-3 lg:hidden">
               <SidebarTrigger />

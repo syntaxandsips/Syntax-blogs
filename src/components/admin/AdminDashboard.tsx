@@ -17,6 +17,7 @@ import { DashboardOverview } from './DashboardOverview'
 import { AnalyticsPanel } from './AnalyticsPanel'
 import { SettingsPanel } from './SettingsPanel'
 import { PromptMonetizationPanel } from './PromptMonetizationPanel'
+import { ModelManager } from './ModelManager'
 import {
   CommunityQueueApplication,
   CommunityQueueSubmission,
@@ -37,6 +38,10 @@ import {
   PostFormValues,
   PostStatus,
   UpdateAdminUserPayload,
+  AdminModelSummary,
+  AdminModelCategory,
+  CreateAdminModelPayload,
+  UpdateAdminModelPayload,
 } from '@/utils/types'
 
 export interface AdminDashboardProps {
@@ -75,6 +80,11 @@ const DashboardContent = ({
   const [communityApplications, setCommunityApplications] = useState<CommunityQueueApplication[]>([])
   const [communitySubmissions, setCommunitySubmissions] = useState<CommunityQueueSubmission[]>([])
   const [isLoadingCommunityQueue, setIsLoadingCommunityQueue] = useState(false)
+  const [modelCategories, setModelCategories] = useState<AdminModelCategory[]>([])
+  const [aiModels, setAiModels] = useState<AdminModelSummary[]>([])
+  const [isLoadingModelCatalog, setIsLoadingModelCatalog] = useState(false)
+  const [hasLoadedModelCatalog, setHasLoadedModelCatalog] = useState(false)
+  const [isModelMutationInFlight, setIsModelMutationInFlight] = useState(false)
 
   const mapPostsFromPayload = useCallback((data: AdminPost[]) => {
     return data.map((post) => ({
@@ -578,6 +588,457 @@ const DashboardContent = ({
     [refreshTags, runTaxonomyAction],
   )
 
+  const refreshModelCategories = useCallback(
+    async ({ silent = false }: { silent?: boolean } = {}) => {
+      if (!silent) {
+        setIsModelMutationInFlight(true)
+      }
+
+      try {
+        const response = await fetch('/api/admin/model-categories', {
+          method: 'GET',
+          cache: 'no-store',
+        })
+
+        const payload = await response.json()
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? 'Unable to load model categories.')
+        }
+
+        setModelCategories((payload.categories ?? []) as AdminModelCategory[])
+
+        if (!silent) {
+          showToast({
+            variant: 'success',
+            title: 'Model categories refreshed',
+            description: 'Latest categories loaded successfully.',
+          })
+        }
+
+        return true
+      } catch (error) {
+        showToast({
+          variant: 'error',
+          title: 'Unable to load model categories',
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Unable to load model categories.',
+        })
+        return false
+      } finally {
+        if (!silent) {
+          setIsModelMutationInFlight(false)
+        }
+      }
+    },
+    [showToast],
+  )
+
+  const refreshModels = useCallback(
+    async ({ silent = false }: { silent?: boolean } = {}) => {
+      if (!silent) {
+        setIsModelMutationInFlight(true)
+      }
+
+      try {
+        const response = await fetch('/api/admin/models', {
+          method: 'GET',
+          cache: 'no-store',
+        })
+
+        const payload = await response.json()
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? 'Unable to load AI models.')
+        }
+
+        setAiModels((payload.models ?? []) as AdminModelSummary[])
+
+        if (!silent) {
+          showToast({
+            variant: 'success',
+            title: 'AI models refreshed',
+            description: 'Model catalog updated successfully.',
+          })
+        }
+
+        return true
+      } catch (error) {
+        showToast({
+          variant: 'error',
+          title: 'Unable to load AI models',
+          description:
+            error instanceof Error ? error.message : 'Unable to load AI models.',
+        })
+        return false
+      } finally {
+        if (!silent) {
+          setIsModelMutationInFlight(false)
+        }
+      }
+    },
+    [showToast],
+  )
+
+  const fetchModelCatalog = useCallback(async () => {
+    setIsLoadingModelCatalog(true)
+    const [categoriesOk, modelsOk] = await Promise.all([
+      refreshModelCategories({ silent: true }),
+      refreshModels({ silent: true }),
+    ])
+
+    setHasLoadedModelCatalog(categoriesOk && modelsOk)
+    setIsLoadingModelCatalog(false)
+    return categoriesOk && modelsOk
+  }, [refreshModelCategories, refreshModels])
+
+  useEffect(() => {
+    if (currentView === 'models' && !hasLoadedModelCatalog && !isLoadingModelCatalog) {
+      void fetchModelCatalog()
+    }
+  }, [currentView, fetchModelCatalog, hasLoadedModelCatalog, isLoadingModelCatalog])
+
+  const handleCreateModelCategory = useCallback(
+    async (values: {
+      name: string
+      slug?: string
+      description?: string | null
+      accentColor?: string | null
+    }) => {
+      setIsModelMutationInFlight(true)
+
+      try {
+        const response = await fetch('/api/admin/model-categories', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(values),
+        })
+
+        const payload = await response.json()
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? 'Unable to create model category.')
+        }
+
+        const category = payload.category as AdminModelCategory
+        setModelCategories((prev) => {
+          const filtered = prev.filter((item) => item.id !== category.id)
+          return [category, ...filtered]
+        })
+
+        showToast({
+          variant: 'success',
+          title: 'Model category created',
+          description: `${category.name} is ready for new models.`,
+        })
+
+        return true
+      } catch (error) {
+        showToast({
+          variant: 'error',
+          title: 'Unable to create model category',
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Unable to create model category.',
+        })
+        return false
+      } finally {
+        setIsModelMutationInFlight(false)
+      }
+    },
+    [showToast],
+  )
+
+  const handleUpdateModelCategory = useCallback(
+    async (
+      id: string,
+      values: {
+        name?: string
+        slug?: string
+        description?: string | null
+        accentColor?: string | null
+      },
+    ) => {
+      setIsModelMutationInFlight(true)
+
+      try {
+        const response = await fetch(`/api/admin/model-categories/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(values),
+        })
+
+        const payload = await response.json()
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? 'Unable to update model category.')
+        }
+
+        const category = payload.category as AdminModelCategory
+        setModelCategories((prev) =>
+          prev.map((item) => (item.id === category.id ? category : item)),
+        )
+
+        showToast({
+          variant: 'success',
+          title: 'Model category updated',
+          description: `${category.name} saved successfully.`,
+        })
+
+        return true
+      } catch (error) {
+        showToast({
+          variant: 'error',
+          title: 'Unable to update model category',
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Unable to update model category.',
+        })
+        return false
+      } finally {
+        setIsModelMutationInFlight(false)
+      }
+    },
+    [showToast],
+  )
+
+  const handleDeleteModelCategory = useCallback(
+    async (id: string) => {
+      setIsModelMutationInFlight(true)
+
+      try {
+        const response = await fetch(`/api/admin/model-categories/${id}`, {
+          method: 'DELETE',
+        })
+
+        const payload = await response.json()
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? 'Unable to delete model category.')
+        }
+
+        setModelCategories((prev) => prev.filter((item) => item.id !== id))
+        setAiModels((prev) =>
+          prev.map((model) =>
+            model.categoryId === id
+              ? {
+                  ...model,
+                  categoryId: null,
+                  categoryName: null,
+                  categorySlug: null,
+                }
+              : model,
+          ),
+        )
+
+        showToast({
+          variant: 'success',
+          title: 'Model category deleted',
+          description: 'Any linked models are now uncategorized.',
+        })
+
+        return true
+      } catch (error) {
+        showToast({
+          variant: 'error',
+          title: 'Unable to delete model category',
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Unable to delete model category.',
+        })
+        return false
+      } finally {
+        setIsModelMutationInFlight(false)
+      }
+    },
+    [showToast],
+  )
+
+  const handleCreateModel = useCallback(
+    async (values: CreateAdminModelPayload) => {
+      setIsModelMutationInFlight(true)
+
+      try {
+        const response = await fetch('/api/admin/models', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(values),
+        })
+
+        const payload = await response.json()
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? 'Unable to create model.')
+        }
+
+        const model = payload.model as AdminModelSummary
+        setAiModels((prev) => {
+          const filtered = prev.filter((item) => item.id !== model.id)
+          return [model, ...filtered]
+        })
+
+        showToast({
+          variant: 'success',
+          title: 'Model added',
+          description: `${model.displayName} is now available in the prompt wizard.`,
+        })
+
+        return true
+      } catch (error) {
+        showToast({
+          variant: 'error',
+          title: 'Unable to create model',
+          description:
+            error instanceof Error ? error.message : 'Unable to create model.',
+        })
+        return false
+      } finally {
+        setIsModelMutationInFlight(false)
+      }
+    },
+    [showToast],
+  )
+
+  const handleUpdateModel = useCallback(
+    async (id: string, values: UpdateAdminModelPayload) => {
+      setIsModelMutationInFlight(true)
+
+      try {
+        const response = await fetch(`/api/admin/models/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(values),
+        })
+
+        const payload = await response.json()
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? 'Unable to update model.')
+        }
+
+        const model = payload.model as AdminModelSummary
+        setAiModels((prev) => prev.map((item) => (item.id === model.id ? model : item)))
+
+        showToast({
+          variant: 'success',
+          title: 'Model updated',
+          description: `${model.displayName} saved successfully.`,
+        })
+
+        return true
+      } catch (error) {
+        showToast({
+          variant: 'error',
+          title: 'Unable to update model',
+          description:
+            error instanceof Error ? error.message : 'Unable to update model.',
+        })
+        return false
+      } finally {
+        setIsModelMutationInFlight(false)
+      }
+    },
+    [showToast],
+  )
+
+  const handleDeleteModel = useCallback(
+    async (id: string) => {
+      setIsModelMutationInFlight(true)
+
+      try {
+        const response = await fetch(`/api/admin/models/${id}`, {
+          method: 'DELETE',
+        })
+
+        const payload = await response.json()
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? 'Unable to delete model.')
+        }
+
+        setAiModels((prev) => prev.filter((item) => item.id !== id))
+
+        showToast({
+          variant: 'success',
+          title: 'Model deleted',
+          description: 'The model has been removed from the catalog.',
+        })
+
+        return true
+      } catch (error) {
+        showToast({
+          variant: 'error',
+          title: 'Unable to delete model',
+          description:
+            error instanceof Error ? error.message : 'Unable to delete model.',
+        })
+        return false
+      } finally {
+        setIsModelMutationInFlight(false)
+      }
+    },
+    [showToast],
+  )
+
+  const handleToggleModelStatus = useCallback(
+    async (id: string, isActive: boolean) => {
+      setIsModelMutationInFlight(true)
+
+      try {
+        const response = await fetch(`/api/admin/models/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ isActive }),
+        })
+
+        const payload = await response.json()
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? 'Unable to update model status.')
+        }
+
+        const model = payload.model as AdminModelSummary
+        setAiModels((prev) => prev.map((item) => (item.id === model.id ? model : item)))
+
+        showToast({
+          variant: 'success',
+          title: isActive ? 'Model activated' : 'Model paused',
+          description: `${model.displayName} ${isActive ? 'is now visible to creators.' : 'will no longer appear in the wizard.'}`,
+        })
+
+        return true
+      } catch (error) {
+        showToast({
+          variant: 'error',
+          title: 'Unable to update model status',
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Unable to update model status.',
+        })
+        return false
+      } finally {
+        setIsModelMutationInFlight(false)
+      }
+    },
+    [showToast],
+  )
+
   const handleDeletePost = async (id: string) => {
     try {
       const response = await fetch(`/api/admin/posts/${id}`, {
@@ -988,6 +1449,7 @@ const DashboardContent = ({
             recentComments={recentComments}
             onNavigateToPosts={() => handleNavigate('posts')}
             onNavigateToComments={() => handleNavigate('comments')}
+            onNavigateToModels={() => handleNavigate('models')}
           />
         )
       case 'posts':
@@ -1030,6 +1492,24 @@ const DashboardContent = ({
             onUpdateTag={requestUpdateTag}
             onDeleteTag={requestDeleteTag}
             onRefreshTags={requestRefreshTags}
+          />
+        )
+      case 'models':
+        return (
+          <ModelManager
+            categories={modelCategories}
+            models={aiModels}
+            isLoading={isLoadingModelCatalog}
+            isMutating={isModelMutationInFlight}
+            onRefreshModels={() => refreshModels()}
+            onRefreshCategories={() => refreshModelCategories()}
+            onCreateCategory={handleCreateModelCategory}
+            onUpdateCategory={handleUpdateModelCategory}
+            onDeleteCategory={handleDeleteModelCategory}
+            onCreateModel={handleCreateModel}
+            onUpdateModel={handleUpdateModel}
+            onDeleteModel={handleDeleteModel}
+            onToggleModelStatus={handleToggleModelStatus}
           />
         )
       case 'users':

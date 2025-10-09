@@ -19,7 +19,12 @@ export interface PromptSummary {
   monetizationType: PromptRow['monetization_type']
   isFeatured: boolean
   preview: string
-  models: Array<Pick<Database['public']['Tables']['ai_models']['Row'], 'id' | 'display_name' | 'category' | 'version'>>
+  models: Array<
+    Pick<
+      Database['public']['Tables']['ai_models']['Row'],
+      'id' | 'display_name' | 'category' | 'category_id' | 'version' | 'family' | 'provider'
+    >
+  >
   tags: Array<Pick<Database['public']['Tables']['prompt_tags']['Row'], 'id' | 'name' | 'category'>>
   stats: {
     upvotes: number

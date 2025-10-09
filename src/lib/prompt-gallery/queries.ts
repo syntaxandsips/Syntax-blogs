@@ -72,7 +72,10 @@ const formatPromptSummary = (row: PromptQueryRow): PromptSummary => {
       id: model.id,
       display_name: model.display_name,
       category: model.category,
-      version: model.version ?? null,
+      category_id: model.category_id,
+      version: model.version,
+      family: model.family,
+      provider: model.provider,
     }))
 
   const tags = (row.tags ?? [])

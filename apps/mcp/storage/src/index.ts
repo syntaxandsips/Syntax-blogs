@@ -24,13 +24,9 @@ server.registerTool(
   {
     title: 'Upload Asset',
     description: 'Upload media assets to storage',
-    inputSchema: UploadSchema,
-    outputSchema: z.object({
-      success: z.boolean(),
-      url: z.string(),
-    }),
   },
-  async ({ path, contentType, data }) => {
+  async payload => {
+    const { path, contentType, data } = UploadSchema.parse(payload);
     assets.set(path, { contentType, data, uploaded_at: new Date().toISOString() });
     const url = `storage://syntx/${encodeURIComponent(path)}`;
     logger.info({ path, contentType }, 'Asset uploaded');

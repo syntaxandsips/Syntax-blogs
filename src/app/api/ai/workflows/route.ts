@@ -8,7 +8,7 @@ import { createWorkflow, listWorkflows } from '@/services/ai/workflowService';
 const CreateWorkflowSchema = z.object({
   topic: z.string().min(3),
   outline: z.array(z.string()).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export async function GET() {

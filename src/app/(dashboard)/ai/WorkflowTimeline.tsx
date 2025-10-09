@@ -8,6 +8,32 @@ interface Props {
   initialWorkflows: AiWorkflow[];
 }
 
+type HistoryEvent = { type: 'history'; events: AiWorkflowEvent[] };
+type StatusEvent = { type: 'status'; status: string };
+type GenericEvent = {
+  type: string;
+  payload?: unknown;
+  created_at?: string;
+};
+
+function isHistoryEvent(event: unknown): event is HistoryEvent {
+  return (
+    typeof event === 'object' &&
+    event !== null &&
+    (event as { type?: unknown }).type === 'history' &&
+    Array.isArray((event as { events?: unknown }).events)
+  );
+}
+
+function isStatusEvent(event: unknown): event is StatusEvent {
+  return (
+    typeof event === 'object' &&
+    event !== null &&
+    (event as { type?: unknown }).type === 'status' &&
+    typeof (event as { status?: unknown }).status === 'string'
+  );
+}
+
 export function WorkflowTimeline({ initialWorkflows }: Props) {
   const [workflows, setWorkflows] = useState<AiWorkflow[]>(initialWorkflows);
   const [selectedId, setSelectedId] = useState<string | null>(initialWorkflows[0]?.id ?? null);
@@ -34,25 +60,23 @@ export function WorkflowTimeline({ initialWorkflows }: Props) {
     const source = new EventSource(`/api/ai/workflows/${selectedId}/events`);
     source.onmessage = event => {
       try {
-        const data = JSON.parse(event.data) as
-          | { type: 'history'; events: AiWorkflowEvent[] }
-          | { type: 'status'; status: string }
-          | { type: string; payload: unknown };
+        const parsed = JSON.parse(event.data) as unknown;
 
-        if (data.type === 'history') {
+        if (isHistoryEvent(parsed)) {
           setEventsByWorkflow(previous => ({
             ...previous,
-            [selectedId]: data.events,
+            [selectedId]: parsed.events,
           }));
-        } else if (data.type === 'status') {
+        } else if (isStatusEvent(parsed)) {
           setWorkflows(previous =>
             previous.map(workflow =>
               workflow.id === selectedId
-                ? { ...workflow, status: data.status as AiWorkflow['status'] }
+                ? { ...workflow, status: parsed.status as AiWorkflow['status'] }
                 : workflow,
             ),
           );
         } else {
+          const data = parsed as GenericEvent;
           const event: AiWorkflowEvent = {
             id: crypto.randomUUID(),
             workflow_id: selectedId,

@@ -26,7 +26,7 @@ export async function getMcpClient(options: McpClientOptions): Promise<Client> {
   }
 
   const transport = new StreamableHTTPClientTransport(new URL(options.baseUrl), {
-    headers: options.headers,
+    requestInit: options.headers ? { headers: options.headers } : undefined,
   });
 
   const client = new Client({
@@ -37,9 +37,9 @@ export async function getMcpClient(options: McpClientOptions): Promise<Client> {
   await client.connect(transport);
 
   const emitter = new EventEmitter();
-  client.on('notification', notification => {
+  client.fallbackNotificationHandler = async notification => {
     emitter.emit('notification', notification);
-  });
+  };
 
   cache.set(cacheKey, { client, transport, emitter });
   return client;

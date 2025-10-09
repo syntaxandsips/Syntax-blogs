@@ -22,15 +22,11 @@ server.registerTool(
   {
     title: 'Analyze SEO',
     description: 'Evaluate draft content for SEO quality',
-    inputSchema: AnalysisSchema,
-    outputSchema: z.object({
-      score: z.number(),
-      recommendations: z.array(z.string()),
-    }),
   },
-  async ({ draft, focusKeyword }) => {
+  async payload => {
+    const { draft, focusKeyword } = AnalysisSchema.parse(payload);
     const doc = nlp(draft);
-    const sentences = doc.sentences().out('array');
+    const sentences = doc.sentences().out('array') as string[];
     const keywordCount = doc.match(focusKeyword).out('array').length;
     const totalWords = doc.wordCount();
 
@@ -48,7 +44,7 @@ server.registerTool(
     if (!hasLinks) {
       recommendations.push('Include internal or external links to support claims.');
     }
-    if (sentences.some(sentence => sentence.length > 160)) {
+    if (sentences.some((sentence: string) => sentence.length > 160)) {
       recommendations.push('Shorten long sentences for readability.');
     }
 

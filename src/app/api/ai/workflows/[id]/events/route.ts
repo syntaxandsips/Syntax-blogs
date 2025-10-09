@@ -1,14 +1,24 @@
 import { NextResponse } from 'next/server';
 
+function extractWorkflowId(pathname: string): string | null {
+  const segments = pathname.split('/').filter(Boolean);
+  const index = segments.indexOf('workflows');
+  if (index === -1 || index + 1 >= segments.length) {
+    return null;
+  }
+  return decodeURIComponent(segments[index + 1] ?? '');
+}
+
 import { eventBus } from '@/services/ai/eventBus';
 import { listWorkflowEvents } from '@/services/ai/workflowService';
 
-interface Params {
-  params: { id: string };
-}
+export async function GET(request: Request) {
+  const id = extractWorkflowId(new URL(request.url).pathname);
 
-export async function GET(request: Request, { params }: Params) {
-  const { id } = params;
+  if (!id || Array.isArray(id)) {
+    return NextResponse.json({ error: 'Missing workflow id' }, { status: 400 });
+  }
+
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();

@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 
 import express from 'express';
 import pino from 'pino';
-import { z } from 'zod';
+import { z, type ZodTypeAny } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 
@@ -22,24 +22,30 @@ const server = new McpServer({
   version: '0.1.0',
 });
 
-const DraftSchema = z.object({
+const draftInputShape = {
   postId: z.string(),
   draft: z.string(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+} satisfies Record<string, ZodTypeAny>;
+
+const DraftSchema = z.object(draftInputShape);
+
+const DraftResponseSchema = z.object({
+  draft: z.string().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+  updated_at: z.string().optional(),
 });
+
+const DraftLookupSchema = z.object({ postId: z.string() });
 
 server.registerTool(
   'update-draft',
   {
     title: 'Update Draft',
     description: 'Persist a draft revision',
-    inputSchema: DraftSchema,
-    outputSchema: z.object({
-      success: z.boolean(),
-      checksum: z.string(),
-    }),
   },
-  async ({ postId, draft, metadata }) => {
+  async args => {
+    const { postId, draft, metadata } = DraftSchema.parse(args);
     const checksum = crypto.createHash('sha256').update(draft).digest('hex');
     drafts.set(postId, { draft, metadata, updated_at: new Date().toISOString() });
     logger.info({ postId, checksum }, 'Draft updated');
@@ -56,18 +62,13 @@ server.registerTool(
   {
     title: 'Get Draft',
     description: 'Retrieve stored draft content',
-    inputSchema: z.object({ postId: z.string() }),
-    outputSchema: z.object({
-      draft: z.string().optional(),
-      metadata: z.record(z.unknown()).optional(),
-      updated_at: z.string().optional(),
-    }),
   },
-  async ({ postId }) => {
-    const draft = drafts.get(postId);
+  async args => {
+    const { postId } = DraftLookupSchema.parse(args);
+    const draft = DraftResponseSchema.parse(drafts.get(postId) ?? {});
     return {
-      content: [{ type: 'text', text: JSON.stringify(draft ?? {}) }],
-      structuredContent: draft ?? {},
+      content: [{ type: 'text', text: JSON.stringify(draft) }],
+      structuredContent: draft,
     };
   },
 );

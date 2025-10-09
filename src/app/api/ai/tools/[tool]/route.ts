@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+function extractToolId(pathname: string): string | null {
+  const segments = pathname.split('/').filter(Boolean);
+  const index = segments.indexOf('tools');
+  if (index === -1 || index + 1 >= segments.length) {
+    return null;
+  }
+  return decodeURIComponent(segments[index + 1] ?? '');
+}
+
 import { runResearchQuery } from '@/lib/mcp/research';
 import { runSeoAnalysis } from '@/lib/mcp/seo';
 import { uploadAsset } from '@/lib/mcp/storage';
@@ -12,15 +21,17 @@ const RESEARCH_TOKEN = process.env.MCP_RESEARCH_TOKEN;
 const SEO_TOKEN = process.env.MCP_SEO_TOKEN;
 const STORAGE_TOKEN = process.env.MCP_STORAGE_TOKEN;
 
-interface Params {
-  params: { tool: string };
-}
-
-export async function POST(request: NextRequest, { params }: Params) {
+export async function POST(request: NextRequest) {
   try {
+    const tool = extractToolId((request.nextUrl ?? new URL(request.url)).pathname);
+
+    if (!tool || Array.isArray(tool)) {
+      return NextResponse.json({ error: 'Tool identifier missing' }, { status: 400 });
+    }
+
     const payload = await request.json();
 
-    switch (params.tool) {
+    switch (tool) {
       case 'research:search': {
         const result = await runResearchQuery(
           { baseUrl: RESEARCH_MCP_URL, apiKey: RESEARCH_TOKEN },

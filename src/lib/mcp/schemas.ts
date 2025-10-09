@@ -19,7 +19,7 @@ export const ResearchResponseSchema = z.object({
 export const DraftUpdateSchema = z.object({
   postId: z.string().uuid(),
   draft: z.string(),
-  metadata: z.record(z.string()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const SeoAnalysisSchema = z.object({

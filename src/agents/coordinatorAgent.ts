@@ -126,7 +126,7 @@ export class CoordinatorAgent<TState extends Record<string, unknown>> implements
             logger.log({
               level: 'debug',
               message: `Routing tool ${invocation.tool} for agent ${context.agent}`,
-              data: invocation,
+              data: { invocation },
               timestamp: new Date(),
             });
             await this.options.router(context.agent, invocation.tool, invocation.payload);

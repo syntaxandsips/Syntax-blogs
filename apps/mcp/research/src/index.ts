@@ -1,5 +1,4 @@
 import express from 'express';
-import fetch from 'node-fetch';
 import pino from 'pino';
 import { z } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -24,19 +23,9 @@ server.registerTool(
   {
     title: 'Search knowledge sources',
     description: 'Run federated search across configured providers',
-    inputSchema: SearchInputSchema,
-    outputSchema: z.object({
-      sources: z.array(
-        z.object({
-          title: z.string(),
-          url: z.string(),
-          snippet: z.string().optional(),
-        }),
-      ),
-      summary: z.string().optional(),
-    }),
   },
-  async ({ query, limit }) => {
+  async payload => {
+    const { query, limit } = SearchInputSchema.parse(payload);
     logger.info({ query, limit }, 'Executing research search');
 
     const url = new URL(NEWS_API_URL);
@@ -60,7 +49,13 @@ server.registerTool(
       content: [
         {
           type: 'text',
-          text: JSON.stringify({ sources }),
+          text: JSON.stringify({
+            sources,
+            summary: sources
+              .map(source => `- ${source.title}`)
+              .slice(0, 5)
+              .join('\n'),
+          }),
         },
       ],
       structuredContent: {

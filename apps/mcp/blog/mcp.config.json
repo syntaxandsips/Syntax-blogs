@@ -1,0 +1,38 @@
+{
+  "server": {
+    "name": "syntax-sips-blog",
+    "version": "0.1.0"
+  },
+  "auth": {
+    "type": "header",
+    "header": "x-service-key"
+  },
+  "tools": [
+    {
+      "name": "get-draft",
+      "title": "Get Draft",
+      "description": "Retrieve an unpublished draft",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "postId": { "type": "string" }
+        },
+        "required": ["postId"]
+      }
+    },
+    {
+      "name": "update-draft",
+      "title": "Update Draft",
+      "description": "Persist a draft revision",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "postId": { "type": "string" },
+          "draft": { "type": "string" },
+          "metadata": { "type": "object" }
+        },
+        "required": ["postId", "draft"]
+      }
+    }
+  ]
+}

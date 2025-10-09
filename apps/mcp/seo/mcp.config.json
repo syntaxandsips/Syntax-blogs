@@ -1,0 +1,25 @@
+{
+  "server": {
+    "name": "syntax-sips-seo",
+    "version": "0.1.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "header": "authorization"
+  },
+  "tools": [
+    {
+      "name": "analyze-seo",
+      "title": "Analyze SEO",
+      "description": "Evaluate draft content for SEO quality",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "draft": { "type": "string" },
+          "focusKeyword": { "type": "string" }
+        },
+        "required": ["draft", "focusKeyword"]
+      }
+    }
+  ]
+}

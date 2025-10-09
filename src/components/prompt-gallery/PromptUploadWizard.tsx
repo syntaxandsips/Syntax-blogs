@@ -9,7 +9,7 @@ interface PromptUploadWizardProps {
 }
 
 const mediaOptions: CreatePromptInput['mediaType'][] = ['text', 'image', 'video', 'audio', '3d', 'workflow']
-const monetizationOptions: CreatePromptInput['monetizationType'][] = ['free', 'tip-enabled', 'premium']
+const monetizationOptions: CreatePromptInput['monetizationType'][] = ['free']
 const difficultyOptions: CreatePromptInput['difficulty'][] = ['beginner', 'intermediate', 'advanced']
 const visibilityOptions: CreatePromptInput['visibility'][] = ['public', 'unlisted', 'draft']
 
@@ -218,8 +218,8 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
                 <label className="text-xs font-black uppercase tracking-[0.2em] text-black/60">Monetization</label>
                 <select
                   value={formData.monetizationType}
-                  onChange={(event) => updateField('monetizationType', event.target.value as CreatePromptInput['monetizationType'])}
-                  className="mt-2 w-full rounded-2xl border-2 border-black bg-white px-4 py-3 text-sm shadow-[4px_4px_0_rgba(0,0,0,0.12)] focus:outline-none"
+                  disabled
+                  className="mt-2 w-full cursor-not-allowed rounded-2xl border-2 border-dashed border-black/40 bg-[#F5F3FF] px-4 py-3 text-sm font-semibold uppercase text-black/50 shadow-[4px_4px_0_rgba(0,0,0,0.12)]"
                 >
                   {monetizationOptions.map((option) => (
                     <option key={option} value={option}>
@@ -227,6 +227,7 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
                     </option>
                   ))}
                 </select>
+                <p className="mt-2 text-xs text-black/60">Creator payouts launch soon. Prompts stay free until the beta opens.</p>
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -245,13 +246,11 @@ export function PromptUploadWizard({ models }: PromptUploadWizardProps) {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-black uppercase tracking-[0.2em] text-black/60">Price (optional)</label>
+                <label className="text-xs font-black uppercase tracking-[0.2em] text-black/60">Price</label>
                 <input
-                  type="number"
-                  min="0"
-                  value={formData.price ?? ''}
-                  onChange={(event) => updateField('price', event.target.value ? Number(event.target.value) : null)}
-                  className="mt-2 w-full rounded-2xl border-2 border-black bg-white px-4 py-3 text-sm shadow-[4px_4px_0_rgba(0,0,0,0.12)] focus:outline-none"
+                  value="Coming soon"
+                  readOnly
+                  className="mt-2 w-full cursor-not-allowed rounded-2xl border-2 border-dashed border-black/40 bg-[#F5F3FF] px-4 py-3 text-sm font-semibold uppercase text-black/50 shadow-[4px_4px_0_rgba(0,0,0,0.12)]"
                 />
               </div>
             </div>

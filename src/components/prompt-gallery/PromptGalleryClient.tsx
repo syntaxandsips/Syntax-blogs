@@ -9,6 +9,8 @@ import { PromptFiltersSidebar } from './PromptFiltersSidebar'
 import { PromptSortBar } from './PromptSortBar'
 import { PromptCard } from './PromptCard'
 import { PromptPagination } from './PromptPagination'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { toast } from 'sonner'
 
 interface PromptGalleryClientProps {
   prompts: PromptSummary[]
@@ -25,19 +27,12 @@ export function PromptGalleryClient({ prompts, metadata, total, page, pageSize, 
   const [filters, setFilters] = useState<PromptFilters>(initialFilters)
   const [searchTerm, setSearchTerm] = useState(initialFilters.query ?? '')
   const [isFiltersOpen, setFiltersOpen] = useState(false)
-  const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
     setFilters(initialFilters)
     setSearchTerm(initialFilters.query ?? '')
   }, [initialFilters])
-
-  useEffect(() => {
-    if (!statusMessage) return
-    const timeout = window.setTimeout(() => setStatusMessage(null), 2500)
-    return () => window.clearTimeout(timeout)
-  }, [statusMessage])
 
   useEffect(() => {
     if ((filters.query ?? '') === (searchTerm ?? '')) {
@@ -67,35 +62,57 @@ export function PromptGalleryClient({ prompts, metadata, total, page, pageSize, 
   const handleCopy = async (prompt: PromptSummary) => {
     try {
       await navigator.clipboard.writeText(prompt.preview)
-      setStatusMessage('Prompt copied to clipboard!')
+      toast.success('Prompt copied to clipboard!')
     } catch (error) {
       console.error('Unable to copy prompt', error)
-      setStatusMessage('Unable to copy prompt. Try again.')
+      toast.error('Unable to copy prompt. Try again.')
     }
   }
 
   const handleBookmark = (prompt: PromptSummary) => {
     console.info('Bookmark prompt', prompt.id)
-    setStatusMessage('Prompt saved to your reading list (coming soon).')
+    toast.info('Prompt saved to your reading list (coming soon).')
   }
 
   const hasResults = prompts.length > 0
 
+  const mobileFilters = (
+    <Dialog open={isFiltersOpen} onOpenChange={setFiltersOpen}>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 rounded-2xl border-2 border-black bg-[#FFCA3A] px-4 py-3 text-xs font-black uppercase tracking-[0.2em] text-black shadow-[4px_4px_0_rgba(0,0,0,0.2)] transition-transform hover:-translate-y-0.5 lg:hidden"
+        >
+          Filters
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-black text-[0.7rem] font-black">
+            {metadata.mediaTypes.length + metadata.models.length}
+          </span>
+        </button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-black text-black">Filter prompts</DialogTitle>
+        </DialogHeader>
+        <PromptFiltersSidebar
+          metadata={metadata}
+          filters={filters}
+          onChange={(next) => updateFilters(next, 1)}
+          onClose={() => setFiltersOpen(false)}
+          mobile
+        />
+      </DialogContent>
+    </Dialog>
+  )
+
   return (
     <div className="flex flex-col gap-6">
-      {statusMessage ? (
-        <div className="rounded-3xl border-4 border-black bg-[#B9FBC0] px-6 py-3 text-sm font-semibold text-black shadow-[6px_6px_0_rgba(0,0,0,0.15)]">
-          {statusMessage}
-        </div>
-      ) : null}
-
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <PromptSortBar
           filters={filters}
           onSortChange={(sort) => handleSortChange(sort)}
           onSearchChange={(value) => setSearchTerm(value)}
           searchValue={searchTerm}
-          onOpenFilters={() => setFiltersOpen(true)}
+          mobileFiltersTrigger={mobileFilters}
         />
         <Link
           href="/resources/prompt-gallery/upload"
@@ -133,19 +150,6 @@ export function PromptGalleryClient({ prompts, metadata, total, page, pageSize, 
         </div>
       </div>
 
-      {isFiltersOpen ? (
-        <div className="fixed inset-0 z-50 bg-black/60 p-4 backdrop-blur">
-          <div className="mx-auto max-w-lg">
-            <PromptFiltersSidebar
-              metadata={metadata}
-              filters={filters}
-              onChange={(next) => updateFilters(next, 1)}
-              onClose={() => setFiltersOpen(false)}
-              mobile
-            />
-          </div>
-        </div>
-      ) : null}
     </div>
   )
 }

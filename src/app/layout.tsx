@@ -12,6 +12,7 @@ import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { SiteNavigationJsonLd } from "@/components/seo/SiteNavigationJsonLd";
 import { getSiteUrl } from "@/lib/site-url";
 import { sendToAnalytics } from "@/lib/analytics/report-web-vitals";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -106,6 +107,7 @@ export default async function RootLayout({
           <SiteNavigationJsonLd />
           <GoogleAnalytics />
           <ConditionalNavbar initialPathname={initialPathname} />
+          <Toaster theme="light" position="bottom-right" richColors closeButton />
           {children}
           <Analytics />
         </LoaderProvider>

@@ -1,9 +1,12 @@
 import { Metadata } from 'next'
+import Link from 'next/link'
 import { Suspense } from 'react'
 import { getPrompts, getPromptFilters } from '@/lib/prompt-gallery/queries'
 import { parsePromptFilters } from '@/lib/prompt-gallery/search'
 import { PromptGalleryClient } from '@/components/prompt-gallery/PromptGalleryClient'
-import { PageShell, PageHero } from '@/components/ui/PageLayout'
+import { PageShell } from '@/components/ui/PageLayout'
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs'
+import Marquee from '@/components/ui/marquee'
 
 export const metadata: Metadata = {
   title: 'Prompt Gallery | Syntax & Sips',
@@ -27,14 +30,46 @@ export default async function PromptGalleryPage({ searchParams }: PromptGalleryP
     getPromptFilters(),
   ])
 
+  const breadcrumbs = [
+    { label: 'Resources', href: '/resources' },
+    { label: 'Prompt Gallery' },
+  ]
+
+  const trendingItems = metadata.tags
+    .filter((tag) => tag.count > 0)
+    .slice(0, 12)
+    .map((tag) => `#${tag.label}`)
+
   return (
     <PageShell
       hero={
-        <PageHero
-          eyebrow="Prompt Gallery"
-          title="Share, remix, and discover world-class prompts"
-          description="Browse prompts across Midjourney, GPT-4o, Claude, Stable Diffusion, and more. Filter by media type, monetization, and difficulty to find exactly what you need."
-        />
+        <section className="border-b-4 border-black bg-[#f0f0f0] py-10">
+          <div className="container mx-auto flex flex-col gap-6 px-4">
+            <Breadcrumbs items={breadcrumbs} />
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-4">
+                <h1 className="text-4xl font-black text-black">Prompt Gallery</h1>
+                {trendingItems.length ? (
+                  <Marquee items={trendingItems} className="max-w-xl" />
+                ) : null}
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  href="/docs/prompt-gallery"
+                  className="inline-flex items-center justify-center rounded-full border-2 border-black bg-white px-5 py-3 text-xs font-black uppercase tracking-[0.2em] text-black shadow-[4px_4px_0_rgba(0,0,0,0.12)] transition-transform hover:-translate-y-0.5"
+                >
+                  Read the gallery guide
+                </Link>
+                <Link
+                  href="/resources/prompt-gallery/upload"
+                  className="inline-flex items-center justify-center rounded-full border-2 border-black bg-[#6C63FF] px-5 py-3 text-xs font-black uppercase tracking-[0.2em] text-white shadow-[4px_4px_0_rgba(0,0,0,0.2)] transition-transform hover:-translate-y-0.5"
+                >
+                  Upload prompt
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       }
     >
       <Suspense fallback={<div className="rounded-3xl border-4 border-black bg-white p-10 text-center">Loading prompt gallery…</div>}>

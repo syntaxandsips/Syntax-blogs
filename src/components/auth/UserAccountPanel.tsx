@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import clsx from 'clsx'
 import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
@@ -22,8 +21,6 @@ import {
   LifeBuoy,
   MessageCircle,
   NotebookPen,
-  PanelLeftClose,
-  PanelRightOpen,
   PenSquare,
   Scale,
   ShieldCheck,
@@ -57,6 +54,23 @@ import {
 import { useAuthenticatedProfile } from '@/hooks/useAuthenticatedProfile'
 import '@/styles/neo-brutalism.css'
 import { GamificationOverview } from '@/components/gamification/GamificationOverview'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarRail,
+  useSidebar,
+} from '@/components/ui/sidebar'
 
 interface UserAccountPanelProps {
   profile: AuthenticatedProfileSummary
@@ -587,154 +601,167 @@ const CapabilityCard = ({ title, description, icon: Icon, status, ctaHref, ctaLa
   </div>
 )
 
-const AccountSidebar = ({
+const AccountWorkspaceSidebar = ({
   profile,
   totals,
   sections,
-  isCollapsed,
-  onToggleCollapse,
 }: {
   profile: AuthenticatedProfileSummary
   totals: UserContributionSnapshot['totals']
   sections: SidebarSection[]
-  isCollapsed: boolean
-  onToggleCollapse: () => void
-}) => (
-  <aside
-    className={clsx(
-      'mb-6 w-full transition-all duration-300 lg:mb-0 lg:flex-shrink-0',
-      isCollapsed ? 'lg:w-[96px]' : 'lg:w-[320px] xl:w-[360px]',
-    )}
-  >
-    <div className="lg:sticky lg:top-6">
-      <div className="mb-4 flex items-center justify-between lg:justify-end">
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-gray-500 lg:hidden">Workspace</p>
-        <button
-          type="button"
-          onClick={onToggleCollapse}
-          className="inline-flex items-center gap-2 rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black uppercase tracking-wide text-gray-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px]"
-        >
-          <span className="sr-only">{isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}</span>
-          {isCollapsed ? (
-            <PanelRightOpen className="h-4 w-4" aria-hidden="true" />
-          ) : (
-            <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
-          )}
-          <span className="hidden text-[11px] lg:inline">{isCollapsed ? 'Expand' : 'Collapse'}</span>
-        </button>
-      </div>
+}) => {
+  const router = useRouter()
+  const { isMobile, setOpen } = useSidebar()
 
-      <div className={clsx('space-y-6', isCollapsed ? 'lg:hidden' : '')}>
-        <div className="rounded-3xl border-4 border-black bg-white p-5 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.18)]">
-          <div className="flex items-center gap-4">
-            <SidebarAvatar name={profile.displayName} avatarUrl={profile.avatarUrl} />
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.25em] text-gray-500">Signed in</p>
-              <p className="text-lg font-black text-gray-900">{profile.displayName}</p>
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Member since {formatDate(profile.createdAt)}
-              </p>
-            </div>
+  const handleNavigateToSection = useCallback(
+    (sectionId: string) => {
+      const element = document.getElementById(sectionId)
+
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else {
+        window.location.hash = sectionId
+      }
+
+      if (isMobile) {
+        setOpen(false)
+      }
+    },
+    [isMobile, setOpen],
+  )
+
+  const handleShortcutNavigate = useCallback(
+    (href: string) => {
+      if (href.startsWith('#')) {
+        handleNavigateToSection(href.slice(1))
+        return
+      }
+
+      router.push(href)
+
+      if (isMobile) {
+        setOpen(false)
+      }
+    },
+    [handleNavigateToSection, isMobile, router, setOpen],
+  )
+
+  const shortcuts = useMemo(
+    () => [
+      {
+        id: 'feed',
+        label: 'Browse editorial feed',
+        href: '/blogs',
+        icon: ArrowRight,
+        accent: 'text-[#FFD66B]',
+      },
+      {
+        id: 'publishing',
+        label: 'Check drafting stats',
+        href: '#publishing',
+        icon: Activity,
+        accent: 'text-[#6C63FF]',
+      },
+      ...(profile.isAdmin
+        ? [
+            {
+              id: 'admin',
+              label: 'Review newsroom queue',
+              href: '/admin',
+              icon: ShieldCheck,
+              accent: 'text-[#7CFBFF]',
+            } as const,
+          ]
+        : []),
+    ],
+    [profile.isAdmin],
+  )
+
+  return (
+    <Sidebar
+      collapsible="icon"
+      className="border-r-4 border-black bg-white shadow-[12px_0_0_rgba(0,0,0,0.12)] lg:sticky lg:top-10 lg:h-[calc(100vh-5rem)]"
+    >
+      <SidebarHeader className="bg-[#F9F5FF]">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-black/60">Workspace</p>
+            <p className="text-lg font-black text-gray-900">Account HQ</p>
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-4 text-center">
-            <div
-              className="rounded-2xl border-2 border-black bg-[#F6EDE3] px-3 py-2"
-              title="Published posts"
-            >
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Posts</p>
-              <p className="text-xl font-black text-gray-900">{totals.publishedPosts}</p>
-            </div>
-            <div
-              className="rounded-2xl border-2 border-black bg-[#E8F5FF] px-3 py-2"
-              title="Total comments contributed"
-            >
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Comments</p>
-              <p className="text-xl font-black text-gray-900">{totals.totalComments}</p>
-            </div>
+          <SidebarTrigger className="lg:hidden" />
+        </div>
+        <div className="mt-5 flex items-center gap-4">
+          <SidebarAvatar name={profile.displayName} avatarUrl={profile.avatarUrl} />
+          <div>
+            <p className="text-sm font-black text-gray-900">{profile.displayName}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Member since {formatDate(profile.createdAt)}
+            </p>
           </div>
         </div>
-
-        <nav className="rounded-3xl border-4 border-black bg-white p-5 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.18)]">
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-gray-500">Workspace</p>
-          <ul className="mt-4 space-y-2">
-            {sections.map((section) => (
-              <li key={section.id}>
-                <a
-                  href={`#${section.id}`}
-                  className="group flex items-center gap-3 rounded-2xl border-2 border-transparent px-3 py-2 text-sm font-bold text-gray-800 transition hover:border-black hover:bg-[#F5F3FF]"
-                  title={`Jump to ${section.label}`}
-                >
-                  <section.icon className="h-4 w-4 text-[#6C63FF] transition group-hover:scale-110" aria-hidden="true" />
-                  {section.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <div className="rounded-3xl border-4 border-black bg-[#0B0B0F] p-5 text-white shadow-[12px_12px_0px_0px_rgba(0,0,0,0.25)]">
-          <p className="text-sm font-black uppercase tracking-[0.25em] opacity-70">Shortcuts</p>
-          <ul className="mt-4 space-y-3 text-sm font-semibold">
-            <li>
-              <Link
-                href="/blogs"
-                className="inline-flex items-center gap-2 text-[#FFD66B] hover:underline"
-                title="Browse the latest articles"
-              >
-                Browse editorial feed <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="#publishing"
-                className="inline-flex items-center gap-2 text-[#6C63FF] hover:underline"
-                title="Jump to publishing insights"
-              >
-                Check drafting stats <Activity className="h-3.5 w-3.5" aria-hidden="true" />
-              </Link>
-            </li>
-            {profile.isAdmin ? (
-              <li>
-                <Link
-                  href="/admin"
-                  className="inline-flex items-center gap-2 text-[#7CFBFF] hover:underline"
-                  title="Launch the admin console"
-                >
-                  Review newsroom queue <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                </Link>
-              </li>
-            ) : null}
-          </ul>
+        <div className="mt-5 grid grid-cols-2 gap-4 text-center">
+          <div className="rounded-2xl border-2 border-black bg-[#F6EDE3] px-3 py-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Posts</p>
+            <p className="text-xl font-black text-gray-900">{totals.publishedPosts}</p>
+          </div>
+          <div className="rounded-2xl border-2 border-black bg-[#E8F5FF] px-3 py-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Comments</p>
+            <p className="text-xl font-black text-gray-900">{totals.totalComments}</p>
+          </div>
         </div>
-      </div>
+      </SidebarHeader>
 
-      <nav
-        className={clsx(
-          'hidden',
-          isCollapsed ? 'lg:flex lg:flex-col lg:items-center lg:gap-4' : '',
-        )}
-        aria-label="Collapsed account sections"
-      >
-        <div className="rounded-3xl border-4 border-black bg-white p-4 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.18)]">
-          <ul className="flex flex-col items-center gap-3">
-            {sections.map((section) => (
-              <li key={section.id}>
-                <a
-                  href={`#${section.id}`}
-                  className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-black bg-[#F5F3FF] text-[#6C63FF] shadow-[6px_6px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px]"
-                  title={`Jump to ${section.label}`}
-                >
-                  <section.icon className="h-5 w-5" aria-hidden="true" />
-                  <span className="sr-only">{section.label}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </nav>
-    </div>
-  </aside>
-)
+      <SidebarContent className="space-y-6">
+        <SidebarGroup>
+          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {sections.map((section) => (
+                <SidebarMenuItem key={section.id}>
+                  <SidebarMenuButton
+                    onClick={() => handleNavigateToSection(section.id)}
+                    tooltip={section.label}
+                    className="justify-start gap-3 border-2 border-black bg-white text-sm font-bold"
+                  >
+                    <section.icon className="h-4 w-4 text-[#6C63FF]" aria-hidden="true" />
+                    <span>{section.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Shortcuts</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {shortcuts.map((shortcut) => (
+                <SidebarMenuItem key={shortcut.id}>
+                  <SidebarMenuButton
+                    onClick={() => handleShortcutNavigate(shortcut.href)}
+                    className="justify-start gap-3 border-2 border-black bg-[#0B0B0F] text-sm font-semibold text-white"
+                  >
+                    <shortcut.icon className={`h-4 w-4 ${shortcut.accent}`} aria-hidden="true" />
+                    <span>{shortcut.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter>
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
+          Stay brilliant ✨
+        </p>
+      </SidebarFooter>
+
+      <SidebarRail />
+    </Sidebar>
+  )
+}
 
 const SectionHeader = ({
   eyebrow,
@@ -1014,7 +1041,6 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
   const [currentProfile, setCurrentProfile] = useState(profile)
   const [isSigningOut, setIsSigningOut] = useState(false)
   const [signOutError, setSignOutError] = useState<string | null>(null)
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     setCurrentProfile(profile)
@@ -1258,29 +1284,22 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
   const greetingFirstWord = greetingSource.split(' ')[0] ?? greetingSource
   const heroGreeting = `नमस्ते ${greetingFirstWord}!`
 
-  const handleToggleSidebar = useCallback(() => {
-    setIsSidebarCollapsed((previous) => !previous)
-  }, [])
-
   return (
-    <div className="neo-brutalism min-h-screen bg-gradient-to-br from-[#FFF5F1] via-[#F8F0FF] to-[#E3F2FF] px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 lg:flex-row lg:items-start lg:gap-12 xl:gap-16">
-        <AccountSidebar
+    <SidebarProvider>
+      <div className="neo-brutalism min-h-screen bg-gradient-to-br from-[#FFF5F1] via-[#F8F0FF] to-[#E3F2FF]">
+        <AccountWorkspaceSidebar
           profile={currentProfile}
           totals={contributions.totals}
           sections={navigationSections}
-          isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={handleToggleSidebar}
         />
 
-        <div
-          className={clsx(
-            'flex-1',
-            'lg:h-[calc(100vh-6rem)] lg:overflow-y-auto',
-            isSidebarCollapsed ? 'lg:pr-0' : 'lg:pr-4',
-          )}
-        >
-          <div className="space-y-16 pb-24">
+        <SidebarInset className="px-4 py-10 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-7xl">
+            <div className="mb-6 flex items-center justify-between gap-3 lg:hidden">
+              <SidebarTrigger />
+              <p className="text-xs font-black uppercase tracking-[0.3em] text-gray-600">Open workspace navigation</p>
+            </div>
+            <div className="space-y-16 pb-24">
           <section id="overview" className="scroll-mt-28 space-y-6">
             <SectionHeader
               eyebrow="Overview"
@@ -1875,7 +1894,8 @@ export const UserAccountPanel = ({ profile, contributions }: UserAccountPanelPro
           </section>
         </div>
       </div>
+      </SidebarInset>
     </div>
-    </div>
+  </SidebarProvider>
   )
 }

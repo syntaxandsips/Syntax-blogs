@@ -1,19 +1,82 @@
--- Prompt gallery schema
+-- -- Check for existing data
+-- SELECT 
+--   'ai_models' as table_name, COUNT(*) as row_count FROM public.ai_models
+-- UNION ALL
+-- SELECT 'prompt_collections', COUNT(*) FROM public.prompt_collections
+-- UNION ALL
+-- SELECT 'prompts', COUNT(*) FROM public.prompts
+-- UNION ALL
+-- SELECT 'prompt_tags', COUNT(*) FROM public.prompt_tags
+-- UNION ALL
+-- SELECT 'prompt_votes', COUNT(*) FROM public.prompt_votes
+-- UNION ALL
+-- SELECT 'prompt_downloads', COUNT(*) FROM public.prompt_downloads
+-- UNION ALL
+-- SELECT 'prompt_copy_events', COUNT(*) FROM public.prompt_copy_events
+-- UNION ALL
+-- SELECT 'prompt_bookmark_collections', COUNT(*) FROM public.prompt_bookmark_collections
+-- UNION ALL
+-- SELECT 'prompt_bookmarks', COUNT(*) FROM public.prompt_bookmarks
+-- UNION ALL
+-- SELECT 'prompt_comments', COUNT(*) FROM public.prompt_comments
+-- UNION ALL
+-- SELECT 'prompt_collection_items', COUNT(*) FROM public.prompt_collection_items
+-- UNION ALL
+-- SELECT 'prompt_moderation_queue', COUNT(*) FROM public.prompt_moderation_queue
+-- UNION ALL
+-- SELECT 'prompt_stats_daily', COUNT(*) FROM public.prompt_stats_daily
+-- UNION ALL
+-- SELECT 'prompt_activity_feed', COUNT(*) FROM public.prompt_activity_feed;
+
+-- Drop all existing tables in reverse order of creation (to handle foreign key constraints)
+DROP TABLE IF EXISTS public.prompt_activity_feed CASCADE;
+DROP TABLE IF EXISTS public.prompt_stats_daily CASCADE;
+DROP TABLE IF EXISTS public.prompt_moderation_queue CASCADE;
+DROP TABLE IF EXISTS public.prompt_collection_items CASCADE;
+DROP TABLE IF EXISTS public.prompt_comments CASCADE;
+DROP TABLE IF EXISTS public.prompt_bookmarks CASCADE;
+DROP TABLE IF EXISTS public.prompt_bookmark_collections CASCADE;
+DROP TABLE IF EXISTS public.prompt_copy_events CASCADE;
+DROP TABLE IF EXISTS public.prompt_downloads CASCADE;
+DROP TABLE IF EXISTS public.prompt_votes CASCADE;
+DROP TABLE IF EXISTS public.prompt_tags_junction CASCADE;
+DROP TABLE IF EXISTS public.prompt_tags CASCADE;
+DROP TABLE IF EXISTS public.prompt_assets CASCADE;
+DROP TABLE IF EXISTS public.prompt_models CASCADE;
+DROP TABLE IF EXISTS public.prompts CASCADE;
+DROP TABLE IF EXISTS public.prompt_collections CASCADE;
+DROP TABLE IF EXISTS public.ai_models CASCADE;
+
+-- Drop types
+DROP TYPE IF EXISTS prompt_vote_type CASCADE;
+DROP TYPE IF EXISTS prompt_moderation_status CASCADE;
+DROP TYPE IF EXISTS prompt_asset_type CASCADE;
+DROP TYPE IF EXISTS prompt_monetization_type CASCADE;
+DROP TYPE IF EXISTS prompt_visibility CASCADE;
+DROP TYPE IF EXISTS prompt_difficulty_level CASCADE;
+DROP TYPE IF EXISTS prompt_media_type CASCADE;
+
+-- Drop function
+DROP FUNCTION IF EXISTS public.trigger_update_timestamp() CASCADE;
+
+-- Now recreate with the correct schema (Option 1)
 set statement_timeout = 0;
 set lock_timeout = 0;
 set idle_in_transaction_session_timeout = 0;
 set client_encoding = 'UTF8';
 set standard_conforming_strings = on;
 
+-- Enable the citext extension
+CREATE EXTENSION IF NOT EXISTS citext;
+
 create or replace function public.trigger_update_timestamp()
 returns trigger
 language plpgsql
-as $$
-begin
+as $$ begin
   new.updated_at = timezone('utc', now());
   return new;
 end;
-$$;
+ $$;
 
 create type prompt_media_type as enum ('image', 'video', 'text', 'audio', '3d', 'workflow');
 create type prompt_difficulty_level as enum ('beginner', 'intermediate', 'advanced');

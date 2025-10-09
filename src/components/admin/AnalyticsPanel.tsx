@@ -109,7 +109,7 @@ export function AnalyticsPanel({ posts, recentComments }: AnalyticsPanelProps) {
         </p>
       </div>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <article className="rounded-xl border-4 border-black bg-white p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.08)]">
           <div className="flex items-center gap-3">
             <BarChart4 className="h-5 w-5 text-[#6C63FF]" aria-hidden="true" />
@@ -173,7 +173,7 @@ export function AnalyticsPanel({ posts, recentComments }: AnalyticsPanelProps) {
 
       <section className="grid gap-6 xl:grid-cols-[2fr_1fr]">
         <article className="rounded-xl border-4 border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.08)]">
-          <header className="mb-6 flex items-center justify-between">
+          <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <Activity className="h-5 w-5 text-[#6C63FF]" aria-hidden="true" />
               <h2 className="text-xl font-bold text-[#2A2A2A]">Monthly performance</h2>
@@ -183,7 +183,7 @@ export function AnalyticsPanel({ posts, recentComments }: AnalyticsPanelProps) {
               Last 6 months
             </span>
           </header>
-          <div className="grid grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
             {monthlyPerformance.map((month) => {
               const height = month.views === 0 ? 6 : Math.min(110, Math.round(month.views / 20));
               return (
@@ -211,7 +211,7 @@ export function AnalyticsPanel({ posts, recentComments }: AnalyticsPanelProps) {
         </article>
 
         <article className="rounded-xl border-4 border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.08)]">
-          <header className="mb-4 flex items-center gap-3">
+          <header className="mb-4 flex flex-wrap items-center gap-3">
             <PieChart className="h-5 w-5 text-[#FF5252]" aria-hidden="true" />
             <h2 className="text-xl font-bold text-[#2A2A2A]">Status distribution</h2>
           </header>
@@ -235,7 +235,7 @@ export function AnalyticsPanel({ posts, recentComments }: AnalyticsPanelProps) {
       </section>
 
       <section className="rounded-xl border-4 border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.08)]">
-        <header className="mb-4 flex items-center gap-3">
+        <header className="mb-4 flex flex-wrap items-center gap-3">
           <Flame className="h-5 w-5 text-[#6C63FF]" aria-hidden="true" />
           <h2 className="text-xl font-bold text-[#2A2A2A]">Top categories by reach</h2>
         </header>

@@ -17,12 +17,23 @@ export const NeobrutalToggleSwitch = forwardRef<
   NeobrutalToggleSwitchProps
 >(
   (
-    { checked, onCheckedChange, label, onLabel = 'On', offLabel = 'Off', className, ...rest },
+    {
+      checked,
+      onCheckedChange,
+      label,
+      onLabel = 'On',
+      offLabel = 'Off',
+      className,
+      'aria-label': ariaLabel,
+      ...rest
+    },
     ref,
   ) => {
     const handleClick = () => {
       onCheckedChange?.(!checked)
     }
+
+    const accessibleLabel = ariaLabel ?? (checked ? onLabel : offLabel)
 
     return (
       <div className={cn('flex items-center gap-3', className)}>
@@ -36,32 +47,41 @@ export const NeobrutalToggleSwitch = forwardRef<
           type="button"
           role="switch"
           aria-checked={checked}
+          aria-label={accessibleLabel}
           onClick={handleClick}
           className={cn(
-            'relative flex h-9 w-20 items-center rounded-full border-4 border-black bg-white px-1 transition-transform',
+            'relative grid h-10 w-36 grid-cols-2 items-center rounded-full border-4 border-black bg-white text-[11px] font-black uppercase tracking-wide transition-shadow duration-200 ease-out',
             checked
-              ? 'bg-[#6C63FF] text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.16)]'
-              : 'bg-white text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.08)]',
+              ? 'shadow-[4px_4px_0px_0px_rgba(0,0,0,0.16)]'
+              : 'shadow-[4px_4px_0px_0px_rgba(0,0,0,0.08)]',
           )}
           {...rest}
         >
           <span
+            aria-hidden
             className={cn(
-              'flex h-6 w-6 items-center justify-center rounded-full border-2 border-black bg-white font-bold transition-transform',
-              checked ? 'translate-x-11 bg-[#FFD166]' : 'translate-x-0',
+              'pointer-events-none absolute inset-y-1 left-1 z-0 rounded-full border-2 border-black bg-[#6C63FF] transition-transform duration-200 ease-out',
+              'w-[calc(50%-0.375rem)]',
+              checked ? 'translate-x-[calc(100%+0.75rem)]' : 'translate-x-0',
+            )}
+          />
+          <span
+            aria-hidden
+            className={cn(
+              'relative z-10 text-center transition-colors duration-200 ease-out',
+              checked ? 'text-black' : 'text-white drop-shadow-[1px_1px_0px_rgba(0,0,0,0.45)]',
             )}
           >
-            {checked ? '✓' : ''}
+            {offLabel}
           </span>
           <span
+            aria-hidden
             className={cn(
-              'pointer-events-none absolute inset-0 flex items-center justify-center text-[11px] font-black uppercase tracking-wide transition-colors',
-              checked
-                ? 'text-white drop-shadow-[1px_1px_0px_rgba(0,0,0,0.45)]'
-                : 'text-black',
+              'relative z-10 text-center transition-colors duration-200 ease-out',
+              checked ? 'text-white drop-shadow-[1px_1px_0px_rgba(0,0,0,0.45)]' : 'text-black',
             )}
           >
-            {checked ? onLabel : offLabel}
+            {onLabel}
           </span>
         </button>
       </div>

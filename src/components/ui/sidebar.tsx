@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react"
+import { ChevronRight, PanelLeftClose, PanelLeftOpen } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -107,7 +107,7 @@ const SidebarTrigger = React.forwardRef<HTMLButtonElement, React.ComponentPropsW
 SidebarTrigger.displayName = "SidebarTrigger"
 
 const SidebarInset = ({ className, ...props }: React.ComponentPropsWithoutRef<"div">) => {
-  const { isOpen, isMobile } = useSidebar()
+  const { isMobile } = useSidebar()
   return (
     <div
       className={cn(
@@ -257,7 +257,7 @@ const SidebarMenuSubButton = React.forwardRef<HTMLAnchorElement, React.Component
 SidebarMenuSubButton.displayName = "SidebarMenuSubButton"
 
 const SidebarRail = ({ className, ...props }: React.ComponentPropsWithoutRef<"div">) => {
-  const { isOpen, isMobile, toggle } = useSidebar()
+  const { isOpen, toggle } = useSidebar()
   return (
     <div
       className={cn(

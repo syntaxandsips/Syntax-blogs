@@ -74,6 +74,138 @@ export interface Database {
         }
         Update: Partial<Database['public']['Tables']['gamification_actions']['Insert']>
       }
+      user_lists: {
+        Row: {
+          id: string
+          profile_id: string
+          title: string
+          description: string | null
+          slug: string
+          is_public: boolean
+          cover_image_url: string | null
+          item_count: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          title: string
+          description?: string | null
+          slug: string
+          is_public?: boolean
+          cover_image_url?: string | null
+          item_count?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['user_lists']['Insert']>
+      }
+      list_items: {
+        Row: {
+          id: string
+          list_id: string
+          post_id: string
+          note: string | null
+          position: number
+          added_at: string
+        }
+        Insert: {
+          id?: string
+          list_id: string
+          post_id: string
+          note?: string | null
+          position?: number
+          added_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['list_items']['Insert']>
+      }
+      saved_lists: {
+        Row: {
+          id: string
+          profile_id: string
+          list_id: string
+          saved_at: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          list_id: string
+          saved_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['saved_lists']['Insert']>
+      }
+      highlights: {
+        Row: {
+          id: string
+          profile_id: string
+          post_id: string
+          highlighted_text: string
+          note: string | null
+          color: string
+          position_start: number
+          position_end: number
+          is_public: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          post_id: string
+          highlighted_text: string
+          note?: string | null
+          color?: string
+          position_start: number
+          position_end: number
+          is_public?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['highlights']['Insert']>
+      }
+      reading_history: {
+        Row: {
+          id: string
+          profile_id: string
+          post_id: string
+          read_at: string
+          read_duration_seconds: number | null
+          scroll_percentage: number | null
+          completed: boolean
+          last_position: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          post_id: string
+          read_at?: string
+          read_duration_seconds?: number | null
+          scroll_percentage?: number | null
+          completed?: boolean
+          last_position?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['reading_history']['Insert']>
+      }
+      bookmarks: {
+        Row: {
+          id: string
+          profile_id: string
+          post_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          post_id: string
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['bookmarks']['Insert']>
+      }
       gamification_badges: {
         Row: {
           id: string

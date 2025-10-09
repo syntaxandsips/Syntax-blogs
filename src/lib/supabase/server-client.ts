@@ -4,6 +4,7 @@ import {
   type CookieMethodsServer,
 } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import type { Database } from '@/lib/supabase/types'
 
 type ClientOptions = Parameters<typeof createClient>[2]
 
@@ -60,8 +61,8 @@ const createCookieAdapter = (): CookieMethodsServer => {
   }
 }
 
-export const createServerClient = () =>
-  createSupabaseServerClient(supabaseUrl, supabaseAnonKey, {
+export const createServerClient = <DB = Database>() =>
+  createSupabaseServerClient<DB>(supabaseUrl, supabaseAnonKey, {
     cookies: createCookieAdapter(),
   })
 
@@ -75,7 +76,7 @@ const serviceRoleOptions: ClientOptions = {
 export const createServiceRoleClient = () =>
   createClient(supabaseUrl, supabaseServiceKey, serviceRoleOptions)
 
-export const createServerComponentClient = () =>
-  createSupabaseServerClient(supabaseUrl, supabaseAnonKey, {
+export const createServerComponentClient = <DB = Database>() =>
+  createSupabaseServerClient<DB>(supabaseUrl, supabaseAnonKey, {
     cookies: createCookieAdapter(),
   })

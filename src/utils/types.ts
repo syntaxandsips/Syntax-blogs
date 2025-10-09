@@ -245,3 +245,94 @@ export interface UserContributionSnapshot {
   comments: UserCommentSummary[]
   totals: UserContributionTotals
 }
+
+export interface UserList {
+  id: string
+  profileId: string
+  title: string
+  description: string | null
+  slug: string
+  isPublic: boolean
+  coverImageUrl: string | null
+  itemCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ListItem {
+  id: string
+  listId: string
+  postId: string
+  postTitle: string
+  postSlug: string
+  postExcerpt: string | null
+  postCoverImage: string | null
+  note: string | null
+  position: number
+  addedAt: string
+}
+
+export interface SavedList {
+  id: string
+  profileId: string
+  listId: string
+  listTitle: string
+  listDescription: string | null
+  listOwnerName: string
+  listItemCount: number
+  savedAt: string
+}
+
+export interface Highlight {
+  id: string
+  profileId: string
+  postId: string
+  postTitle: string
+  postSlug: string
+  highlightedText: string
+  note: string | null
+  color: string
+  positionStart: number
+  positionEnd: number
+  isPublic: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ReadingHistoryEntry {
+  id: string
+  profileId: string
+  postId: string
+  postTitle: string
+  postSlug: string
+  postExcerpt: string | null
+  postCoverImage: string | null
+  readAt: string
+  readDurationSeconds: number | null
+  scrollPercentage: number | null
+  completed: boolean
+  lastPosition: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Bookmark {
+  id: string
+  profileId: string
+  postId: string
+  postTitle: string
+  postSlug: string
+  postExcerpt: string | null
+  postCoverImage: string | null
+  createdAt: string
+}
+
+export interface LibraryStats {
+  totalBookmarks: number
+  totalLists: number
+  totalListItems: number
+  totalHighlights: number
+  totalReadingHistory: number
+  readingStreak: number
+  totalReadingTime: number
+}

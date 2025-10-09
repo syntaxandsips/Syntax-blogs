@@ -304,11 +304,6 @@ const ProfileShortcut = ({ profile, refreshAuthenticatedProfile }: ProfileShortc
       },
       { label: 'library', href: '/me' },
       {
-        label: 'Become a Medium member',
-        href: 'https://medium.com/membership',
-        external: true,
-      },
-      {
         label: 'Apply to the Partner Program',
         href: '/apply/author',
       },

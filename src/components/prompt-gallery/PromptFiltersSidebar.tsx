@@ -1,9 +1,11 @@
 'use client'
 
 import { useMemo } from 'react'
-import { X } from 'lucide-react'
+import Link from 'next/link'
+import { Info, X } from 'lucide-react'
 import { PromptFilterMetadata, PromptFilters } from '@/lib/prompt-gallery/types'
 import { cn } from '@/lib/utils'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface PromptFiltersSidebarProps {
   metadata: PromptFilterMetadata
@@ -40,49 +42,64 @@ export function PromptFiltersSidebar({ metadata, filters, onChange, onClose, mob
   }, [filters])
 
   return (
-    <aside
-      className={cn(
-        'flex w-full flex-col gap-6 rounded-3xl border-4 border-black bg-[#F9F7FF] p-6 shadow-[8px_8px_0_rgba(0,0,0,0.1)]',
-        mobile ? 'max-w-full' : 'lg:sticky lg:top-24 lg:max-w-xs',
-      )}
-      aria-label="Prompt gallery filters"
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase text-black/60">Filters</p>
-          {hasActiveFilters ? (
+    <TooltipProvider delayDuration={150}>
+      <aside
+        className={cn(
+          'flex w-full flex-col gap-6 rounded-3xl border-4 border-black bg-[#F9F7FF] p-6 shadow-[8px_8px_0_rgba(0,0,0,0.1)]',
+          mobile ? 'max-w-full' : 'lg:sticky lg:top-24 lg:max-w-xs',
+        )}
+        aria-label="Prompt gallery filters"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase text-black/60">Filters</p>
+              {hasActiveFilters ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    onChange({
+                      ...filters,
+                      mediaTypes: [],
+                      modelIds: [],
+                      monetization: [],
+                      difficulties: [],
+                      languages: [],
+                      tags: [],
+                      visibility: [],
+                      query: undefined,
+                    })
+                  }
+                  className="text-xs font-semibold uppercase text-[#6C63FF] hover:underline"
+                >
+                  Clear all
+                </button>
+              ) : null}
+            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  href="/docs/prompt-gallery"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-black bg-white text-black shadow-[4px_4px_0_rgba(0,0,0,0.15)] transition-transform hover:-translate-y-0.5"
+                  aria-label="Open gallery guide"
+                >
+                  <Info className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="top">Read the gallery guide</TooltipContent>
+            </Tooltip>
+          </div>
+          {mobile ? (
             <button
               type="button"
-              onClick={() =>
-                onChange({
-                  ...filters,
-                  mediaTypes: [],
-                  modelIds: [],
-                  monetization: [],
-                  difficulties: [],
-                  languages: [],
-                  tags: [],
-                  visibility: [],
-                  query: undefined,
-                })
-              }
-              className="text-xs font-semibold uppercase text-[#6C63FF] hover:underline"
+              onClick={onClose}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-black bg-white"
+              aria-label="Close filters"
             >
-              Clear all
+              <X className="h-5 w-5" aria-hidden="true" />
             </button>
           ) : null}
         </div>
-        {mobile ? (
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-black bg-white"
-            aria-label="Close filters"
-          >
-            <X className="h-5 w-5" aria-hidden="true" />
-          </button>
-        ) : null}
-      </div>
 
       <div className="space-y-5">
         <section>
@@ -236,7 +253,8 @@ export function PromptFiltersSidebar({ metadata, filters, onChange, onClose, mob
           </section>
         ) : null}
       </div>
-    </aside>
+      </aside>
+    </TooltipProvider>
   )
 }
 

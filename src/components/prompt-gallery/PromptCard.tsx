@@ -55,14 +55,14 @@ export function PromptCard({ prompt, onCopy, onBookmark }: PromptCardProps) {
           <div className="flex items-start justify-between gap-3">
             <div>
               <h3 className="text-xl font-black leading-tight text-black">
-                <Link href={`/resources/prompt-gallery/${prompt.slug}`} className="hover:underline">
+                <Link href={`/explore/prompt-gallery/${prompt.slug}`} className="hover:underline">
                   {prompt.title}
                 </Link>
               </h3>
               <p className="mt-2 line-clamp-3 text-sm text-black/70">{prompt.description ?? prompt.preview}</p>
             </div>
             <Link
-              href={`/resources/prompt-gallery/${prompt.slug}`}
+              href={`/explore/prompt-gallery/${prompt.slug}`}
               className="inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-black bg-[#6C63FF] text-white shadow-[4px_4px_0_rgba(0,0,0,0.25)]"
               aria-label={`View ${prompt.title}`}
             >

@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
 import {
   Brain,
   Database,
@@ -11,8 +12,23 @@ import {
   Youtube,
   Gamepad2,
 } from 'lucide-react';
+import { homeSpotlightTopics } from '@/data/topic-catalog';
 
 export const TopicsSection = () => {
+  const icons = [
+    <Brain key="brain" />,
+    <Database key="database" />,
+    <Atom key="atom" />,
+    <Code key="code" />,
+    <FileText key="file" />,
+    <Star key="star" />,
+    <Youtube key="youtube" />,
+    <Gamepad2 key="game" />,
+  ];
+
+  const colors = ['#FF5252', '#06D6A0', '#FFD166', '#6C63FF', '#118AB2', '#FF5252', '#06D6A0', '#FFD166'];
+  const rotations = ['-rotate-2', 'rotate-1', '-rotate-1', 'rotate-2', 'rotate-1', '-rotate-2', 'rotate-2', '-rotate-1'];
+
   return (
     <section className="py-16 bg-[#118AB2] text-white">
       <div className="container mx-auto px-4">
@@ -23,59 +39,20 @@ export const TopicsSection = () => {
             </span>
           </h2>
           <p className="text-xl max-w-2xl mx-auto">
-            Dive into our diverse range of content spanning from cutting-edge
-            tech to casual entertainment
+            Dive into our diverse range of content spanning from cutting-edge tech to casual entertainment
           </p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-          <TopicCard
-            icon={<Brain />}
-            title="Machine Learning"
-            color="#FF5252"
-            rotation="-rotate-2"
-          />
-          <TopicCard
-            icon={<Database />}
-            title="Data Science"
-            color="#06D6A0"
-            rotation="rotate-1"
-          />
-          <TopicCard
-            icon={<Atom />}
-            title="Quantum Computing"
-            color="#FFD166"
-            rotation="-rotate-1"
-          />
-          <TopicCard
-            icon={<Code />}
-            title="Coding Tutorials"
-            color="#6C63FF"
-            rotation="rotate-2"
-          />
-          <TopicCard
-            icon={<FileText />}
-            title="Tech Articles"
-            color="#118AB2"
-            rotation="rotate-1"
-          />
-          <TopicCard
-            icon={<Star />}
-            title="Reviews"
-            color="#FF5252"
-            rotation="-rotate-2"
-          />
-          <TopicCard
-            icon={<Youtube />}
-            title="Video Content"
-            color="#06D6A0"
-            rotation="rotate-2"
-          />
-          <TopicCard
-            icon={<Gamepad2 />}
-            title="Gaming"
-            color="#FFD166"
-            rotation="-rotate-1"
-          />
+          {homeSpotlightTopics.map((topic, index) => (
+            <TopicCard
+              key={topic.slug}
+              icon={icons[index % icons.length]}
+              title={topic.label}
+              color={colors[index % colors.length]}
+              rotation={rotations[index % rotations.length]}
+              href={`/topics?topic=${encodeURIComponent(topic.slug)}`}
+            />
+          ))}
         </div>
       </div>
     </section>
@@ -87,22 +64,25 @@ interface TopicCardProps {
   title: string;
   color: string;
   rotation: string;
+  href: string;
 }
 
-const TopicCard = ({ icon, title, color, rotation }: TopicCardProps) => {
+const TopicCard = ({ icon, title, color, rotation, href }: TopicCardProps) => {
   return (
-    <div
-      className={`bg-white text-black border-4 border-black p-4 rounded-lg transform ${rotation} transition-all hover:scale-105 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0)] cursor-pointer`}
-    >
+    <Link href={href} className="group block focus:outline-none focus-visible:ring-4 focus-visible:ring-black/60">
       <div
-        className="flex flex-col items-center text-center"
-        style={{
-          color: color,
-        }}
+        className={`bg-white text-black border-4 border-black p-4 rounded-lg transform ${rotation} transition-all group-hover:scale-105 group-hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.85)] group-focus:scale-105`}
       >
-        <div className="mb-3 text-3xl">{icon}</div>
-        <h3 className="font-bold text-lg text-black">{title}</h3>
+        <div
+          className="flex flex-col items-center text-center"
+          style={{
+            color,
+          }}
+        >
+          <div className="mb-3 text-3xl">{icon}</div>
+          <h3 className="font-bold text-lg text-black">{title}</h3>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 };

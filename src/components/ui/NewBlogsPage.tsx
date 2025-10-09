@@ -19,8 +19,62 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState<'latest' | 'popular'>('latest');
   const [page, setPage] = useState(1);
+  const [hiddenSlugs, setHiddenSlugs] = useState<string[]>([]);
+  const [mutedAuthorIds, setMutedAuthorIds] = useState<string[]>([]);
+  const [followedAuthorIds, setFollowedAuthorIds] = useState<string[]>([]);
+  const [statusMessage, setStatusMessage] = useState('');
 
   const PAGE_SIZE = 6;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const readList = (key: string) => {
+      try {
+        const raw = window.localStorage.getItem(key);
+        if (!raw) {
+          return [] as string[];
+        }
+
+        const parsed = JSON.parse(raw) as unknown;
+        if (Array.isArray(parsed)) {
+          return parsed.filter((value): value is string => typeof value === 'string');
+        }
+
+        return [] as string[];
+      } catch (error) {
+        console.warn('Unable to parse personalization list', key, error);
+        return [] as string[];
+      }
+    };
+
+    setHiddenSlugs(readList('syntaxBlogs.hiddenSlugs'));
+    setMutedAuthorIds(readList('syntaxBlogs.mutedAuthors'));
+    setFollowedAuthorIds(readList('syntaxBlogs.followedAuthors'));
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    window.localStorage.setItem('syntaxBlogs.hiddenSlugs', JSON.stringify(hiddenSlugs));
+  }, [hiddenSlugs]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    window.localStorage.setItem('syntaxBlogs.mutedAuthors', JSON.stringify(mutedAuthorIds));
+  }, [mutedAuthorIds]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    window.localStorage.setItem('syntaxBlogs.followedAuthors', JSON.stringify(followedAuthorIds));
+  }, [followedAuthorIds]);
 
   const derivedCategories = useMemo(() => {
     const categoryMap = new Map<string, { slug: string; label: string }>();
@@ -57,7 +111,7 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
       const publishedAt = post.publishedAt ?? null;
 
       return {
-        postId: post.id,
+        id: post.id,
         slug: post.slug,
         title: post.title,
         excerpt: post.excerpt ?? '',
@@ -70,9 +124,14 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
             ? dateFormatter.format(new Date(publishedAt))
             : 'Unscheduled',
         views: post.views ?? 0,
+        authorId: post.author?.id ?? null,
+        authorName: post.author?.displayName ?? null,
       };
     });
   }, [dateFormatter, posts]);
+
+  const hiddenSlugSet = useMemo(() => new Set(hiddenSlugs), [hiddenSlugs]);
+  const mutedAuthorSet = useMemo(() => new Set(mutedAuthorIds), [mutedAuthorIds]);
 
   const recommendedTopics = useMemo(
     () => derivedCategories.map((category) => category.label),
@@ -90,10 +149,12 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
         normalizedQuery.length === 0 ||
         blog.title.toLowerCase().includes(normalizedQuery) ||
         blog.excerpt.toLowerCase().includes(normalizedQuery);
+      const isHidden = hiddenSlugSet.has(blog.slug);
+      const isMuted = Boolean(blog.authorId && mutedAuthorSet.has(blog.authorId));
 
-      return matchesCategory && matchesQuery;
+      return matchesCategory && matchesQuery && !isHidden && !isMuted;
     });
-  }, [allBlogs, query, selectedCategories]);
+  }, [allBlogs, hiddenSlugSet, mutedAuthorSet, query, selectedCategories]);
 
   const sortedBlogs = useMemo(() => {
     const copy = [...filteredBlogs];
@@ -139,7 +200,7 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
     const end = start + PAGE_SIZE;
 
     return sortedBlogs.slice(start, end).map((blog) => ({
-      postId: blog.postId,
+      id: blog.id,
       slug: blog.slug,
       title: blog.title,
       excerpt: blog.excerpt,
@@ -147,8 +208,60 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
       accentColor: blog.accentColor,
       dateLabel: blog.dateLabel,
       views: blog.views,
+      authorId: blog.authorId,
+      authorName: blog.authorName,
     }));
   }, [page, sortedBlogs]);
+
+  const handleHidePost = (blog: BlogGridItem) => {
+    setHiddenSlugs((previous) => {
+      if (previous.includes(blog.slug)) {
+        return previous;
+      }
+      return [...previous, blog.slug];
+    });
+    setStatusMessage(`We'll show fewer stories like "${blog.title}".`);
+  };
+
+  const handleToggleFollow = (
+    authorId: string,
+    action: 'follow' | 'unfollow',
+    authorName: string | null,
+  ) => {
+    setFollowedAuthorIds((previous) => {
+      const next = new Set(previous);
+      if (action === 'follow') {
+        next.add(authorId);
+        setStatusMessage(`You'll see more from ${authorName ?? 'this author'}.`);
+      } else {
+        next.delete(authorId);
+        setStatusMessage(`You will no longer follow ${authorName ?? 'this author'}.`);
+      }
+      return Array.from(next);
+    });
+  };
+
+  const handleToggleMute = (
+    authorId: string,
+    action: 'mute' | 'unmute',
+    authorName: string | null,
+  ) => {
+    setMutedAuthorIds((previous) => {
+      const next = new Set(previous);
+      if (action === 'mute') {
+        next.add(authorId);
+        setStatusMessage(`${authorName ?? 'This author'} has been muted.`);
+      } else {
+        next.delete(authorId);
+        setStatusMessage(`${authorName ?? 'This author'} has been unmuted.`);
+      }
+      return Array.from(next);
+    });
+
+    if (action === 'mute') {
+      setFollowedAuthorIds((previous) => previous.filter((id) => id !== authorId));
+    }
+  };
 
   const handleToggleCategory = (categorySlug: string) => {
     setSelectedCategories((previous) => {
@@ -165,6 +278,9 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
 
   return (
     <div className="container mx-auto px-4 pb-14 pt-10">
+      <span aria-live="polite" className="sr-only">
+        {statusMessage}
+      </span>
       <NewBlogsHeader />
       <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
         <div className="w-full lg:w-8/12 lg:overflow-y-auto">
@@ -212,7 +328,14 @@ export function NewBlogsPage({ posts }: NewBlogsPageProps) {
               <span>{selectedCategories.length > 0 ? `${selectedCategories.length} topic filter(s)` : 'All topics'}</span>
             </div>
 
-            <NewBlogGrid blogs={paginatedBlogs} />
+            <NewBlogGrid
+              blogs={paginatedBlogs}
+              onHidePost={handleHidePost}
+              onToggleFollow={handleToggleFollow}
+              onToggleMute={handleToggleMute}
+              followingAuthorIds={followedAuthorIds}
+              mutedAuthorIds={mutedAuthorIds}
+            />
 
             <div className="flex items-center justify-between gap-4">
               <button

@@ -26,6 +26,7 @@ interface PostListRecord {
   views: number | null
   published_at: string | null
   categories: CategoryRecord | null
+  author: AuthorRecord | null
 }
 
 interface PostDetailRecord extends PostListRecord {
@@ -51,6 +52,11 @@ export interface BlogListPost {
   accentColor: string | null
   publishedAt: string | null
   views: number
+  author: {
+    id: string | null
+    displayName: string | null
+    avatarUrl: string | null
+  }
 }
 
 export interface BlogPostDetail extends BlogListPost {
@@ -80,6 +86,11 @@ const mapListPost = (record: PostListRecord): BlogListPost => ({
   accentColor: record.accent_color ?? null,
   publishedAt: record.published_at ?? null,
   views: record.views ?? 0,
+  author: {
+    id: record.author?.id ?? null,
+    displayName: record.author?.display_name ?? null,
+    avatarUrl: record.author?.avatar_url ?? null,
+  },
 })
 
 const OPTIONAL_IMAGE_COLUMNS = ['featured_image_url', 'social_image_url'] as const
@@ -205,7 +216,7 @@ export const getPublishedPosts = cache(async () => {
     const { data, error } = await supabase
       .from('posts')
       .select(
-        `id, title, slug, excerpt, accent_color, views, published_at, categories:categories(id, name, slug)`,
+        `id, title, slug, excerpt, accent_color, views, published_at, categories:categories(id, name, slug), author:author_id(id, display_name, avatar_url)`,
       )
       .eq('status', 'published')
       .order('published_at', { ascending: false })
@@ -235,7 +246,7 @@ export const getTrendingPosts = async (limit = 6) => {
     const { data, error } = await supabase
       .from('posts')
       .select(
-        `id, title, slug, excerpt, accent_color, views, published_at, categories:categories(id, name, slug)`,
+        `id, title, slug, excerpt, accent_color, views, published_at, categories:categories(id, name, slug), author:author_id(id, display_name, avatar_url)`,
       )
       .eq('status', 'published')
       .order('views', { ascending: false, nullsFirst: false })
@@ -380,7 +391,7 @@ export const searchPublishedPosts = async (query: string, limit = 12) => {
     const { data, error } = await supabase
       .from('posts')
       .select(
-        `id, title, slug, excerpt, accent_color, views, published_at, categories:categories(id, name, slug)`,
+        `id, title, slug, excerpt, accent_color, views, published_at, categories:categories(id, name, slug), author:author_id(id, display_name, avatar_url)`,
       )
       .eq('status', 'published')
       .or(
@@ -421,7 +432,7 @@ export const getRelatedPosts = async (postId: string, categorySlug: string | nul
     const { data, error } = await supabase
       .from('posts')
       .select(
-        `id, title, slug, excerpt, accent_color, views, published_at, categories:categories(id, name, slug), post_tags:post_tags(tags(name, slug))`,
+        `id, title, slug, excerpt, accent_color, views, published_at, categories:categories(id, name, slug), author:author_id(id, display_name, avatar_url), post_tags:post_tags(tags(name, slug))`,
       )
       .eq('status', 'published')
       .neq('id', postId)

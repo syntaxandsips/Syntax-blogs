@@ -229,7 +229,7 @@ const normalizeParam = (value: string | string[] | undefined) =>
   (Array.isArray(value) ? value[0] : value) ?? null;
 
 export default async function TopicsPage({ searchParams }: TopicsPageProps) {
-  const resolvedSearchParams: SearchParamsShape = (await searchParams) ?? {};
+  const resolvedSearchParams: SearchParamsShape = searchParams ? await searchParams : {};
 
   const rawTopic = normalizeParam(resolvedSearchParams.topic);
   const rawQuery = normalizeParam(resolvedSearchParams.q);

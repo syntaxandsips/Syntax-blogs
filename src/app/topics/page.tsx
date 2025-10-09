@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 type SearchParamsShape = Record<string, string | string[] | undefined>;
 
 type TopicsPageProps = {
-  searchParams?: SearchParamsShape | Promise<SearchParamsShape>;
+  searchParams?: Promise<SearchParamsShape>;
 };
 
 const footerLinks = [
@@ -229,10 +229,7 @@ const normalizeParam = (value: string | string[] | undefined) =>
   (Array.isArray(value) ? value[0] : value) ?? null;
 
 export default async function TopicsPage({ searchParams }: TopicsPageProps) {
-  const resolvedSearchParams: SearchParamsShape =
-    searchParams && typeof (searchParams as Promise<unknown>).then === 'function'
-      ? await (searchParams as Promise<SearchParamsShape>)
-      : (searchParams ?? {});
+  const resolvedSearchParams: SearchParamsShape = (await searchParams) ?? {};
 
   const rawTopic = normalizeParam(resolvedSearchParams.topic);
   const rawQuery = normalizeParam(resolvedSearchParams.q);

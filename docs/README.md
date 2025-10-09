@@ -15,6 +15,7 @@ Welcome to the Syntax & Sips knowledge base. This index orients contributors to 
 | Design system | [`neobrutalismthemecomp.MD`](../neobrutalismthemecomp.MD) | Visual language, components, and design tokens. |
 | SEO & content strategy | [`docs/seo/`](./seo) | Search audits, content planning, and visibility improvements. |
 | Code review guidelines | [`docs/code-review.md`](./code-review.md) | Architectural guardrails, component reuse, and performance advice. |
+| Community launch | [`docs/promotion-plan.md`](./promotion-plan.md) | Promotion checklist and outreach tactics for public releases. |
 
 ## How to Use These Guides
 

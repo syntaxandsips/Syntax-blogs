@@ -18,6 +18,10 @@ const docsMetadata: Record<string, { title: string; summary: string }> = {
     title: 'Author Guidelines',
     summary: 'Expectations and best practices for contributors collaborating with the editorial team.',
   },
+  'open-source-launch-checklist': {
+    title: 'Open Source Launch Checklist',
+    summary: 'Step-by-step prep to make a GitHub repository legally safe, documented, and welcoming for contributors.',
+  },
 };
 
 const toTitleCase = (value: string) =>

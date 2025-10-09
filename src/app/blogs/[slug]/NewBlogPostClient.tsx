@@ -9,7 +9,6 @@ import {
   Eye,
   Twitter,
   Linkedin,
-  Github,
   Share2,
   Copy,
   Check,
@@ -17,9 +16,9 @@ import {
 } from 'lucide-react';
 import { NewMarkdownRenderer } from '@/components/ui/NewMarkdownRenderer';
 import { NewSummarizeButton } from '@/components/ui/NewSummarizeButton';
-import { SocialFollowItem } from '@/components/ui/SocialFollowItem';
 import { CommentsSection } from '@/components/ui/CommentsSection';
 import { Breadcrumbs, type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
+import { NewFollowSection } from '@/components/ui/NewFollowSection';
 import type { BlogListPost, BlogPostDetail } from '@/lib/posts';
 
 interface BlogPostClientProps {
@@ -116,6 +115,28 @@ export default function NewBlogPostClient({ post, relatedPosts, canonicalUrl, br
     [copyState, handleCopyLink, post.title, shareUrl],
   );
 
+  const recommendedTopics = useMemo(() => {
+    const unique = new Set<string>();
+    const register = (value: string | null | undefined) => {
+      if (!value) {
+        return;
+      }
+
+      const trimmed = value.trim();
+      if (trimmed.length > 0) {
+        unique.add(trimmed);
+      }
+    };
+
+    register(post.category.name ?? post.category.slug ?? null);
+    post.tags.forEach((tag) => register(tag));
+    relatedPosts.forEach((related) => {
+      register(related.category.name ?? related.category.slug ?? null);
+    });
+
+    return Array.from(unique);
+  }, [post.category.name, post.category.slug, post.tags, relatedPosts]);
+
   return (
     <div className="w-full bg-[#f0f0f0]">
       <div className="container mx-auto px-4 py-8">
@@ -126,7 +147,7 @@ export default function NewBlogPostClient({ post, relatedPosts, canonicalUrl, br
         >
           <ArrowLeft size={18} /> BACK TO BLOGS
         </Link>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <article className="bg-white border-4 border-black rounded-lg overflow-hidden">
               <div className="p-6 border-b-4 border-black">
@@ -262,52 +283,9 @@ export default function NewBlogPostClient({ post, relatedPosts, canonicalUrl, br
               </div>
             </article>
           </div>
-          <div className="lg:col-span-1 space-y-8">
-            <div className="border-4 border-black bg-white p-6 rounded-lg">
-              <h3 className="text-xl font-bold mb-4">AI and ML Insights</h3>
-              <div className="flex flex-wrap gap-2">
-                <button className="px-3 py-1 border-2 border-black rounded-md bg-white hover:bg-black hover:text-white transition">
-                  Artificial Intelligence
-                </button>
-                <button className="px-3 py-1 border-2 border-black rounded-md bg-white hover:bg-black hover:text-white transition">
-                  Machine Learning
-                </button>
-                <button className="px-3 py-1 border-2 border-black rounded-md bg-white hover:bg-black hover:text-white transition">
-                  Neural Networks
-                </button>
-                <button className="px-3 py-1 border-2 border-black rounded-md bg-white hover:bg-black hover:text-white transition">
-                  Data Science
-                </button>
-                <button className="px-3 py-1 border-2 border-black rounded-md bg-white hover:bg-black hover:text-white transition">
-                  Computer Vision
-                </button>
-                <button className="px-3 py-1 border-2 border-black rounded-md bg-white hover:bg-black hover:text-white transition">
-                  Reinforcement Learning
-                </button>
-              </div>
-              <button className="text-[#6C63FF] font-bold hover:underline mt-4">
-                See more topics
-              </button>
-            </div>
-            <div className="border-4 border-black bg-white p-6 rounded-lg">
-              <h3 className="text-xl font-bold mb-4">Follow Syntax &amp; Sips</h3>
-              <div className="space-y-4">
-                <SocialFollowItem
-                  platform="Twitter"
-                  handle="@syntaxandsips"
-                  icon={<Twitter className="h-6 w-6 text-[#1DA1F2]" />}
-                />
-                <SocialFollowItem
-                  platform="LinkedIn"
-                  handle="/company/syntaxandsips"
-                  icon={<Linkedin className="h-6 w-6 text-[#0A66C2]" />}
-                />
-                <SocialFollowItem
-                  platform="GitHub"
-                  handle="syntaxandsips"
-                  icon={<Github className="h-6 w-6 text-black" />}
-                />
-              </div>
+          <div className="lg:col-span-1 lg:self-start">
+            <div className="lg:sticky lg:top-24">
+              <NewFollowSection topics={recommendedTopics} />
             </div>
           </div>
         </div>

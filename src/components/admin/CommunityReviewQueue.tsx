@@ -166,12 +166,12 @@ export const CommunityReviewQueue = ({
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-black uppercase text-[#121212]">Community review queue</h2>
         <button
           type="button"
           onClick={() => void handleRefresh()}
-          className="rounded-2xl border-4 border-[#121212] bg-white px-4 py-2 text-sm font-black uppercase tracking-wide text-[#121212] shadow-[4px_4px_0px_#121212] transition hover:-translate-y-1"
+          className="w-full rounded-2xl border-4 border-[#121212] bg-white px-4 py-2 text-sm font-black uppercase tracking-wide text-[#121212] shadow-[4px_4px_0px_#121212] transition hover:-translate-y-1 sm:w-auto"
           disabled={isRefreshing}
         >
           {isRefreshing ? 'Refreshing…' : 'Refresh'}
@@ -182,226 +182,423 @@ export const CommunityReviewQueue = ({
         Supabase, and log moderation events.
       </p>
       <section className="space-y-4">
-        <header className="flex items-center justify-between">
+        <header className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-lg font-black uppercase text-[#121212]">Author applications</h3>
           <span className="rounded-full border-2 border-[#121212] bg-white px-3 py-1 text-xs font-black uppercase text-[#121212]">
             {applications.length} in queue
           </span>
         </header>
-        <div className="overflow-hidden rounded-3xl border-4 border-[#121212] bg-white shadow-[8px_8px_0px_#121212]">
-          <table className="min-w-full divide-y-4 divide-[#121212]">
-            <thead className="bg-[#121212] text-white">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wide">Applicant</th>
-                <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wide">Focus</th>
-                <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wide">Status</th>
-                <th className="px-4 py-3 text-right text-xs font-black uppercase tracking-wide">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y-4 divide-[#121212]/30">
-              {applications.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-6 text-center text-sm font-semibold text-[#4B4B4B]">
-                    {isLoading ? 'Loading applications…' : 'No applications awaiting review.'}
-                  </td>
-                </tr>
-              ) : (
-                applications.map((application) => {
-                  const payload = application.application_payload ?? {}
-                  const focusAreas = Array.isArray(payload?.focusAreas)
-                    ? (payload?.focusAreas as string[])
-                    : []
-                  const applicantName = (payload?.fullName as string | undefined) ?? application.profile_id
+        <div className="space-y-4 md:hidden">
+          {isLoading ? (
+            <div className="rounded-3xl border-4 border-dashed border-[#121212]/40 bg-white p-6 text-center text-sm font-semibold text-[#4B4B4B]">
+              Loading applications…
+            </div>
+          ) : applications.length === 0 ? (
+            <div className="rounded-3xl border-4 border-[#121212] bg-white p-6 text-center text-sm font-semibold text-[#4B4B4B] shadow-[6px_6px_0px_#121212]">
+              No applications awaiting review.
+            </div>
+          ) : (
+            applications.map((application) => {
+              const payload = application.application_payload ?? {}
+              const focusAreas = Array.isArray(payload?.focusAreas)
+                ? (payload?.focusAreas as string[])
+                : []
+              const applicantName = (payload?.fullName as string | undefined) ?? application.profile_id
 
-                  return (
-                    <tr key={application.id} className="bg-white">
-                      <td className="px-4 py-4 align-top">
-                        <p className="font-black text-[#121212]">{applicantName}</p>
-                        <p className="text-xs font-semibold text-[#4B4B4B]">
-                          Submitted {application.submitted_at ? new Date(application.submitted_at).toLocaleDateString() : '—'}
-                        </p>
-                      </td>
-                      <td className="px-4 py-4 align-top text-sm font-semibold text-[#2A2A2A]">
-                        {focusAreas.length > 0 ? focusAreas.join(', ') : '—'}
-                      </td>
-                      <td className="px-4 py-4 align-top">
-                        <span
-                          className={cn(
-                            'inline-flex rounded-full px-3 py-1 text-xs font-black uppercase',
-                            statusBadgeClasses[application.status] ?? 'bg-[#E0E0E0] text-[#424242]',
-                          )}
-                        >
-                          {application.status.replace(/_/g, ' ')}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 align-top text-right text-xs font-black uppercase text-[#121212]">
-                        <div className="inline-flex flex-wrap justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              void runAction(
-                                () => onApplicationAction(application.id, 'approve'),
-                                'Application approved.',
-                              )
-                            }
-                            className="rounded-xl border-3 border-[#121212] bg-[#C8E6C9] px-3 py-2 text-xs font-black text-[#1B5E20] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              openNotesComposer({
-                                context: 'application',
-                                id: application.id,
-                                action: 'needs_more_info',
-                                title: 'Request additional information',
-                                description:
-                                  'Share context or clarifying questions for the applicant. This message is sent with the notification.',
-                                placeholder: 'Let the applicant know what else would help you evaluate their submission…',
-                                successMessage: 'Requested additional details.',
-                              })
-                            }
-                            className="rounded-xl border-3 border-[#121212] bg-[#FFF59D] px-3 py-2 text-xs font-black text-[#F57F17] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
-                          >
-                            Needs info
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              openNotesComposer({
-                                context: 'application',
-                                id: application.id,
-                                action: 'decline',
-                                title: 'Decline application',
-                                description:
-                                  'Optionally provide feedback so the applicant understands the decision and next steps.',
-                                placeholder: 'Share constructive feedback or resources for the applicant…',
-                                successMessage: 'Application declined.',
-                              })
-                            }
-                            className="rounded-xl border-3 border-[#121212] bg-[#FFCDD2] px-3 py-2 text-xs font-black text-[#B71C1C] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
-                          >
-                            Decline
-                          </button>
-                        </div>
+              return (
+                <article
+                  key={application.id}
+                  className="space-y-3 rounded-3xl border-4 border-[#121212] bg-white p-4 shadow-[6px_6px_0px_#121212]"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="font-black text-[#121212]">{applicantName}</p>
+                      <p className="text-xs font-semibold text-[#4B4B4B]">
+                        Submitted {application.submitted_at ? new Date(application.submitted_at).toLocaleDateString() : '—'}
+                      </p>
+                    </div>
+                    <span
+                      className={cn(
+                        'inline-flex rounded-full px-3 py-1 text-xs font-black uppercase',
+                        statusBadgeClasses[application.status] ?? 'bg-[#E0E0E0] text-[#424242]',
+                      )}
+                    >
+                      {application.status.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                  <div className="space-y-1 text-sm text-[#2A2A2A]">
+                    <p className="text-xs font-black uppercase tracking-wide text-[#121212]/60">Focus</p>
+                    <p>{focusAreas.length > 0 ? focusAreas.join(', ') : '—'}</p>
+                  </div>
+                  <div className="flex flex-col gap-2 text-xs font-black uppercase text-[#121212] sm:flex-row">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void runAction(
+                          () => onApplicationAction(application.id, 'approve'),
+                          'Application approved.',
+                        )
+                      }
+                      className="w-full rounded-xl border-3 border-[#121212] bg-[#C8E6C9] px-3 py-2 text-[#1B5E20] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openNotesComposer({
+                          context: 'application',
+                          id: application.id,
+                          action: 'needs_more_info',
+                          title: 'Request additional information',
+                          description:
+                            'Share context or clarifying questions for the applicant. This message is sent with the notification.',
+                          placeholder: 'Let the applicant know what else would help you evaluate their submission…',
+                          successMessage: 'Requested additional details.',
+                        })
+                      }
+                      className="w-full rounded-xl border-3 border-[#121212] bg-[#FFF59D] px-3 py-2 text-[#F57F17] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
+                    >
+                      Needs info
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openNotesComposer({
+                          context: 'application',
+                          id: application.id,
+                          action: 'decline',
+                          title: 'Decline application',
+                          description:
+                            'Optionally provide feedback so the applicant understands the decision and next steps.',
+                          placeholder: 'Share constructive feedback or resources for the applicant…',
+                          successMessage: 'Application declined.',
+                        })
+                      }
+                      className="w-full rounded-xl border-3 border-[#121212] bg-[#FFCDD2] px-3 py-2 text-[#B71C1C] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                </article>
+              )
+            })
+          )}
+        </div>
+        <div className="hidden md:block">
+          <div className="rounded-3xl border-4 border-[#121212] bg-white shadow-[8px_8px_0px_#121212]">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y-4 divide-[#121212]">
+                <thead className="bg-[#121212] text-white">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wide">Applicant</th>
+                    <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wide">Focus</th>
+                    <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wide">Status</th>
+                    <th className="px-4 py-3 text-right text-xs font-black uppercase tracking-wide">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y-4 divide-[#121212]/30">
+                  {applications.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-6 text-center text-sm font-semibold text-[#4B4B4B]">
+                        {isLoading ? 'Loading applications…' : 'No applications awaiting review.'}
                       </td>
                     </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
+                  ) : (
+                    applications.map((application) => {
+                      const payload = application.application_payload ?? {}
+                      const focusAreas = Array.isArray(payload?.focusAreas)
+                        ? (payload?.focusAreas as string[])
+                        : []
+                      const applicantName = (payload?.fullName as string | undefined) ?? application.profile_id
+
+                      return (
+                        <tr key={application.id} className="bg-white">
+                          <td className="px-4 py-4 align-top">
+                            <p className="font-black text-[#121212]">{applicantName}</p>
+                            <p className="text-xs font-semibold text-[#4B4B4B]">
+                              Submitted {application.submitted_at ? new Date(application.submitted_at).toLocaleDateString() : '—'}
+                            </p>
+                          </td>
+                          <td className="px-4 py-4 align-top text-sm font-semibold text-[#2A2A2A]">
+                            {focusAreas.length > 0 ? focusAreas.join(', ') : '—'}
+                          </td>
+                          <td className="px-4 py-4 align-top">
+                            <span
+                              className={cn(
+                                'inline-flex rounded-full px-3 py-1 text-xs font-black uppercase',
+                                statusBadgeClasses[application.status] ?? 'bg-[#E0E0E0] text-[#424242]',
+                              )}
+                            >
+                              {application.status.replace(/_/g, ' ')}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 align-top text-right text-xs font-black uppercase text-[#121212]">
+                            <div className="inline-flex flex-wrap justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  void runAction(
+                                    () => onApplicationAction(application.id, 'approve'),
+                                    'Application approved.',
+                                  )
+                                }
+                                className="rounded-xl border-3 border-[#121212] bg-[#C8E6C9] px-3 py-2 text-xs font-black text-[#1B5E20] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openNotesComposer({
+                                    context: 'application',
+                                    id: application.id,
+                                    action: 'needs_more_info',
+                                    title: 'Request additional information',
+                                    description:
+                                      'Share context or clarifying questions for the applicant. This message is sent with the notification.',
+                                    placeholder: 'Let the applicant know what else would help you evaluate their submission…',
+                                    successMessage: 'Requested additional details.',
+                                  })
+                                }
+                                className="rounded-xl border-3 border-[#121212] bg-[#FFF59D] px-3 py-2 text-xs font-black text-[#F57F17] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
+                              >
+                                Needs info
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openNotesComposer({
+                                    context: 'application',
+                                    id: application.id,
+                                    action: 'decline',
+                                    title: 'Decline application',
+                                    description:
+                                      'Optionally provide feedback so the applicant understands the decision and next steps.',
+                                    placeholder: 'Share constructive feedback or resources for the applicant…',
+                                    successMessage: 'Application declined.',
+                                  })
+                                }
+                                className="rounded-xl border-3 border-[#121212] bg-[#FFCDD2] px-3 py-2 text-xs font-black text-[#B71C1C] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
+                              >
+                                Decline
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
 
       <section className="space-y-4">
-        <header className="flex items-center justify-between">
+        <header className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-lg font-black uppercase text-[#121212]">Community submissions</h3>
           <span className="rounded-full border-2 border-[#121212] bg-white px-3 py-1 text-xs font-black uppercase text-[#121212]">
             {submissions.length} in queue
           </span>
         </header>
-        <div className="overflow-hidden rounded-3xl border-4 border-[#121212] bg-white shadow-[8px_8px_0px_#121212]">
-          <table className="min-w-full divide-y-4 divide-[#121212]">
-            <thead className="bg-[#121212] text-white">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wide">Title</th>
-                <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wide">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wide">Submitted</th>
-                <th className="px-4 py-3 text-right text-xs font-black uppercase tracking-wide">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y-4 divide-[#121212]/30">
-              {submissions.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-6 text-center text-sm font-semibold text-[#4B4B4B]">
-                    {isLoading ? 'Loading submissions…' : 'No submissions awaiting review.'}
-                  </td>
-                </tr>
-              ) : (
-                submissions.map((submission) => (
-                  <tr key={submission.id} className="bg-white">
-                    <td className="px-4 py-4 align-top">
-                      <p className="font-black text-[#121212]">{submission.title || 'Untitled draft'}</p>
-                      <p className="mt-1 text-xs font-semibold text-[#4B4B4B]">{submission.summary}</p>
-                    </td>
-                    <td className="px-4 py-4 align-top">
-                      <span
-                        className={cn(
-                          'inline-flex rounded-full px-3 py-1 text-xs font-black uppercase',
-                          statusBadgeClasses[submission.status] ?? 'bg-[#E0E0E0] text-[#424242]',
-                        )}
-                      >
-                        {submission.status.replace(/_/g, ' ')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 align-top text-sm font-semibold text-[#2A2A2A]">
-                      {submission.submitted_at ? new Date(submission.submitted_at).toLocaleString() : '—'}
-                    </td>
-                    <td className="px-4 py-4 align-top text-right">
-                      <div className="inline-flex flex-wrap justify-end gap-2 text-xs font-black uppercase text-[#121212]">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            void runAction(
-                              () => onSubmissionAction(submission.id, 'approve'),
-                              'Submission approved and synced.',
-                            )
-                          }
-                          className="rounded-xl border-3 border-[#121212] bg-[#C8E6C9] px-3 py-2 text-xs font-black text-[#1B5E20] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            openNotesComposer({
-                              context: 'submission',
-                              id: submission.id,
-                              action: 'feedback',
-                              title: 'Request revisions',
-                              description:
-                                'Outline specific edits or additions the contributor should make before re-submitting.',
-                              placeholder: 'Detail revision requests, references, or editorial suggestions…',
-                              successMessage: 'Feedback shared with contributor.',
-                            })
-                          }
-                          className="rounded-xl border-3 border-[#121212] bg-[#FFF59D] px-3 py-2 text-xs font-black text-[#F57F17] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
-                        >
-                          Request changes
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            openNotesComposer({
-                              context: 'submission',
-                              id: submission.id,
-                              action: 'decline',
-                              title: 'Decline submission',
-                              description:
-                                'Let the contributor know why their draft isn’t moving forward and how they can improve next time.',
-                              placeholder: 'Offer constructive feedback, themes to explore, or community resources…',
-                              successMessage: 'Submission declined.',
-                            })
-                          }
-                          className="rounded-xl border-3 border-[#121212] bg-[#FFCDD2] px-3 py-2 text-xs font-black text-[#B71C1C] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
-                        >
-                          Decline
-                        </button>
-                      </div>
-                    </td>
+        <div className="space-y-4 md:hidden">
+          {isLoading ? (
+            <div className="rounded-3xl border-4 border-dashed border-[#121212]/40 bg-white p-6 text-center text-sm font-semibold text-[#4B4B4B]">
+              Loading submissions…
+            </div>
+          ) : submissions.length === 0 ? (
+            <div className="rounded-3xl border-4 border-[#121212] bg-white p-6 text-center text-sm font-semibold text-[#4B4B4B] shadow-[6px_6px_0px_#121212]">
+              No submissions awaiting review.
+            </div>
+          ) : (
+            submissions.map((submission) => (
+              <article
+                key={submission.id}
+                className="space-y-3 rounded-3xl border-4 border-[#121212] bg-white p-4 shadow-[6px_6px_0px_#121212]"
+              >
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-base font-black text-[#121212]">
+                        {submission.title || 'Untitled draft'}
+                      </p>
+                      {submission.summary ? (
+                        <p className="text-sm font-semibold text-[#4B4B4B]">{submission.summary}</p>
+                      ) : null}
+                    </div>
+                    <span
+                      className={cn(
+                        'inline-flex rounded-full px-3 py-1 text-xs font-black uppercase',
+                        statusBadgeClasses[submission.status] ?? 'bg-[#E0E0E0] text-[#424242]',
+                      )}
+                    >
+                      {submission.status.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#121212]/60">
+                    Submitted {submission.submitted_at ? new Date(submission.submitted_at).toLocaleString() : '—'}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 text-xs font-black uppercase text-[#121212] sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void runAction(
+                        () => onSubmissionAction(submission.id, 'approve'),
+                        'Submission approved and synced.',
+                      )
+                    }
+                    className="w-full rounded-xl border-3 border-[#121212] bg-[#C8E6C9] px-3 py-2 text-[#1B5E20] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openNotesComposer({
+                        context: 'submission',
+                        id: submission.id,
+                        action: 'feedback',
+                        title: 'Request revisions',
+                        description:
+                          'Outline specific edits or additions the contributor should make before re-submitting.',
+                        placeholder: 'Detail revision requests, references, or editorial suggestions…',
+                        successMessage: 'Feedback shared with contributor.',
+                      })
+                    }
+                    className="w-full rounded-xl border-3 border-[#121212] bg-[#FFF59D] px-3 py-2 text-[#F57F17] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
+                  >
+                    Request changes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openNotesComposer({
+                        context: 'submission',
+                        id: submission.id,
+                        action: 'decline',
+                        title: 'Decline submission',
+                        description:
+                          'Let the contributor know why their draft isn’t moving forward and how they can improve next time.',
+                        placeholder: 'Offer constructive feedback, themes to explore, or community resources…',
+                        successMessage: 'Submission declined.',
+                      })
+                    }
+                    className="w-full rounded-xl border-3 border-[#121212] bg-[#FFCDD2] px-3 py-2 text-[#B71C1C] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
+                  >
+                    Decline
+                  </button>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+        <div className="hidden md:block">
+          <div className="rounded-3xl border-4 border-[#121212] bg-white shadow-[8px_8px_0px_#121212]">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y-4 divide-[#121212]">
+                <thead className="bg-[#121212] text-white">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wide">Title</th>
+                    <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wide">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wide">Submitted</th>
+                    <th className="px-4 py-3 text-right text-xs font-black uppercase tracking-wide">Actions</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y-4 divide-[#121212]/30">
+                  {submissions.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-6 text-center text-sm font-semibold text-[#4B4B4B]">
+                        {isLoading ? 'Loading submissions…' : 'No submissions awaiting review.'}
+                      </td>
+                    </tr>
+                  ) : (
+                    submissions.map((submission) => (
+                      <tr key={submission.id} className="bg-white">
+                        <td className="px-4 py-4 align-top">
+                          <p className="font-black text-[#121212]">{submission.title || 'Untitled draft'}</p>
+                          <p className="mt-1 text-xs font-semibold text-[#4B4B4B]">{submission.summary}</p>
+                        </td>
+                        <td className="px-4 py-4 align-top">
+                          <span
+                            className={cn(
+                              'inline-flex rounded-full px-3 py-1 text-xs font-black uppercase',
+                              statusBadgeClasses[submission.status] ?? 'bg-[#E0E0E0] text-[#424242]',
+                            )}
+                          >
+                            {submission.status.replace(/_/g, ' ')}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 align-top text-sm font-semibold text-[#2A2A2A]">
+                          {submission.submitted_at ? new Date(submission.submitted_at).toLocaleString() : '—'}
+                        </td>
+                        <td className="px-4 py-4 align-top text-right">
+                          <div className="inline-flex flex-wrap justify-end gap-2 text-xs font-black uppercase text-[#121212]">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void runAction(
+                                  () => onSubmissionAction(submission.id, 'approve'),
+                                  'Submission approved and synced.',
+                                )
+                              }
+                              className="rounded-xl border-3 border-[#121212] bg-[#C8E6C9] px-3 py-2 text-xs font-black text-[#1B5E20] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openNotesComposer({
+                                  context: 'submission',
+                                  id: submission.id,
+                                  action: 'feedback',
+                                  title: 'Request revisions',
+                                  description:
+                                    'Outline specific edits or additions the contributor should make before re-submitting.',
+                                  placeholder: 'Detail revision requests, references, or editorial suggestions…',
+                                  successMessage: 'Feedback shared with contributor.',
+                                })
+                              }
+                              className="rounded-xl border-3 border-[#121212] bg-[#FFF59D] px-3 py-2 text-xs font-black text-[#F57F17] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
+                            >
+                              Request changes
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openNotesComposer({
+                                  context: 'submission',
+                                  id: submission.id,
+                                  action: 'decline',
+                                  title: 'Decline submission',
+                                  description:
+                                    'Let the contributor know why their draft isn’t moving forward and how they can improve next time.',
+                                  placeholder: 'Offer constructive feedback, themes to explore, or community resources…',
+                                  successMessage: 'Submission declined.',
+                                })
+                              }
+                              className="rounded-xl border-3 border-[#121212] bg-[#FFCDD2] px-3 py-2 text-xs font-black text-[#B71C1C] shadow-[3px_3px_0px_#121212] hover:-translate-y-0.5"
+                            >
+                              Decline
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
       {noteComposer ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 sm:items-center sm:p-6">
           <div
-            className="w-full max-w-xl rounded-3xl border-4 border-[#121212] bg-[#FDF7ED] p-6 shadow-[12px_12px_0px_#121212]"
+            className="w-full max-w-xl rounded-3xl border-4 border-[#121212] bg-[#FDF7ED] p-5 shadow-[12px_12px_0px_#121212] sm:p-6"
             role="dialog"
             aria-modal="true"
             aria-labelledby="note-composer-title"

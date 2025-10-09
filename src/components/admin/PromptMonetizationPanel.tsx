@@ -156,14 +156,14 @@ export function PromptMonetizationPanel() {
             </p>
           ) : null}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto sm:justify-end">
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="rounded-full border-2 border-black bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.2em]">
+              <Button className="w-full rounded-full border-2 border-black bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.2em] sm:w-auto">
                 Monetization policy
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-xl">
+            <DialogContent className="w-[calc(100vw-2rem)] max-w-2xl sm:max-w-xl">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-2xl">
                   <Sparkles className="h-6 w-6 text-[#6C63FF]" aria-hidden="true" />
@@ -187,7 +187,7 @@ export function PromptMonetizationPanel() {
           </Dialog>
           <Button
             onClick={() => toast.info("Pricing controls unlock after beta launch.")}
-            className="rounded-full border-2 border-black bg-[#6C63FF] px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white"
+            className="w-full rounded-full border-2 border-black bg-[#6C63FF] px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white sm:w-auto"
           >
             Create pricing rule
           </Button>

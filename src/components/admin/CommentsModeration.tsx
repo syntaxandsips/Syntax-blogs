@@ -187,7 +187,8 @@ export const CommentsModeration = ({
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete comment?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          This will permanently delete this comment from {comment.authorName}. This action cannot be undone.
+                          This will permanently delete this comment from {comment.authorDisplayName ?? 'this reader'}. This
+                          action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

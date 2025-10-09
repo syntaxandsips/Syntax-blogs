@@ -233,12 +233,6 @@ const DashboardContent = ({
     }
   }, [currentView, fetchCommunityQueue])
 
-  useEffect(() => {
-    if (currentView === 'models' && !hasLoadedModelCatalog && !isLoadingModelCatalog) {
-      void fetchModelCatalog()
-    }
-  }, [currentView, fetchModelCatalog, hasLoadedModelCatalog, isLoadingModelCatalog])
-
   const handleRefreshPosts = useCallback(async () => {
     try {
       await fetchPosts()
@@ -699,6 +693,12 @@ const DashboardContent = ({
     setIsLoadingModelCatalog(false)
     return categoriesOk && modelsOk
   }, [refreshModelCategories, refreshModels])
+
+  useEffect(() => {
+    if (currentView === 'models' && !hasLoadedModelCatalog && !isLoadingModelCatalog) {
+      void fetchModelCatalog()
+    }
+  }, [currentView, fetchModelCatalog, hasLoadedModelCatalog, isLoadingModelCatalog])
 
   const handleCreateModelCategory = useCallback(
     async (values: {

@@ -81,17 +81,16 @@ const sanitizeOptionalText = (value: unknown): string | null => {
   return trimmed.length > 0 ? trimmed : null
 }
 
-interface RouteContext {
-  params: { id: string }
-}
-
-export async function PATCH(request: Request, context: RouteContext) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const result = await getAdminProfile()
   if ('response' in result) {
     return result.response
   }
 
-  const id = context.params.id
+  const { id } = await params
   if (!id) {
     return NextResponse.json({ error: 'Category ID is required.' }, { status: 400 })
   }
@@ -139,13 +138,16 @@ export async function PATCH(request: Request, context: RouteContext) {
   return NextResponse.json({ category: mapCategory(data) })
 }
 
-export async function DELETE(_request: Request, context: RouteContext) {
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const result = await getAdminProfile()
   if ('response' in result) {
     return result.response
   }
 
-  const id = context.params.id
+  const { id } = await params
   if (!id) {
     return NextResponse.json({ error: 'Category ID is required.' }, { status: 400 })
   }

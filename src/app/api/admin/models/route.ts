@@ -7,7 +7,6 @@ const MODEL_SELECT = `
   id,
   name,
   display_name,
-  category,
   category_id,
   version,
   description,
@@ -26,11 +25,17 @@ const MODEL_SELECT = `
   )
 `
 
+type ModelCategoryRecord = {
+  id: string | null
+  name: string | null
+  slug: string | null
+  accent_color?: string | null
+}
+
 type ModelRecord = {
   id: string
   name: string
   display_name: string
-  category: string | null
   category_id: string | null
   version: string | null
   description: string | null
@@ -41,12 +46,7 @@ type ModelRecord = {
   is_active: boolean
   created_at: string
   updated_at: string
-  category?: {
-    id: string | null
-    name: string | null
-    slug: string | null
-    accent_color?: string | null
-  } | null
+  category?: ModelCategoryRecord | ModelCategoryRecord[] | null
 }
 
 const mapModelRecord = (record: ModelRecord): AdminModelSummary => ({
@@ -54,8 +54,16 @@ const mapModelRecord = (record: ModelRecord): AdminModelSummary => ({
   name: record.name as string,
   displayName: record.display_name as string,
   categoryId: (record.category_id as string | null) ?? null,
-  categoryName: (record.category?.name as string | null) ?? null,
-  categorySlug: (record.category?.slug as string | null) ?? record.category ?? null,
+  ...(() => {
+    const categoryData = Array.isArray(record.category)
+      ? (record.category[0] as ModelCategoryRecord | undefined)
+      : (record.category as ModelCategoryRecord | null)
+
+    return {
+      categoryName: categoryData?.name ?? null,
+      categorySlug: categoryData?.slug ?? null,
+    }
+  })(),
   family: (record.family as string | null) ?? null,
   provider: (record.provider as string | null) ?? null,
   version: (record.version as string | null) ?? null,

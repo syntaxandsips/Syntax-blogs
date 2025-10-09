@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { MoreHorizontal, Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 
 import { NeobrutalCard } from '@/components/neobrutal/card';
+import { BlogEngagementToolbar } from './BlogEngagementToolbar';
 
 interface BlogCardProps {
+  id: string;
   title: string;
   categoryLabel: string;
   accentColor?: string | null;
@@ -14,6 +16,15 @@ interface BlogCardProps {
   views: number;
   excerpt: string;
   slug: string;
+  author?: {
+    id: string | null;
+    displayName: string | null;
+  };
+  onHide?: () => void;
+  onToggleFollow?: (nextAction: 'follow' | 'unfollow') => void;
+  onToggleMute?: (nextAction: 'mute' | 'unmute') => void;
+  isAuthorFollowed?: boolean;
+  isAuthorMuted?: boolean;
 }
 
 const colorPalette = ['#6C63FF', '#FF5252', '#06D6A0', '#FFD166', '#118AB2'];
@@ -34,6 +45,7 @@ const getFallbackColor = (label: string) => {
 };
 
 export function NewBlogCard({
+  id,
   title,
   categoryLabel,
   accentColor,
@@ -41,44 +53,13 @@ export function NewBlogCard({
   views,
   excerpt,
   slug,
+  author,
+  onHide,
+  onToggleFollow,
+  onToggleMute,
+  isAuthorFollowed = false,
+  isAuthorMuted = false,
 }: BlogCardProps) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: title,
-        text: excerpt,
-        url: window.location.origin + '/blogs/' + slug,
-      }).catch(console.error);
-    } else {
-      // Fallback for browsers that don't support the Web Share API
-      navigator.clipboard.writeText(window.location.origin + '/blogs/' + slug)
-        .then(() => alert('Link copied to clipboard!'))
-        .catch(console.error);
-    }
-    setMenuOpen(false);
-  };
-
-  const handleGenerateWithAI = () => {
-    // This would be implemented with your AI generation functionality
-    alert('Generate with AI functionality would go here');
-    setMenuOpen(false);
-  };
-
   const badgeColor = accentColor ?? getFallbackColor(categoryLabel);
 
   return (
@@ -93,34 +74,6 @@ export function NewBlogCard({
           >
             {categoryLabel}
           </span>
-          <div className="relative" ref={menuRef}>
-            <button
-              type="button"
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              aria-label="Open menu"
-            >
-              <MoreHorizontal size={20} />
-            </button>
-            {menuOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-lg border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0)] z-50">
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  className="w-full text-left px-4 py-2 text-sm font-bold hover:bg-gray-100"
-                >
-                  Share
-                </button>
-                <button
-                  type="button"
-                  onClick={handleGenerateWithAI}
-                  className="w-full text-left px-4 py-2 text-sm font-bold hover:bg-gray-100"
-                >
-                  Generate Post
-                </button>
-              </div>
-            )}
-          </div>
         </div>
         <h3 className="text-xl font-black mb-3">{title}</h3>
         <p className="text-gray-600 mb-4">{excerpt}</p>
@@ -142,6 +95,20 @@ export function NewBlogCard({
             READ POST
           </Link>
         </div>
+        <BlogEngagementToolbar
+          postId={id}
+          slug={slug}
+          title={title}
+          excerpt={excerpt}
+          initialViews={views}
+          authorId={author?.id ?? null}
+          authorName={author?.displayName ?? null}
+          isFollowingAuthor={isAuthorFollowed}
+          isAuthorMuted={isAuthorMuted}
+          onHide={onHide}
+          onToggleFollow={onToggleFollow}
+          onToggleMute={onToggleMute}
+        />
       </div>
     </NeobrutalCard>
   );

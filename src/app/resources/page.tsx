@@ -24,6 +24,13 @@ const resourceCollections = [
     linkLabel: 'Choose a path',
     href: '/tutorials',
   },
+  {
+    title: 'Prompt gallery',
+    description: 'Explore community prompts with advanced filters, media previews, and copy-ready actions for every model.',
+    icon: Library,
+    linkLabel: 'Open gallery',
+    href: '/resources/prompt-gallery',
+  },
 ];
 
 const guides = [

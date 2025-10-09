@@ -114,6 +114,12 @@ export const navigationCategories: NavigationCategory[] = [
             description: 'Download templates, cheat sheets, and engineering accelerators.',
           },
           {
+            label: 'Prompt Gallery',
+            href: '/resources/prompt-gallery',
+            description:
+              'Browse community prompts with rich filters, comments, and reusable assets.',
+          },
+          {
             label: 'Newsletter',
             href: '/newsletter',
             description: 'Subscribe for weekly digests, jobs, and behind-the-scenes notes.',

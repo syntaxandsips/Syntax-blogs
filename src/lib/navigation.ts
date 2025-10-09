@@ -104,6 +104,12 @@ export const navigationCategories: NavigationCategory[] = [
               'Partner with Syntax & Sips to publish long-form pieces and shows once you join the contributor roster.',
           },
           {
+            label: 'Community Opportunities',
+            href: '/community/opportunities',
+            description:
+              'Browse volunteer, internship, and partnership tracks designed to grow Syntax & Sips together.',
+          },
+          {
             label: 'Apply as a Contributor',
             href: '/apply/author',
             description: 'Pitch story ideas and join the editorial contributor roster.',

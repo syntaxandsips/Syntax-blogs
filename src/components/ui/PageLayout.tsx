@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { NewFooter } from './NewFooter';
@@ -64,7 +64,7 @@ export function PageHero({
   );
 }
 
-interface ContentSectionProps {
+type ContentSectionProps = Omit<ComponentPropsWithoutRef<'section'>, 'children'> & {
   eyebrow?: string;
   title: string;
   description?: string;
@@ -72,7 +72,7 @@ interface ContentSectionProps {
   align?: 'left' | 'center';
   tone?: 'neutral' | 'lavender' | 'peach';
   footerContent?: ReactNode;
-}
+};
 
 const toneStyles: Record<Required<ContentSectionProps>['tone'], string> = {
   neutral: 'bg-white',
@@ -88,11 +88,13 @@ export function ContentSection({
   align = 'left',
   tone = 'neutral',
   footerContent,
+  className,
+  ...sectionProps
 }: ContentSectionProps) {
   const hasChildren = children !== undefined && children !== null;
 
   return (
-    <section>
+    <section className={className} {...sectionProps}>
       <div
         className={cn(
           'relative overflow-hidden rounded-3xl border-4 border-black p-8 md:p-12 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.08)]',

@@ -313,6 +313,14 @@ export interface UserList {
   updatedAt: string
 }
 
+export interface UserListMembership {
+  itemId: string
+}
+
+export type UserListWithMembership = UserList & {
+  membership: UserListMembership | null
+}
+
 export interface ListItem {
   id: string
   listId: string

@@ -10,4 +10,4 @@ Consequences: Spaces and moderation work can rely on consistent role semantics a
 
 Alternatives: (1) Defer RBAC changes until Spaces GA—rejected because subsequent tickets (MOD-001, CNT-020) depend on role consistency. (2) Introduce a separate site_roles enum table instead of reusing `roles`—rejected to avoid duplicating governance and migrations already anchored to existing tables.
 
-Links: GOV-000 groundwork, SEC-001 backlog entry, PR #TBD, `/docs/07-security-privacy.md`, `/docs/06-data-model-delta.md`.
+Links: GOV-000 groundwork, SEC-001 backlog entry, `/docs/07-security-privacy.md`, `/docs/06-data-model-delta.md`.

@@ -24,11 +24,15 @@ BEGIN
       'payouts_v1',
       'events_v1',
       'messaging_v1',
+      'rbac_hardening_v1',
       'notifications_v1'
     );
   END IF;
 END;
 $$;
+
+-- Ensure enum contains rbac_hardening_v1 for existing environments
+ALTER TYPE public.feature_flag_key ADD VALUE IF NOT EXISTS 'rbac_hardening_v1';
 
 -- Create feature_flags table
 CREATE TABLE IF NOT EXISTS public.feature_flags (

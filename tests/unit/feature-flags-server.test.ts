@@ -16,7 +16,7 @@ import { recordHistogram } from '@/lib/observability/metrics'
 
 const createSupabaseClient = (
   rows: Array<{
-    flag_key: 'spaces_v1' | 'content_templates_v1'
+    flag_key: 'spaces_v1' | 'content_templates_v1' | 'rbac_hardening_v1'
     description: string
     enabled: boolean
     owner: string
@@ -121,5 +121,29 @@ describe('feature flag server helpers', () => {
     expect(await isFeatureEnabled('spaces_v1')).toBe(true)
     expect(firstClient.from).toHaveBeenCalledTimes(1)
     expect(secondClient.from).toHaveBeenCalledTimes(1)
+  })
+
+  it('falls back to defaults for non-persisted flags', async () => {
+    const now = new Date().toISOString()
+    const client = createSupabaseClient([
+      {
+        flag_key: 'spaces_v1',
+        description: 'Spaces rollout',
+        enabled: true,
+        owner: 'Product Lead',
+        metadata: {},
+        created_at: now,
+        updated_at: now,
+      },
+    ])
+
+    serviceRoleClientMock.mockReturnValue(client)
+
+    const { getFeatureFlagDefinition } = await loadModule()
+    const definition = await getFeatureFlagDefinition('rbac_hardening_v1')
+
+    expect(definition.flagKey).toBe('rbac_hardening_v1')
+    expect(definition.enabled).toBe(false)
+    expect(definition.owner).toBe('Security Lead')
   })
 })

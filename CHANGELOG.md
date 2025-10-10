@@ -31,6 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `window.confirm` usage in favor of accessible AlertDialog components
 - Updated admin dashboard to surface highest-role badges and gate role management via `rbac_hardening_v1` with new authz telemetry.
 
+### Fixed
+
+- Added the missing `rbac_hardening_v1` enum value to feature flag migrations to keep Supabase schema in sync with governance defaults.
+
 ### Planned - Library Feature
 - **User Library System**: Complete Medium-style library feature for saving and organizing content
   - Your Library: Central dashboard for all saved content

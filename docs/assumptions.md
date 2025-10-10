@@ -11,3 +11,4 @@
 | A-007 | 2025-02-14 | Observability vendor (Grafana Cloud/Honeycomb) budget approved for Phase 1. | Required to meet telemetry commitments. | Open |
 | A-008 | 2025-02-14 | Legal/compliance resources available before Phase 3 commerce rollout. | Necessary for payments, KYC, events. | Open |
 | A-009 | 2025-10-10 | Feature flag ownership stored as free-text owner label until RBAC revamp in SEC-001. | Allows governance UI to launch without expanded role matrix; revisit once role hierarchy finalized. | Closed (2025-10-17) |
+| A-010 | 2025-02-18 | Despite cutover directive, execution continues ticket-by-ticket under feature flags to avoid destabilizing one-shot release until all prerequisites validated. | Aligns with risk register and roadmap gating; supports rehearsed cutover later without skipping validation. | Open |

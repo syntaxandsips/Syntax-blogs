@@ -15,7 +15,7 @@ import {
   CtaButton,
 } from '@/components/ui/PageLayout';
 
-const volunteerFormUrl = 'https://forms.gle/syntaxandsips-community-interest';
+const volunteerFormUrl = 'https://forms.gle/5MNg3oKqSdpZt1oX8';
 
 type OpportunityTrack = {
   title: string;

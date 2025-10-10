@@ -80,7 +80,7 @@ Each listing below is ready to copy into job boards, Discord announcements, or s
 ## Recruiting & Onboarding Workflow
 
 1. **Publish listings:** Post each opportunity on the website (see `/community/opportunities`), Discord, LinkedIn, and indie job boards.
-2. **Collect interest:** Drive everyone to the shared Google Form (replace with live link) that captures role preference, availability, and portfolio links.
+2. **Collect interest:** Drive everyone to the shared Google Form at [https://forms.gle/5MNg3oKqSdpZt1oX8](https://forms.gle/5MNg3oKqSdpZt1oX8) that captures role preference, availability, and portfolio links.
 3. **Triage submissions:** Community Producer or marketing lead reviews weekly, shortlists candidates, and schedules intro calls.
 4. **Starter kit:** Send accepted contributors a Notion workspace with brand voice guide, file templates, and expected cadences.
 5. **First sprint:** Pair each contributor with a mentor for their first deliverable. Share a 30-day roadmap so expectations are clear.

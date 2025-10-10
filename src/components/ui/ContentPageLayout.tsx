@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { NewFooter } from './NewFooter';
 
 interface ContentPageLayoutProps {
@@ -44,7 +44,7 @@ export function ContentPageLayout({
   );
 }
 
-interface ContentSectionProps {
+type ContentSectionProps = Omit<ComponentPropsWithoutRef<'section'>, 'children' | 'className'> & {
   title: string;
   description?: string;
   eyebrow?: ReactNode;
@@ -52,7 +52,7 @@ interface ContentSectionProps {
   children: ReactNode;
   className?: string;
   fullWidth?: boolean;
-}
+};
 
 export function ContentSection({
   title,
@@ -62,6 +62,7 @@ export function ContentSection({
   children,
   className,
   fullWidth = false,
+  ...sectionProps
 }: ContentSectionProps) {
   const containerClassName = `neo-container bg-white ${className ?? ''}`.trim();
   const layoutClassName = fullWidth
@@ -69,7 +70,7 @@ export function ContentSection({
     : 'flex flex-col lg:flex-row lg:items-start gap-8';
 
   return (
-    <section className={containerClassName}>
+    <section {...sectionProps} className={containerClassName}>
       {eyebrow && (
         <div className="mb-4 inline-flex items-center gap-2 bg-[#06D6A0] border-4 border-black px-3 py-1 text-xs font-bold uppercase tracking-widest text-black shadow-[4px_4px_0_0_#000]">
           {eyebrow}

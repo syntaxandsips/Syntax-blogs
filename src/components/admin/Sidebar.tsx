@@ -15,6 +15,7 @@ import {
   Users,
   X,
   Cpu,
+  Flag,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -25,6 +26,8 @@ interface SidebarProps {
   onSignOut: () => Promise<void> | void
   displayName: string
   isAdmin: boolean
+  roleLabel: string
+  rbacEnabled: boolean
   className?: string
   showCloseButton?: boolean
   onClose?: () => void
@@ -37,11 +40,12 @@ export const Sidebar = ({
   onSignOut,
   displayName,
   isAdmin,
+  roleLabel,
+  rbacEnabled,
   className,
   showCloseButton = false,
   onClose,
 }: SidebarProps) => {
-  const roleLabel = isAdmin ? 'Administrator' : 'Author'
 
   return (
     <div
@@ -109,7 +113,7 @@ export const Sidebar = ({
                 onClick={() => onNavigate('comments')}
               />
             )}
-            {isAdmin && (
+            {isAdmin && rbacEnabled && (
               <SidebarLink
                 icon={<Users />}
                 label="Users"
@@ -159,6 +163,14 @@ export const Sidebar = ({
               isActive={currentView === 'settings'}
               onClick={() => onNavigate('settings')}
             />
+            {isAdmin && (
+              <SidebarLink
+                icon={<Flag />}
+                label="Feature Flags"
+                isActive={currentView === 'feature-flags'}
+                onClick={() => onNavigate('feature-flags')}
+              />
+            )}
           </nav>
           <div>
             <button

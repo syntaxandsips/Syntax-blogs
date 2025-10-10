@@ -8,15 +8,75 @@ export interface Database {
           display_name: string | null
           avatar_url: string | null
           is_admin: boolean | null
+          primary_role_id: string | null
+          created_at: string
+          updated_at: string
         }
         Insert: {
-          id: string
+          id?: string
           user_id?: string | null
           display_name?: string | null
           avatar_url?: string | null
           is_admin?: boolean | null
+          primary_role_id?: string | null
+          created_at?: string
+          updated_at?: string
         }
         Update: Partial<Database['public']['Tables']['profiles']['Insert']>
+      }
+      feature_flags: {
+        Row: {
+          id: string
+          flag_key: Database['public']['Enums']['feature_flag_key']
+          description: string
+          enabled: boolean
+          owner: string
+          metadata: Record<string, unknown>
+          created_by: string | null
+          updated_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          flag_key: Database['public']['Enums']['feature_flag_key']
+          description?: string
+          enabled?: boolean
+          owner?: string
+          metadata?: Record<string, unknown>
+          created_by?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['feature_flags']['Insert']>
+      }
+      feature_flag_audit: {
+        Row: {
+          id: string
+          flag_id: string
+          flag_key: Database['public']['Enums']['feature_flag_key']
+          previous_enabled: boolean | null
+          new_enabled: boolean | null
+          changed_by: string | null
+          changed_by_role: string
+          reason: string | null
+          metadata: Record<string, unknown>
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          flag_id: string
+          flag_key: Database['public']['Enums']['feature_flag_key']
+          previous_enabled?: boolean | null
+          new_enabled?: boolean | null
+          changed_by?: string | null
+          changed_by_role?: string
+          reason?: string | null
+          metadata?: Record<string, unknown>
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['feature_flag_audit']['Insert']>
       }
       gamification_profiles: {
         Row: {
@@ -804,6 +864,18 @@ export interface Database {
       }
     }
     Enums: {
+      feature_flag_key:
+        | 'spaces_v1'
+        | 'content_templates_v1'
+        | 'search_unified_v1'
+        | 'reputation_v1'
+        | 'moderation_automation_v1'
+        | 'donations_v1'
+        | 'payouts_v1'
+        | 'events_v1'
+        | 'messaging_v1'
+        | 'notifications_v1'
+        | 'rbac_hardening_v1'
       prompt_media_type: 'image' | 'video' | 'text' | 'audio' | '3d' | 'workflow'
       prompt_difficulty_level: 'beginner' | 'intermediate' | 'advanced'
       prompt_visibility: 'public' | 'unlisted' | 'draft'

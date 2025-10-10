@@ -9,6 +9,7 @@ import {
   fetchProfileById,
   ensureRoleAssignments,
   buildUserSummary,
+  sanitizeRoleSlugs,
 } from '../shared'
 
 const getAdminProfile = async (): Promise<
@@ -61,17 +62,6 @@ const sanitizeDisplayName = (value: unknown): string => {
 const sanitizePassword = (value: unknown): string => {
   if (typeof value !== 'string') return ''
   return value.trim()
-}
-
-const sanitizeRoleSlugs = (value: unknown): string[] => {
-  if (!Array.isArray(value)) return []
-  const slugs = new Set<string>()
-  for (const entry of value) {
-    if (typeof entry === 'string' && entry.trim().length > 0) {
-      slugs.add(entry.trim())
-    }
-  }
-  return Array.from(slugs)
 }
 
 export async function PATCH(

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { createServerClient } from '@/lib/supabase/server-client';
+import { recordAuthzDeny } from '@/lib/observability/metrics';
 import { eventBus } from '@/services/ai/eventBus';
 import { createWorkflow, listWorkflows } from '@/services/ai/workflowService';
 
@@ -46,7 +47,7 @@ export async function GET() {
     if (!profile?.is_admin) {
       const { data: hasRole, error: roleError } = await supabase.rpc(
         'user_has_any_role',
-        { role_slugs: ['admin', 'editor'] },
+        { role_slugs: ['admin', 'moderator', 'organizer'] },
       );
 
       if (roleError) {
@@ -57,6 +58,7 @@ export async function GET() {
       }
 
       if (!hasRole) {
+        recordAuthzDeny('ai_workflow_access', { method: 'GET' })
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }

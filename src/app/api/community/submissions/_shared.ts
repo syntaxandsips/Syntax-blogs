@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerComponentClient, createServiceRoleClient } from '@/lib/supabase/server-client'
+import { recordAuthzDeny } from '@/lib/observability/metrics'
 import { generateSlug } from '@/lib/utils'
 
 const responseForError = (message: string, status: number) =>
@@ -87,7 +88,7 @@ export const ensureAdminAccess = async () => {
 
   if (!profile.is_admin) {
     const { data: hasRole, error: roleError } = await supabase.rpc('user_has_any_role', {
-      role_slugs: ['admin', 'editor'],
+      role_slugs: ['admin', 'moderator', 'organizer'],
     })
 
     if (roleError) {
@@ -97,6 +98,7 @@ export const ensureAdminAccess = async () => {
     }
 
     if (!hasRole) {
+      recordAuthzDeny('community_submissions_admin_access', { stage: 'role_check' })
       return { response: responseForError('Forbidden', 403) }
     }
   }

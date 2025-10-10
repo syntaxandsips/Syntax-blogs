@@ -9,6 +9,7 @@ import React, {
 import { useRouter } from 'next/navigation'
 import { Sidebar } from './Sidebar'
 import { PostsTable } from './PostsTable'
+import { useFeatureFlag } from '@/lib/feature-flags/client'
 import { PostForm } from './PostForm'
 import { UserManagement } from './UserManagement'
 import { CommentsModeration } from './CommentsModeration'
@@ -18,6 +19,7 @@ import { AnalyticsPanel } from './AnalyticsPanel'
 import { SettingsPanel } from './SettingsPanel'
 import { PromptMonetizationPanel } from './PromptMonetizationPanel'
 import { ModelManager } from './ModelManager'
+import { FeatureFlagManager } from './FeatureFlagManager'
 import {
   CommunityQueueApplication,
   CommunityQueueSubmission,
@@ -48,12 +50,16 @@ export interface AdminDashboardProps {
   profileId: string
   displayName: string
   isAdmin: boolean
+  primaryRoleLabel: string
+  initialRbacEnabled: boolean
 }
 
 const DashboardContent = ({
   profileId,
   displayName,
   isAdmin,
+  primaryRoleLabel,
+  initialRbacEnabled,
 }: AdminDashboardProps) => {
   const router = useRouter()
   const supabase = useMemo(() => createBrowserClient(), [])
@@ -85,6 +91,8 @@ const DashboardContent = ({
   const [isLoadingModelCatalog, setIsLoadingModelCatalog] = useState(false)
   const [hasLoadedModelCatalog, setHasLoadedModelCatalog] = useState(false)
   const [isModelMutationInFlight, setIsModelMutationInFlight] = useState(false)
+  const [sidebarRoleLabel, setSidebarRoleLabel] = useState(primaryRoleLabel)
+  const rbacEnabled = useFeatureFlag('rbac_hardening_v1', initialRbacEnabled)
 
   const mapPostsFromPayload = useCallback((data: AdminPost[]) => {
     return data.map((post) => ({
@@ -1112,6 +1120,16 @@ const DashboardContent = ({
   }
 
   const handleNavigate = (view: string) => {
+    if (view === 'users' && (!isAdmin || !rbacEnabled)) {
+      showToast({
+        variant: 'warning',
+        title: 'Role management locked',
+        description: 'Enable the RBAC hardening feature flag to manage roles.',
+      })
+      setIsMobileSidebarOpen(false)
+      return
+    }
+
     setCurrentView(view)
     setIsMobileSidebarOpen(false)
   }
@@ -1130,8 +1148,15 @@ const DashboardContent = ({
         throw new Error(payload.error ?? 'Unable to load users.')
       }
 
-      setUsers((payload.users ?? []) as AdminUserSummary[])
+      const nextUsers = (payload.users ?? []) as AdminUserSummary[]
+      setUsers(nextUsers)
       setRoles((payload.roles ?? []) as AdminRole[])
+
+      const currentUserSummary = nextUsers.find((user) => user.profileId === profileId)
+      if (currentUserSummary?.roles?.length) {
+        setSidebarRoleLabel(currentUserSummary.roles[0]?.name ?? primaryRoleLabel)
+      }
+
       setHasLoadedUsers(true)
     } catch (error) {
       showToast({
@@ -1143,13 +1168,31 @@ const DashboardContent = ({
     } finally {
       setIsLoadingUsers(false)
     }
-  }, [showToast])
+  }, [primaryRoleLabel, profileId, showToast])
 
   useEffect(() => {
-    if (currentView === 'users' && !hasLoadedUsers && !isLoadingUsers) {
+    if (currentView === 'users' && (!isAdmin || !rbacEnabled)) {
+      setCurrentView('overview')
+      return
+    }
+
+    if (
+      currentView === 'users' &&
+      isAdmin &&
+      rbacEnabled &&
+      !hasLoadedUsers &&
+      !isLoadingUsers
+    ) {
       void fetchUsers()
     }
-  }, [currentView, fetchUsers, hasLoadedUsers, isLoadingUsers])
+  }, [
+    currentView,
+    fetchUsers,
+    hasLoadedUsers,
+    isLoadingUsers,
+    isAdmin,
+    rbacEnabled,
+  ])
 
   const fetchComments = useCallback(async () => {
     setIsLoadingComments(true)
@@ -1513,6 +1556,17 @@ const DashboardContent = ({
           />
         )
       case 'users':
+        if (!isAdmin || !rbacEnabled) {
+          return (
+            <div className="rounded-lg border-4 border-dashed border-[#6C63FF]/40 bg-white p-6 text-center shadow-sm">
+              <h2 className="text-xl font-bold text-[#2A2A2A]">Role management unavailable</h2>
+              <p className="mt-2 text-sm text-[#2A2A2A]/70">
+                Enable the RBAC hardening feature flag and sign in as an administrator to manage platform roles.
+              </p>
+            </div>
+          )
+        }
+
         return (
           <UserManagement
             users={users}
@@ -1556,6 +1610,8 @@ const DashboardContent = ({
         return <PromptMonetizationPanel />
       case 'settings':
         return <SettingsPanel />
+      case 'feature-flags':
+        return <FeatureFlagManager />
       default:
         return null
     }
@@ -1579,6 +1635,8 @@ const DashboardContent = ({
           onSignOut={handleSignOut}
           displayName={displayName}
           isAdmin={isAdmin}
+          roleLabel={sidebarRoleLabel}
+          rbacEnabled={rbacEnabled}
         />
       </div>
 
@@ -1597,6 +1655,8 @@ const DashboardContent = ({
             onSignOut={handleSignOut}
             displayName={displayName}
             isAdmin={isAdmin}
+            roleLabel={sidebarRoleLabel}
+            rbacEnabled={rbacEnabled}
             className="relative z-50 w-[min(85vw,320px)]"
             showCloseButton
             onClose={() => setIsMobileSidebarOpen(false)}

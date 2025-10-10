@@ -1,9 +1,51 @@
 import { createServiceRoleClient } from '@/lib/supabase/server-client'
-import type {
-  AdminRole,
-  AdminUserRole,
-  AdminUserSummary,
-} from '@/utils/types'
+import type { AdminUserRole, AdminUserSummary } from '@/utils/types'
+
+export const canonicalRoleSlugs = [
+  'admin',
+  'moderator',
+  'organizer',
+  'contributor',
+  'member',
+] as const
+
+export type CanonicalRoleSlug = (typeof canonicalRoleSlugs)[number]
+
+const canonicalRoleSynonyms: Record<string, CanonicalRoleSlug> = {
+  admin: 'admin',
+  moderator: 'moderator',
+  organizer: 'organizer',
+  contributor: 'contributor',
+  member: 'member',
+  editor: 'organizer',
+  author: 'contributor',
+}
+
+export const sanitizeRoleSlugs = (value: unknown): CanonicalRoleSlug[] => {
+  if (!Array.isArray(value)) return []
+
+  const slugs = new Set<CanonicalRoleSlug>()
+
+  for (const entry of value) {
+    if (typeof entry !== 'string') {
+      continue
+    }
+
+    const normalized = entry.trim().toLowerCase()
+    if (!normalized) {
+      continue
+    }
+
+    const canonical = canonicalRoleSynonyms[normalized]
+    if (!canonical) {
+      continue
+    }
+
+    slugs.add(canonical)
+  }
+
+  return Array.from(slugs)
+}
 
 export interface ProfileRecord {
   id: string
@@ -50,14 +92,14 @@ export const ensureRoleAssignments = async (
   serviceClient: ReturnType<typeof createServiceRoleClient>,
   profileId: string,
   allRoles: RoleRecord[],
-  requestedSlugs: string[],
+  requestedSlugs: CanonicalRoleSlug[],
   isAdmin: boolean,
 ): Promise<AdminUserRole[]> => {
   const roleMap = new Map<string, RoleRecord>(
     allRoles.map((role) => [role.slug, role]),
   )
 
-  const finalSlugs = new Set<string>(requestedSlugs)
+  const finalSlugs = new Set<CanonicalRoleSlug>(requestedSlugs)
   finalSlugs.add('member')
 
   if (isAdmin) {
@@ -265,4 +307,4 @@ export const loadAllUserSummaries = async (
   )
 }
 
-export type { AdminRole, AdminUserRole, AdminUserSummary }
+export type { AdminUserRole, AdminUserSummary }

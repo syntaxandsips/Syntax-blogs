@@ -10,6 +10,7 @@ function extractDraftId(pathname: string): string | null {
 }
 
 import { getDraft, updateDraft } from '@/lib/mcp/blog';
+import { recordAuthzDeny } from '@/lib/observability/metrics';
 import { createServerClient } from '@/lib/supabase/server-client';
 
 const BLOG_MCP_URL = process.env.MCP_BLOG_URL ?? 'http://localhost:4001/mcp';
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
     if (!profile?.is_admin) {
       const { data: hasRole, error: roleError } = await supabase.rpc(
         'user_has_any_role',
-        { role_slugs: ['admin', 'editor'] },
+        { role_slugs: ['admin', 'moderator', 'organizer'] },
       );
 
       if (roleError) {
@@ -61,6 +62,7 @@ export async function GET(request: NextRequest) {
       }
 
       if (!hasRole) {
+        recordAuthzDeny('ai_draft_access', { method: 'GET' })
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
@@ -118,7 +120,7 @@ export async function PUT(request: NextRequest) {
     if (!profile?.is_admin) {
       const { data: hasRole, error: roleError } = await supabase.rpc(
         'user_has_any_role',
-        { role_slugs: ['admin', 'editor'] },
+        { role_slugs: ['admin', 'moderator', 'organizer'] },
       );
 
       if (roleError) {
@@ -129,6 +131,7 @@ export async function PUT(request: NextRequest) {
       }
 
       if (!hasRole) {
+        recordAuthzDeny('ai_draft_access', { method: 'PUT' })
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }

@@ -3,6 +3,7 @@ import {
   createServerComponentClient,
   createServiceRoleClient,
 } from '@/lib/supabase/server-client'
+import { recordAuthzDeny } from '@/lib/observability/metrics'
 import type { AdminRole, CreateAdminUserPayload } from '@/utils/types'
 import {
   fetchRoles,
@@ -10,7 +11,10 @@ import {
   buildUserSummary,
   fetchProfileById,
   loadAllUserSummaries,
+  sanitizeRoleSlugs,
 } from './shared'
+
+export { sanitizeRoleSlugs } from './shared'
 
 const getAdminProfile = async (): Promise<
   | { response: NextResponse }
@@ -22,6 +26,7 @@ const getAdminProfile = async (): Promise<
   } = await supabase.auth.getUser()
 
   if (!user) {
+    recordAuthzDeny('admin_users', { stage: 'auth_check' })
     return {
       response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
     }
@@ -43,6 +48,7 @@ const getAdminProfile = async (): Promise<
   }
 
   if (!profile || !profile.is_admin) {
+    recordAuthzDeny('admin_users', { stage: 'role_check' })
     return {
       response: NextResponse.json(
         { error: 'Forbidden: admin access required.' },
@@ -68,17 +74,6 @@ const sanitizeDisplayName = (value: unknown): string => {
 const sanitizePassword = (value: unknown): string => {
   if (typeof value !== 'string') return ''
   return value.trim()
-}
-
-const sanitizeRoleSlugs = (value: unknown): string[] => {
-  if (!Array.isArray(value)) return []
-  const slugs = new Set<string>()
-  for (const entry of value) {
-    if (typeof entry === 'string' && entry.trim().length > 0) {
-      slugs.add(entry.trim())
-    }
-  }
-  return Array.from(slugs)
 }
 
 export async function GET() {

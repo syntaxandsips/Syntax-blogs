@@ -51,7 +51,7 @@ const ANON_NOUNS = [
   'Trailblazer',
 ];
 
-const STAFF_ROLES = new Set(['admin', 'editor', 'author']);
+const STAFF_ROLES = new Set(['admin', 'moderator', 'organizer']);
 
 const hashString = (input: string) => {
   let hash = 0;

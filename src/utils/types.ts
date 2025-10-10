@@ -1,3 +1,5 @@
+import type { FeatureFlagKey } from '@/lib/feature-flags/registry'
+
 export enum PostStatus {
   DRAFT = 'draft',
   SCHEDULED = 'scheduled',
@@ -246,6 +248,32 @@ export interface AdminCommentSummary {
   postSlug: string
   authorDisplayName: string | null
   authorProfileId: string | null
+}
+
+export interface AdminFeatureFlagRecord {
+  id: string | null
+  flagKey: FeatureFlagKey
+  description: string
+  owner: string
+  enabled: boolean
+  metadata: Record<string, unknown>
+  createdAt: string
+  updatedAt: string
+  createdBy: string | null
+  updatedBy: string | null
+  persisted: boolean
+}
+
+export interface AdminFeatureFlagAuditEntry {
+  id: string
+  flagKey: FeatureFlagKey
+  previousEnabled: boolean | null
+  newEnabled: boolean | null
+  changedBy: string | null
+  changedByRole: string
+  reason: string | null
+  metadata: Record<string, unknown>
+  createdAt: string
 }
 
 export interface AuthenticatedProfileSummary {

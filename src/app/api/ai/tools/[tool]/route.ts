@@ -11,6 +11,7 @@ function extractToolId(pathname: string): string | null {
 
 import { runResearchQuery } from '@/lib/mcp/research';
 import { runSeoAnalysis } from '@/lib/mcp/seo';
+import { recordAuthzDeny } from '@/lib/observability/metrics';
 import { uploadAsset } from '@/lib/mcp/storage';
 import { createServerClient } from '@/lib/supabase/server-client';
 
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
     if (!profile?.is_admin) {
       const { data: hasRole, error: roleError } = await supabase.rpc(
         'user_has_any_role',
-        { role_slugs: ['admin', 'editor'] },
+        { role_slugs: ['admin', 'moderator', 'organizer'] },
       );
 
       if (roleError) {
@@ -68,6 +69,7 @@ export async function POST(request: NextRequest) {
       }
 
       if (!hasRole) {
+        recordAuthzDeny('ai_tool_access', { method: 'POST' })
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }

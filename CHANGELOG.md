@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Supabase-backed feature flag governance service with admin management UI, audit logging, and typed SDK instrumentation.
+- Hardened Supabase RBAC with updated roles/profile_roles migrations, refreshed RLS policies, and the `rbac_hardening_v1` rollout flag.
 - **Alert Dialog Component**: Installed neo-brutalism styled alert-dialog component from neobrutalism.dev
 - **Confirmation Dialogs**: Implemented confirmation dialogs for all major destructive actions across the application
   - Post deletion and publishing in PostsTable (mobile and desktop views)
@@ -27,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated CommentsModeration to use AlertDialog for comment deletion
 - Updated UserAccountPanel to use AlertDialog for sign out confirmation
 - Removed `window.confirm` usage in favor of accessible AlertDialog components
+- Updated admin dashboard to surface highest-role badges and gate role management via `rbac_hardening_v1` with new authz telemetry.
 
 ### Planned - Library Feature
 - **User Library System**: Complete Medium-style library feature for saving and organizing content
@@ -46,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 - Added `docs/library-feature-implementation-plan.md` - Complete implementation roadmap
 - Added `docs/library-feature-summary.md` - Executive summary and feature overview
+- Refreshed security, data model, release plan, and test strategy docs to capture SEC-001 RBAC changes and telemetry.
 - Added `docs/library-technical-spec.md` - Detailed technical specifications and database schema
 
 ## [1.12.9] - 2025-02-27

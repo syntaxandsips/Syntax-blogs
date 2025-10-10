@@ -1,0 +1,9 @@
+# ADR-0001: Establish Phase 0 Discovery & Documentation Framework
+Status: Accepted
+Context: The platform already implements an editorial stack (Next.js 15 + Supabase) with existing content, auth, and admin tooling. Phase 0 requires a comprehensive discovery package across architecture, product scope, data, security, and operations before any new features are shipped. The repo contains partial documentation, but not the cross-functional artifacts mandated by the Community Platform Fusion program. We must align engineering, product, and UX planning without disrupting current production behavior.
+Decision: Create a dedicated Phase 0 documentation suite under `/docs` covering audit, target architecture, product specification, roadmap, backlog, UX deltas, data model updates, security/privacy, observability, test strategy, release planning, assumptions, and risk management. Each artifact follows the provided templates, references current-state findings, and encodes forward-looking plans with feature flags and phased rollout requirements. The ADR itself is stored in `/docs/adrs` and linked from future tickets and PRs.
+Consequences: The team gains a single source of truth for baseline metrics, planned capabilities, and compliance gates, enabling incremental delivery in later phases. Producing and maintaining these documents requires sustained effort and version control discipline, but it reduces ambiguity and satisfies governance expectations.
+Alternatives: 
+- Proceed without formal documentation (rejected due to governance and coordination risks).
+- Scatter documents across external tools (rejected; violates in-repo requirement and complicates traceability).
+Links: [/docs/00-audit-report.md](/docs/00-audit-report.md), [/docs/03-roadmap.md](/docs/03-roadmap.md), [/docs/10-release-plan.md](/docs/10-release-plan.md)

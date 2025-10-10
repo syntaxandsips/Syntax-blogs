@@ -1,0 +1,329 @@
+{
+  "tickets": [
+    {
+      "id": "GOV-000",
+      "title": "Finalize feature flag service and governance",
+      "module": "Foundations",
+      "type": "feature",
+      "priority": "P0",
+      "size": "M",
+      "dependencies": [],
+      "acceptance_criteria": [
+        "Feature flag storage (Supabase table or vendor) provisioned with CRUD UI",
+        "SDK integrated into Next.js server/client layers with typed helper",
+        "Flag change audit log captured and exposed to admins"
+      ],
+      "definition_of_done": [
+        "Green CI, tests added",
+        "Docs updated with flag naming convention",
+        "Telemetry events for flag evaluations shipped",
+        "Feature flag default OFF"
+      ],
+      "risk": "medium",
+      "owner": "tbd",
+      "labels": ["feature-flag", "backend", "frontend"],
+      "kpi": "Flag evaluation latency ≤50ms",
+      "estimate_hours": 40
+    },
+    {
+      "id": "SEC-001",
+      "title": "Harden Supabase RBAC for expanded role matrix",
+      "module": "Security",
+      "type": "feature",
+      "priority": "P0",
+      "size": "L",
+      "dependencies": ["GOV-000"],
+      "acceptance_criteria": [
+        "Roles member/contributor/organizer/moderator/admin enforced via RLS",
+        "Integration tests cover allow/deny matrix for critical tables",
+        "Admin console exposes role assignment behind flag"
+      ],
+      "definition_of_done": [
+        "Green CI, tests added",
+        "Docs updated (auth matrix in /docs/07-security-privacy.md)",
+        "Telemetry shipped for authz failures",
+        "Feature flag default OFF"
+      ],
+      "risk": "high",
+      "owner": "tbd",
+      "labels": ["backend", "security"],
+      "kpi": "0 critical authz regressions post-launch",
+      "estimate_hours": 56
+    },
+    {
+      "id": "UX-010",
+      "title": "Refresh navigation IA and design tokens",
+      "module": "Foundations",
+      "type": "feature",
+      "priority": "P1",
+      "size": "M",
+      "dependencies": ["GOV-000"],
+      "acceptance_criteria": [
+        "Primary nav supports spaces, feeds, events, funding hubs",
+        "Design tokens defined for color, spacing, typography, elevation",
+        "Dark/light mode parity maintained"
+      ],
+      "definition_of_done": [
+        "Green CI, tests added",
+        "Docs updated in /docs/05-ui-ux-delta.md",
+        "Telemetry shipped for nav interactions",
+        "Feature flag default OFF"
+      ],
+      "risk": "medium",
+      "owner": "tbd",
+      "labels": ["frontend", "design"],
+      "kpi": "Nav engagement (CTR) ≥ baseline",
+      "estimate_hours": 48
+    },
+    {
+      "id": "MOD-001",
+      "title": "Implement Spaces with roles and rules",
+      "module": "Spaces",
+      "type": "feature",
+      "priority": "P0",
+      "size": "L",
+      "dependencies": ["SEC-001", "UX-010"],
+      "acceptance_criteria": [
+        "Create/read/update/delete spaces with rules, tags, flairs",
+        "Role matrix enforced at API and UI for member/contributor/organizer/mod/admin",
+        "Audit log entries for all moderative actions"
+      ],
+      "definition_of_done": [
+        "Green CI, tests added",
+        "Docs updated and screenshots recorded",
+        "Telemetry shipped with dashboard links",
+        "Feature flag default OFF"
+      ],
+      "risk": "medium",
+      "owner": "tbd",
+      "labels": ["backend", "frontend", "feature-flag"],
+      "kpi": "Space creation success rate ≥ 99.5%",
+      "estimate_hours": 120
+    },
+    {
+      "id": "CNT-020",
+      "title": "Ship content templates with version history",
+      "module": "Content",
+      "type": "feature",
+      "priority": "P0",
+      "size": "XL",
+      "dependencies": ["MOD-001"],
+      "acceptance_criteria": [
+        "Article, Discussion, Q&A, Event, Workshop templates available per space",
+        "Draft autosave and post_versions diff viewer implemented",
+        "Scheduling and canonical URL workflows validated"
+      ],
+      "definition_of_done": [
+        "Green CI, tests added",
+        "Docs updated (product spec & UX states)",
+        "Telemetry shipped for draft/publish events",
+        "Feature flag default OFF"
+      ],
+      "risk": "high",
+      "owner": "tbd",
+      "labels": ["frontend", "backend", "editor"],
+      "kpi": "Draft→publish conversion ≥70%",
+      "estimate_hours": 200
+    },
+    {
+      "id": "SRCH-030",
+      "title": "Implement taxonomy, synonyms, and unified search",
+      "module": "Search",
+      "type": "feature",
+      "priority": "P0",
+      "size": "L",
+      "dependencies": ["MOD-001", "CNT-020"],
+      "acceptance_criteria": [
+        "Tags CRUD with synonyms/merges and tag wikis",
+        "Search service indexes posts, comments, events, profiles",
+        "Topic pages render curated feeds with filters"
+      ],
+      "definition_of_done": [
+        "Green CI, tests added",
+        "Docs updated (taxonomy guide)",
+        "Telemetry shipped for search latency & zero-result rate",
+        "Feature flag default OFF"
+      ],
+      "risk": "medium",
+      "owner": "tbd",
+      "labels": ["search", "backend", "frontend"],
+      "kpi": "Search P95 latency ≤ 500ms",
+      "estimate_hours": 160
+    },
+    {
+      "id": "REP-040",
+      "title": "Launch reputation engine and privilege ladder",
+      "module": "Reputation",
+      "type": "feature",
+      "priority": "P1",
+      "size": "L",
+      "dependencies": ["MOD-001", "CNT-020"],
+      "acceptance_criteria": [
+        "Reputation events recorded for answers, articles, reports, events, projects",
+        "Privilege thresholds enforce access to edit/tag/mod actions",
+        "Time-decay applied to leaderboard aggregates"
+      ],
+      "definition_of_done": [
+        "Green CI, tests added",
+        "Docs updated (reputation guide)",
+        "Telemetry shipped for reputation deltas",
+        "Feature flag default OFF"
+      ],
+      "risk": "medium",
+      "owner": "tbd",
+      "labels": ["backend", "analytics"],
+      "kpi": "Leaderboard freshness index ≥ 0.8",
+      "estimate_hours": 140
+    },
+    {
+      "id": "MOD-050",
+      "title": "Moderation automation and sanctions system",
+      "module": "Moderation",
+      "type": "feature",
+      "priority": "P0",
+      "size": "L",
+      "dependencies": ["REP-040"],
+      "acceptance_criteria": [
+        "Report flows with spam/quality/duplicate/off-topic queues",
+        "Automod rules (rate limit, trust scores, banned domains) configurable per space",
+        "Sanctions workflow supports removals, quarantines, shadow-bans with audit logs"
+      ],
+      "definition_of_done": [
+        "Green CI, tests added",
+        "Docs updated (moderation handbook)",
+        "Telemetry shipped for queue age & sanction counts",
+        "Feature flag default OFF"
+      ],
+      "risk": "high",
+      "owner": "tbd",
+      "labels": ["safety", "backend", "frontend"],
+      "kpi": "Moderation queue oldest < 30 minutes",
+      "estimate_hours": 180
+    },
+    {
+      "id": "COM-060",
+      "title": "Implement donations and recurring pledges",
+      "module": "Commerce",
+      "type": "feature",
+      "priority": "P0",
+      "size": "L",
+      "dependencies": ["GOV-000", "SEC-001"],
+      "acceptance_criteria": [
+        "One-time tips and recurring pledges with fee transparency",
+        "Donor covers fees toggle & anonymity options",
+        "Receipts generated and emailed with audit trail"
+      ],
+      "definition_of_done": [
+        "Green CI, tests added",
+        "Docs updated (commerce guide)",
+        "Telemetry shipped for donation success rate",
+        "Feature flag default OFF"
+      ],
+      "risk": "high",
+      "owner": "tbd",
+      "labels": ["payments", "frontend", "backend"],
+      "kpi": "Donation success rate ≥95%",
+      "estimate_hours": 180
+    },
+    {
+      "id": "PAY-070",
+      "title": "Payouts with KYC and job queue",
+      "module": "Commerce",
+      "type": "feature",
+      "priority": "P0",
+      "size": "L",
+      "dependencies": ["COM-060"],
+      "acceptance_criteria": [
+        "Creator onboarding captures KYC and payout preferences",
+        "Payout queue with retries and error handling",
+        "Receipts/invoices accessible to creators and admins"
+      ],
+      "definition_of_done": [
+        "Green CI, tests added",
+        "Docs updated (payout SOP)",
+        "Telemetry shipped for payout error rate",
+        "Feature flag default OFF"
+      ],
+      "risk": "high",
+      "owner": "tbd",
+      "labels": ["payments", "backend"],
+      "kpi": "Payout error rate <1%",
+      "estimate_hours": 160
+    },
+    {
+      "id": "EVT-080",
+      "title": "Events and workshops platform",
+      "module": "Events",
+      "type": "feature",
+      "priority": "P0",
+      "size": "XL",
+      "dependencies": ["MOD-001", "COM-060"],
+      "acceptance_criteria": [
+        "Online/offline events with ticketing, waitlists, coupon codes",
+        "Reminders (T-24h/1h/10m) and post-event recording/materials upload",
+        "Workshops support multi-session schedules, assignments, completion badges"
+      ],
+      "definition_of_done": [
+        "Green CI, tests added",
+        "Docs updated (events playbook)",
+        "Telemetry shipped for RSVP→attendance rate",
+        "Feature flag default OFF"
+      ],
+      "risk": "high",
+      "owner": "tbd",
+      "labels": ["events", "frontend", "backend"],
+      "kpi": "Event RSVP→attendance ≥60%",
+      "estimate_hours": 220
+    },
+    {
+      "id": "MSG-090",
+      "title": "Threaded comments and direct messaging",
+      "module": "Engagement",
+      "type": "feature",
+      "priority": "P1",
+      "size": "L",
+      "dependencies": ["MOD-001", "REP-040"],
+      "acceptance_criteria": [
+        "Threaded comments with quote-reply, mentions, collapsible branches",
+        "Direct messages with request/accept workflow and abuse protections",
+        "Rate limiting and reporting integrated with moderation service"
+      ],
+      "definition_of_done": [
+        "Green CI, tests added",
+        "Docs updated (messaging UX)",
+        "Telemetry shipped for comment engagement",
+        "Feature flag default OFF"
+      ],
+      "risk": "medium",
+      "owner": "tbd",
+      "labels": ["frontend", "backend", "safety"],
+      "kpi": "Comment response rate ≥ baseline",
+      "estimate_hours": 150
+    },
+    {
+      "id": "OBS-100",
+      "title": "Observability platform rollout",
+      "module": "SRE",
+      "type": "feature",
+      "priority": "P0",
+      "size": "M",
+      "dependencies": [],
+      "acceptance_criteria": [
+        "Metrics for KPIs (publish latency, search p95, donation success, payout error, RSVP→attendance, moderation queue age, crash-free sessions)",
+        "Distributed tracing instrumented for major services",
+        "Dashboards and alerting policies documented"
+      ],
+      "definition_of_done": [
+        "Green CI, tests added",
+        "Docs updated (/docs/08-observability.md)",
+        "Telemetry shipped and validated",
+        "Feature flag default OFF"
+      ],
+      "risk": "medium",
+      "owner": "tbd",
+      "labels": ["observability", "infrastructure"],
+      "kpi": "Alert MTTA < 15m",
+      "estimate_hours": 120
+    }
+  ]
+}

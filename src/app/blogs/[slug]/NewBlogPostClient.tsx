@@ -20,10 +20,10 @@ import { CommentsSection } from '@/components/ui/CommentsSection';
 import { Breadcrumbs, type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import { NewFollowSection } from '@/components/ui/NewFollowSection';
 import type { BlogListPost, BlogPostDetail } from '@/lib/posts';
-import { BookmarkButton } from '@/components/library/BookmarkButton';
+import { SaveToListDrawer } from '@/components/library/SaveToListDrawer';
 import { HighlightSelector } from '@/components/library/HighlightSelector';
 import { useAuthenticatedProfile } from '@/hooks/useAuthenticatedProfile';
-import type { Bookmark, ReadingHistoryEntry } from '@/utils/types';
+import type { ReadingHistoryEntry } from '@/utils/types';
 import {
   buildReadingHistoryPayload,
   computeScrollProgress,
@@ -54,9 +54,9 @@ export default function NewBlogPostClient({ post, relatedPosts, canonicalUrl, br
   }, [post.slug]);
 
   const { profile, isLoading: profileLoading } = useAuthenticatedProfile();
-  const [initialBookmarkId, setInitialBookmarkId] = useState<string | null>(null);
   const [libraryError, setLibraryError] = useState<string | null>(null);
   const [libraryStateReady, setLibraryStateReady] = useState(false);
+  const [highlightNotice, setHighlightNotice] = useState<string | null>(null);
   const historyIdRef = useRef<string | null>(null);
   const readSecondsRef = useRef<number>(0);
   const maxScrollRef = useRef<number>(0);
@@ -66,12 +66,20 @@ export default function NewBlogPostClient({ post, relatedPosts, canonicalUrl, br
   const isFlushingRef = useRef(false);
 
   useEffect(() => {
+    if (!highlightNotice) {
+      return undefined;
+    }
+
+    const timeout = window.setTimeout(() => setHighlightNotice(null), 4000);
+    return () => window.clearTimeout(timeout);
+  }, [highlightNotice]);
+
+  useEffect(() => {
     if (profileLoading) {
       return;
     }
 
     if (!profile) {
-      setInitialBookmarkId(null);
       setLibraryError(null);
       setLibraryStateReady(true);
       historyIdRef.current = null;
@@ -87,35 +95,14 @@ export default function NewBlogPostClient({ post, relatedPosts, canonicalUrl, br
 
     const loadLibraryState = async () => {
       try {
-        const [bookmarkResponse, historyResponse] = await Promise.all([
-          fetch(`/api/library/bookmarks?postId=${post.id}&limit=1`, {
-            method: 'GET',
-            credentials: 'include',
-            cache: 'no-store',
-          }),
-          fetch(`/api/library/history?postId=${post.id}&limit=1`, {
-            method: 'GET',
-            credentials: 'include',
-            cache: 'no-store',
-          }),
-        ]);
+        const historyResponse = await fetch(`/api/library/history?postId=${post.id}&limit=1`, {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+        });
 
         if (cancelled) {
           return;
-        }
-
-        if (bookmarkResponse.ok) {
-          const { items } = (await bookmarkResponse.json()) as { items: Bookmark[] };
-          const [bookmark] = items;
-          setInitialBookmarkId(bookmark?.id ?? null);
-        } else if (bookmarkResponse.status !== 404) {
-          try {
-            const payload = (await bookmarkResponse.json()) as { error?: string };
-            setLibraryError(payload.error ?? 'Unable to sync your bookmarks right now.');
-          } catch (error) {
-            console.error('Failed to parse bookmark response', error);
-            setLibraryError('Unable to sync your bookmarks right now.');
-          }
         }
 
         if (historyResponse.ok) {
@@ -146,7 +133,7 @@ export default function NewBlogPostClient({ post, relatedPosts, canonicalUrl, br
         }
       } catch (error) {
         if (!cancelled) {
-          console.error('Failed to load library metadata', error);
+          console.error('Failed to load reading history metadata', error);
           setLibraryError('Unable to reach the library service. Try refreshing the page.');
         }
       } finally {
@@ -484,17 +471,18 @@ export default function NewBlogPostClient({ post, relatedPosts, canonicalUrl, br
                       Loading your account…
                     </div>
                   ) : profile ? (
-                    libraryStateReady ? (
-                      <BookmarkButton
+                    <div className="flex w-full flex-col items-stretch gap-2 md:w-auto">
+                      <SaveToListDrawer
                         postId={post.id}
-                        initialBookmarkId={initialBookmarkId ?? null}
+                        postTitle={post.title}
                         className="inline-flex w-full justify-center md:w-auto"
                       />
-                    ) : (
-                      <div className="inline-flex w-full items-center justify-center rounded-[24px] border-4 border-dashed border-black bg-[#87CEEB]/40 px-4 py-2 text-sm font-bold text-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)] md:w-auto">
-                        Syncing your library…
-                      </div>
-                    )
+                      {!libraryStateReady ? (
+                        <div className="inline-flex w-full items-center justify-center rounded-[24px] border-4 border-dashed border-black bg-[#87CEEB]/40 px-4 py-2 text-xs font-bold uppercase tracking-wide text-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)] md:w-auto">
+                          Syncing your reading history…
+                        </div>
+                      ) : null}
+                    </div>
                   ) : (
                     <Link
                       href={`/login?redirect=/blogs/${post.slug}`}
@@ -525,12 +513,23 @@ export default function NewBlogPostClient({ post, relatedPosts, canonicalUrl, br
                   </div>
                 )}
                 {profile ? (
-                  <HighlightSelector postId={post.id}>
+                  <HighlightSelector
+                    postId={post.id}
+                    onHighlightCreated={() => setHighlightNotice('Highlight saved to your library.')}
+                  >
                     <NewMarkdownRenderer content={post.content} />
                   </HighlightSelector>
                 ) : (
                   <NewMarkdownRenderer content={post.content} />
                 )}
+                {highlightNotice ? (
+                  <p
+                    className="mt-4 rounded-[24px] border-4 border-black bg-[#90EE90]/40 px-4 py-2 text-sm font-semibold text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,0.1)]"
+                    role="status"
+                  >
+                    {highlightNotice}
+                  </p>
+                ) : null}
 
                 {!profile && !profileLoading ? (
                   <div className="mt-6 rounded-[32px] border-4 border-dashed border-black bg-white px-5 py-4 text-sm font-semibold text-black shadow-[12px_12px_0px_0px_rgba(0,0,0,0.12)]">

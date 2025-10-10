@@ -17,7 +17,7 @@
 | `event_rsvp_to_attendance_rate` | Attendance / RSVPs | Gauge | `event_type`, `space` |
 | `moderation_queue_oldest_min` | Age of oldest open report | Gauge | `queue_type`, `space` |
 | `crash_free_sessions` | % of sessions without fatal error | Gauge | `platform` |
-| `authz_denied_count` | Authorization failures | Counter | `resource`, `role`, `space` |
+| `authz_denied_count` | Authorization failures | Counter | `context`, `resource`, `role`, `space`, `reason` |
 | `flag_evaluation_latency_ms` | Feature flag evaluation | Histogram | `flag_key` |
 | `webhook_delivery_success_rate` | Webhook successes vs. attempts | Gauge | `event_type` |
 | `automod_trigger_count` | Automod actions per rule | Counter | `rule_type`, `space` |

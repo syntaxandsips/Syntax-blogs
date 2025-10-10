@@ -11,6 +11,7 @@ import {
   invalidateFeatureFlagCache,
   upsertFeatureFlagCache,
 } from '@/lib/feature-flags/server'
+import { recordAuthzDeny } from '@/lib/observability/metrics'
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server-client'
 import type { Database } from '@/lib/supabase/types'
 import type { AdminFeatureFlagAuditEntry, AdminFeatureFlagRecord } from '@/utils/types'
@@ -72,7 +73,7 @@ const mapAuditRow = (row: Database['public']['Tables']['feature_flag_audit']['Ro
   createdAt: row.created_at,
 })
 
-const requireAdminProfile = async (): Promise<{ profile: ProfileRecord } | { response: NextResponse }> => {
+export const requireAdminProfile = async (): Promise<{ profile: ProfileRecord } | { response: NextResponse }> => {
   const supabase = createServerClient()
   const {
     data: { user },
@@ -86,6 +87,7 @@ const requireAdminProfile = async (): Promise<{ profile: ProfileRecord } | { res
   }
 
   if (!user) {
+    recordAuthzDeny('feature_flag_admin', { reason: 'no_session' })
     return { response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
   }
 
@@ -104,7 +106,16 @@ const requireAdminProfile = async (): Promise<{ profile: ProfileRecord } | { res
     }
   }
 
-  if (!profile?.is_admin) {
+  if (!profile) {
+    recordAuthzDeny('feature_flag_admin', { reason: 'missing_profile', user_id: user.id })
+    return { response: NextResponse.json({ error: 'Forbidden: admin access required.' }, { status: 403 }) }
+  }
+
+  if (!profile.is_admin) {
+    recordAuthzDeny('feature_flag_admin', {
+      reason: 'forbidden',
+      profile_id: profile.id,
+    })
     return { response: NextResponse.json({ error: 'Forbidden: admin access required.' }, { status: 403 }) }
   }
 
@@ -385,6 +396,12 @@ export async function PATCH(request: Request) {
 }
 
 export async function PURGE() {
+  const result = await requireAdminProfile()
+
+  if ('response' in result) {
+    return result.response
+  }
+
   invalidateFeatureFlagCache()
   return NextResponse.json({ message: 'Feature flag cache cleared.' })
 }

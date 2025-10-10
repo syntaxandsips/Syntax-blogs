@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Added the missing `rbac_hardening_v1` enum value to feature flag migrations to keep Supabase schema in sync with governance defaults.
+- Locked the admin feature flag API (including PURGE) behind RBAC checks, emitting denial telemetry and documenting reversible down migrations.
 
 ### Planned - Library Feature
 - **User Library System**: Complete Medium-style library feature for saving and organizing content

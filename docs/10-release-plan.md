@@ -45,7 +45,7 @@
 
 ## 6. Rollback Procedures
 - **Feature-level:** Toggle flag OFF, clear caches, notify stakeholders.
-- **Database-level:** Execute down migration scripts; for irreversible data changes, restore from Supabase point-in-time recovery.
+- **Database-level:** Execute down migration scripts (`0017_create_feature_flags.down.sql`, `0018_expand_role_matrix.down.sql`); for irreversible data changes, restore from Supabase point-in-time recovery.
 - **Payments:** Pause webhook processing via provider dashboard, ensure escrow funds safe.
 - **Events:** Notify attendees of postponement if event module impacted.
 

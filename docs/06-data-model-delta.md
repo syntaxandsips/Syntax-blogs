@@ -66,7 +66,7 @@
 - **Webhooks:** Store delivery payloads for 30 days for debugging, then purge.
 
 ## 4. Migration Approach
-1. **Feature-flag gated migrations:** Introduce new tables with `enabled` flags default false; ensure down migrations exist.
+1. **Feature-flag gated migrations:** Introduce new tables with `enabled` flags default false; ensure down migrations exist. `0017_create_feature_flags.down.sql` and `0018_expand_role_matrix.down.sql` provide rollback paths for GOV-000 and SEC-001 respectively.
 2. **Backfill Strategy:** Use Supabase functions or background workers to populate new tables (e.g., `reputation_aggregates`) with resume tokens.
 3. **Incremental rollout:** Deploy schema changes in small batches (spaces, then content, then commerce) to minimize lock times.
 4. **Testing:** Integration tests validating RLS and referential integrity must run in CI before enabling flags.

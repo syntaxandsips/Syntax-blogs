@@ -34,7 +34,7 @@
 - Tests must run with flags ON and OFF to ensure fallback behavior.
 - Provide helper to set flag context in tests (`withFeatureFlag('spaces_v1', true)`).
 - CI includes matrix builds for critical flags (Spaces, Commerce, Events).
-- Added Vitest coverage for the feature flag SDK (caching, invalidation, telemetry) as part of GOV-000; extend coverage to admin API routes in upcoming iterations.
+- Added Vitest coverage for the feature flag SDK (caching, invalidation, telemetry) as part of GOV-000; admin route guard tests (`tests/unit/feature-flags-admin-route.test.ts`) now verify unauthorized flows and cache purge protections.
 - SEC-001 adds Vitest coverage for role slug normalization and observability counters, plus a Supabase RBAC harness (`tests/security/rbac-policies.test.ts`) that runs when credentials are provided.
 
 ## 7. Performance & Load

@@ -93,6 +93,7 @@ export interface AdminPost {
   publishedAt: string | null
   scheduledFor: string | null
   authorId: string | null
+  spaceId: string | null
 }
 
 export interface PostFormValues {
@@ -112,6 +113,7 @@ export interface PostFormValues {
   publishedAt: string | null
   scheduledFor: string | null
   authorId?: string | null
+  spaceId?: string | null
 }
 
 export interface AdminRole {

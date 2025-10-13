@@ -22,6 +22,8 @@
 | `webhook_delivery_success_rate` | Webhook successes vs. attempts | Gauge | `event_type` |
 | `automod_trigger_count` | Automod actions per rule | Counter | `rule_type`, `space` |
 
+> 2025-10-31: Added `admin_publish_duration_ms` internal histogram for staff tooling responsiveness and began emitting `content_publish_latency_ms` from `/api/admin/posts`. Structured logs now include `user_id_hash`, `space_id`, and feature flag context for audit correlation.
+
 ## 3. Tracing Strategy
 - Instrument Next.js route handlers and server components with OpenTelemetry.
 - Propagate trace context through Supabase client calls using custom instrumentation wrappers.
@@ -34,8 +36,8 @@
 - Centralize logs via Logflare or OpenTelemetry Collector; set retention 30 days (longer for audit logs stored in DB).
 
 ## 5. Dashboards
-- **Executive KPI Dashboard:** Aggregates content latency, search performance, donation success, RSVP-to-attendance, crash-free sessions.
-- **Operations Dashboard:** Displays moderation queue age, automod triggers, authz failures, feature flag adoption.
+- **Executive KPI Dashboard (`dash_exec_kpi_v1`):** Aggregates content latency (panels for `content_publish_latency_ms`, `admin_publish_duration_ms`), crash-free sessions, and donation funnel placeholders.
+- **Operations Dashboard (`dash_ops_rbac_v1`):** Displays `authz_denied_count` (tagged by `resource`, `role`, `space`), moderation backlog, feature flag toggles (joining `feature_flag_audit`), and Playwright synthetic status.
 - **Commerce Dashboard:** Shows donation funnel, payout queue status, dispute rate.
 - **Events Dashboard:** Tracks registrations, attendance, revenue, NPS survey results.
 - **Reliability Dashboard:** SLO status, error budgets, incident history.
@@ -50,6 +52,8 @@
 | Moderation backlog | `moderation_queue_oldest_min` > 60 | Warning | Slack #safety |
 | Crash-free drop | `crash_free_sessions` < 97% daily | Warning | Slack #frontend |
 | Webhook delivery failures | `webhook_delivery_success_rate` < 95% for 30m | Warning | Slack #integrations |
+
+> Alert wiring (2025-10-31): Added PagerDuty service `pd-sec-ops` for publish latency and RBAC denial spikes (`authz_denied_count` > 25/min tagged `resource=admin_users`), Slack webhook `ops-telemetry` for nav IA checks.
 
 ## 7. SLOs & Error Budgets
 | Service | SLO | Error Budget |

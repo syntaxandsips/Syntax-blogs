@@ -111,6 +111,7 @@ const DashboardContent = ({
       scheduledFor: post.scheduledFor ?? null,
       authorId: post.authorId ?? null,
       views: post.views ?? 0,
+      spaceId: post.spaceId ?? null,
     }))
   }, [])
 

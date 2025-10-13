@@ -27,6 +27,10 @@
 
 Full matrix with endpoint mapping maintained alongside Supabase policy definitions. Automated tests validate allow/deny paths per `/tests/security`.
 
+**Admin Guard Hardening:** Unified admin API routes now delegate to `requireAdmin` in `src/lib/auth/require-admin.ts`, which resolves canonical roles, audits denials via `audit_logs`, and emits `authz_denied_count{resource,role,space,reason}`. Guard usage now extends to user management and gamification APIs, ensuring telemetry tags include `resource`, `role`, `space`, `reason` for Operations dashboards. RLS helper functions (`normalize_role_slug`, `user_space_role_at_least`, `highest_role_slug`) back deny-by-default policies across `spaces`, `space_members`, `space_rules`, `posts`, `post_versions`, `comments`, `reports`, `feature_flags`, and `audit_logs`.
+
+**Runbook – RLS Denial Spike (2025-10-31):** If `authz_denied_count` surges, check Operations dashboard panel `op_rbac_denials` for `resource` + `space` tags. Use `/admin/audit` to confirm actor role assignments and `feature_flag_audit` for recent flag toggles. Validate helper functions are returning canonical slugs via Supabase SQL (`select public.highest_role_slug('<profile-id>'::uuid)`). Rollback: toggle `rbac_hardening_v1` off, apply migration `0020_sec_001_rls_policies.down.sql`, restore from PITR if required. Document incident in `/docs/operations/runbooks/rls-denial-spike.md` (to be created).
+
 ## 3. Input Validation & Sanitization
 - Use Zod schemas for all API inputs, with centralized validation utilities.
 - Sanitize rich text/HTML via vetted library (e.g., DOMPurify) server-side before storage.

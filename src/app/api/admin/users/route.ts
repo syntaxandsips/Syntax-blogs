@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server'
-import {
-  createServerComponentClient,
-  createServiceRoleClient,
-} from '@/lib/supabase/server-client'
-import { recordAuthzDeny } from '@/lib/observability/metrics'
+import { createServiceRoleClient } from '@/lib/supabase/server-client'
+import { requireAdmin } from '@/lib/auth/require-admin'
+import { writeAuditLog } from '@/lib/audit/log'
 import type { AdminRole, CreateAdminUserPayload } from '@/utils/types'
 import {
   fetchRoles,
@@ -15,50 +13,6 @@ import {
 } from './shared'
 
 export { sanitizeRoleSlugs } from './shared'
-
-const getAdminProfile = async (): Promise<
-  | { response: NextResponse }
-  | { profile: { id: string } }
-> => {
-  const supabase = createServerComponentClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    recordAuthzDeny('admin_users', { stage: 'auth_check' })
-    return {
-      response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
-    }
-  }
-
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('id, is_admin')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  if (error) {
-    return {
-      response: NextResponse.json(
-        { error: `Unable to load profile: ${error.message}` },
-        { status: 500 },
-      ),
-    }
-  }
-
-  if (!profile || !profile.is_admin) {
-    recordAuthzDeny('admin_users', { stage: 'role_check' })
-    return {
-      response: NextResponse.json(
-        { error: 'Forbidden: admin access required.' },
-        { status: 403 },
-      ),
-    }
-  }
-
-  return { profile: { id: profile.id } }
-}
 
 const sanitizeEmail = (value: unknown): string => {
   if (typeof value !== 'string') return ''
@@ -77,9 +31,9 @@ const sanitizePassword = (value: unknown): string => {
 }
 
 export async function GET() {
-  const result = await getAdminProfile()
-  if ('response' in result) {
-    return result.response
+  const guard = await requireAdmin({ resource: 'admin_users', action: 'list' })
+  if (!guard.ok) {
+    return guard.response
   }
 
   try {
@@ -105,9 +59,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const result = await getAdminProfile()
-  if ('response' in result) {
-    return result.response
+  const guard = await requireAdmin({ resource: 'admin_users', action: 'create' })
+  if (!guard.ok) {
+    return guard.response
   }
 
   const body = (await request.json()) as Partial<CreateAdminUserPayload>
@@ -185,6 +139,19 @@ export async function POST(request: Request) {
 
     const refreshedProfile = await fetchProfileById(serviceClient, profileData.id)
     const summary = await buildUserSummary(serviceClient, refreshedProfile)
+
+    await writeAuditLog({
+      actorId: guard.profile.id,
+      actorRole: guard.profile.roleSlug,
+      resource: 'admin_users',
+      action: 'user_created',
+      entityId: summary.profileId,
+      metadata: {
+        email,
+        is_admin: isAdmin,
+        role_slugs: requestedRoles,
+      },
+    })
 
     return NextResponse.json({ user: summary })
   } catch (error) {

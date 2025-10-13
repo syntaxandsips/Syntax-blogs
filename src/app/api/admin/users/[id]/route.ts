@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
-import {
-  createServerComponentClient,
-  createServiceRoleClient,
-} from '@/lib/supabase/server-client'
+import { createServiceRoleClient } from '@/lib/supabase/server-client'
 import type { UpdateAdminUserPayload } from '@/utils/types'
+import { requireAdmin } from '@/lib/auth/require-admin'
+import { writeAuditLog } from '@/lib/audit/log'
 import {
   fetchRoles,
   fetchProfileById,
@@ -11,48 +10,6 @@ import {
   buildUserSummary,
   sanitizeRoleSlugs,
 } from '../shared'
-
-const getAdminProfile = async (): Promise<
-  | { response: NextResponse }
-  | { profile: { id: string } }
-> => {
-  const supabase = createServerComponentClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return {
-      response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
-    }
-  }
-
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('id, is_admin')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  if (error) {
-    return {
-      response: NextResponse.json(
-        { error: `Unable to load profile: ${error.message}` },
-        { status: 500 },
-      ),
-    }
-  }
-
-  if (!profile || !profile.is_admin) {
-    return {
-      response: NextResponse.json(
-        { error: 'Forbidden: admin access required.' },
-        { status: 403 },
-      ),
-    }
-  }
-
-  return { profile: { id: profile.id } }
-}
 
 const sanitizeDisplayName = (value: unknown): string => {
   if (typeof value !== 'string') return ''
@@ -68,14 +25,18 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const result = await getAdminProfile()
-  if ('response' in result) {
-    return result.response
-  }
-
   const { id: profileId } = await params
   if (!profileId) {
     return NextResponse.json({ error: 'Profile id is required.' }, { status: 400 })
+  }
+
+  const guard = await requireAdmin({
+    resource: 'admin_users',
+    action: 'update',
+    entityId: profileId,
+  })
+  if (!guard.ok) {
+    return guard.response
   }
 
   const body = (await request.json()) as Partial<UpdateAdminUserPayload>
@@ -128,6 +89,20 @@ export async function PATCH(
     const refreshedProfile = await fetchProfileById(serviceClient, profileId)
     const summary = await buildUserSummary(serviceClient, refreshedProfile)
 
+    await writeAuditLog({
+      actorId: guard.profile.id,
+      actorRole: guard.profile.roleSlug,
+      resource: 'admin_users',
+      action: 'user_updated',
+      entityId: summary.profileId,
+      metadata: {
+        display_name: displayName,
+        role_slugs: requestedRoles,
+        is_admin: isAdmin,
+        password_reset: Boolean(newPassword),
+      },
+    })
+
     return NextResponse.json({ user: summary })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to update user.'
@@ -147,17 +122,21 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const result = await getAdminProfile()
-  if ('response' in result) {
-    return result.response
-  }
-
-  const { id: currentProfileId } = result.profile
-
   const { id: profileId } = await params
   if (!profileId) {
     return NextResponse.json({ error: 'Profile id is required.' }, { status: 400 })
   }
+
+  const guard = await requireAdmin({
+    resource: 'admin_users',
+    action: 'delete',
+    entityId: profileId,
+  })
+  if (!guard.ok) {
+    return guard.response
+  }
+
+  const { id: currentProfileId, roleSlug } = guard.profile
 
   if (profileId === currentProfileId) {
     return NextResponse.json(
@@ -187,6 +166,17 @@ export async function DELETE(
     if (profileDeleteError) {
       throw new Error(`Unable to delete profile: ${profileDeleteError.message}`)
     }
+
+    await writeAuditLog({
+      actorId: guard.profile.id,
+      actorRole: roleSlug,
+      resource: 'admin_users',
+      action: 'user_deleted',
+      entityId: profileId,
+      metadata: {
+        deleted_user_id: profileRecord.user_id,
+      },
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

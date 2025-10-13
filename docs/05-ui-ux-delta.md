@@ -19,8 +19,6 @@
 | `EventCard` | Server component | New | Lists schedule, venue/map, availability, price. |
 | `NotificationPreferencesMatrix` | Client component | New | Grid-based control for per-space/per-content notification toggles. |
 | `AuditLogTimeline` | Server component | New | Timeline visualization for moderation/flag changes with filter chips. |
-| `FeatureFlagManager` | Client component | New | Admin console surface for creating, editing, and auditing feature flags with accessible forms and toggles. |
-| `UserManagement` | Client component | Updated | Role assignment UI now gated by `rbac_hardening_v1`, highlights highest role badge and displays RBAC guidance tooltips. |
 
 ## 3. Design Tokens & Theming
 - **Color:** Expand palette to include semantic tokens (`success`, `warning`, `danger`, `info`, `neutral`) with accessible contrast; provide dark/light variants.
@@ -31,7 +29,7 @@
 
 ## 4. Accessibility Notes
 - All new interactive components must support keyboard navigation, focus-visible styles, and ARIA attributes.
-- Provide descriptive labels for toggles (e.g., fee coverage slider, feature flag enable switch) and ensure error messages include guidance.
+- Provide descriptive labels for toggles (e.g., fee coverage slider) and ensure error messages include guidance.
 - For events, include accessibility notes (wheelchair access, ASL availability) and ensure color-coded statuses have text equivalents.
 - Implement reduced motion mode for animations in reputation celebrations and feed transitions.
 

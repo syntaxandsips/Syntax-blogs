@@ -43,19 +43,14 @@
 | `webhook_deliveries` | Delivery logs | `id`, `webhook_id`, `payload`, `status`, `attempts`, `response_code`, `sent_at` | |
 | `direct_messages` | DM threads | `id`, `initiator_id`, `recipient_id`, `status`, `created_at`, `last_message_at` | |
 | `direct_message_messages` | DM content | `id`, `thread_id`, `sender_id`, `body`, `attachments`, `status`, `created_at`, `read_at` | |
-| `feature_flags` | Governs rollout configuration | `id`, `flag_key`, `description`, `owner`, `enabled`, `metadata`, `created_by`, `updated_by`, `created_at`, `updated_at` | `flag_key` uses `feature_flag_key` enum; unique index on key; RLS restricts to admins + service role. |
-| `feature_flag_audit` | Immutable log for flag governance | `id`, `flag_id`, `flag_key`, `previous_enabled`, `new_enabled`, `changed_by`, `changed_by_role`, `reason`, `metadata`, `created_at` | Foreign key to `feature_flags`; indexes on (`flag_key`, `created_at`) and (`changed_by`, `created_at`). |
-| `roles` (update) | Standardize global role hierarchy | `id`, `slug`, `name`, `priority`, `description`, `created_at` | Canonical slugs now member/contributor/organizer/moderator/admin; migrate legacy author/editor to new slugs. |
-| `profile_roles` (update) | Maintain baseline membership + highest role tracking | `profile_id`, `role_id`, `assigned_at` | Triggers recalc `profiles.primary_role_id`; ensures `member` role always present; syncs `profiles.is_admin`. |
+| `feature_flag_audit` | Track flag changes | `id`, `flag_key`, `actor_id`, `change_type`, `payload`, `created_at` | |
 
 ## 2. Index & Constraint Strategy
 - Enforce foreign keys between new tables and existing `profiles`, `posts`, `tags` to maintain referential integrity.
-- Add unique constraints for slugs (`spaces.slug`, `events.slug` if introduced) and composite keys where appropriate. `feature_flags.flag_key` remains unique to prevent duplicate governance records.
-- Maintain supporting indexes for feature flag governance: `feature_flags(flag_key)`, `feature_flags(enabled)`, and composite audit indexes on (`flag_key`, `created_at`) plus (`changed_by`, `created_at`).
+- Add unique constraints for slugs (`spaces.slug`, `events.slug` if introduced) and composite keys where appropriate.
 - Implement partial indexes for queue-heavy tables (`reports`, `payout_jobs`, `notifications`) filtering by status to speed up dashboards.
 - Use `btree_gin` indexes on JSONB columns for searching `feature_flags`, `config`, and `payload` data.
 - Leverage Supabase Row Level Security policies aligned with `/docs/07-security-privacy.md` to protect each table.
-- Extend `feature_flag_key` enum with `rbac_hardening_v1` to gate RBAC updates.
 
 ## 3. Data Retention & Privacy
 - **Audit & Moderation Logs:** Retain indefinitely with immutable hash chain; provide export for legal review.
@@ -66,7 +61,7 @@
 - **Webhooks:** Store delivery payloads for 30 days for debugging, then purge.
 
 ## 4. Migration Approach
-1. **Feature-flag gated migrations:** Introduce new tables with `enabled` flags default false; ensure down migrations exist. `0017_create_feature_flags.down.sql` and `0018_expand_role_matrix.down.sql` provide rollback paths for GOV-000 and SEC-001 respectively.
+1. **Feature-flag gated migrations:** Introduce new tables with `enabled` flags default false; ensure down migrations exist.
 2. **Backfill Strategy:** Use Supabase functions or background workers to populate new tables (e.g., `reputation_aggregates`) with resume tokens.
 3. **Incremental rollout:** Deploy schema changes in small batches (spaces, then content, then commerce) to minimize lock times.
 4. **Testing:** Integration tests validating RLS and referential integrity must run in CI before enabling flags.

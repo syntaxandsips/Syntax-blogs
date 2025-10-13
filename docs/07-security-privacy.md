@@ -27,8 +27,6 @@
 
 Full matrix with endpoint mapping maintained alongside Supabase policy definitions. Automated tests validate allow/deny paths per `/tests/security`.
 
-Legacy `author`/`editor` slugs have been migrated to the contributor/organizer tiers as part of SEC-001. Admin role management remains behind the `rbac_hardening_v1` feature flag until rollout gates clear.
-
 ## 3. Input Validation & Sanitization
 - Use Zod schemas for all API inputs, with centralized validation utilities.
 - Sanitize rich text/HTML via vetted library (e.g., DOMPurify) server-side before storage.
@@ -64,11 +62,10 @@ Provide user-facing privacy controls (download/delete data) and document flows i
 
 ## 7. Telemetry for Security
 - Emit audit events for login attempts, role changes, flag toggles, payout status changes.
-- Track `authz_denied_count` counter increments on admin/community endpoints to monitor unexpected privilege denials.
 - Monitor anomaly detection metrics (failed logins, payment declines, report spikes).
 - Trigger alerts for suspicious admin activity (multiple sanctions in short window).
 
 ## 8. Outstanding Security Questions
-- Feature flagging handled via Supabase tables (`feature_flags`, `feature_flag_audit`) with RLS (admins + service role); reassess managed vendor only if latency SLAs missed.
+- Which third-party tool handles feature flagging? Impacts data residency and access controls.
 - Finalize SSO strategy for enterprise customers (OIDC, SAML?).
 - Confirm whether messaging requires E2EE or content scanning for compliance regions.

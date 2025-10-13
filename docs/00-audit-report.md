@@ -59,7 +59,7 @@ Syntax & Sips currently delivers a production-grade editorial and community publ
 
 ## 7. Baseline Metrics & Gaps
 - **Content publish latency:** No measurement instrumentation; must be added in Phase 1.
-- **Search P95 latency:** Search not centralized; baseline currently uninstrumented pending unified search rollout.
+- **Search P95 latency:** Search not centralized; baseline TBD.
 - **Donation success rate:** Payments not implemented; baseline 0%.
 - **Moderation queue age:** Admin views exist but no metric tracking; instrumentation required.
 - **Event RSVP conversion:** Events not yet live.

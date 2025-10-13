@@ -34,8 +34,6 @@
 - Tests must run with flags ON and OFF to ensure fallback behavior.
 - Provide helper to set flag context in tests (`withFeatureFlag('spaces_v1', true)`).
 - CI includes matrix builds for critical flags (Spaces, Commerce, Events).
-- Added Vitest coverage for the feature flag SDK (caching, invalidation, telemetry) as part of GOV-000; admin route guard tests (`tests/unit/feature-flags-admin-route.test.ts`) now verify unauthorized flows and cache purge protections.
-- SEC-001 adds Vitest coverage for role slug normalization and observability counters, plus a Supabase RBAC harness (`tests/security/rbac-policies.test.ts`) that runs when credentials are provided.
 
 ## 7. Performance & Load
 - Baseline load test for publish, search, donations, and event checkout before GA.
@@ -44,7 +42,6 @@
 
 ## 8. Accessibility & UX
 - Run Playwright axe checks on core pages (home, space, article editor, Q&A, donations, event checkout).
-- Queue Accessibility scan for the Feature Flag Manager once Playwright admin journeys are wired (tracks in GOV-000 follow-up).
 - Manual keyboard walkthrough sign-off required before enabling flag for GA.
 - Capture screenshots of empty/loading/error states for QA reference.
 

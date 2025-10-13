@@ -3,7 +3,6 @@
 ## 1. Feature Flags
 | Flag Key | Purpose | Default | Owner | Notes |
 | --- | --- | --- | --- | --- |
-| `rbac_hardening_v1` | Harden Supabase role matrix and gate admin role manager | OFF | Security Lead | Enable before opening spaces_v1 pilot; required for SEC-001 sign-off |
 | `spaces_v1` | Enables space creation, rules, membership | OFF | Product Lead | Phase 2 pilot with selected communities |
 | `content_templates_v1` | Activates new editors/templates | OFF | Content PM | Depends on `spaces_v1` |
 | `search_unified_v1` | Turns on new taxonomy/search service | OFF | Search PM | Requires index backfill |
@@ -14,8 +13,6 @@
 | `events_v1` | Events/workshops modules | OFF | Events PM | Tied to `donations_v1` for paid events |
 | `messaging_v1` | Threaded comments & DMs | OFF | Community PM | Monitor abuse metrics |
 | `notifications_v1` | New notification center & webhooks | OFF | Platform PM | Roll out after events/donations |
-
-> Governance update (GOV-000): Supabase-backed feature flag service, admin console manager, and audit trail shipped. All launch flags remain OFF by default until phase gates clear; toggles recorded in `feature_flag_audit`.
 
 ## 2. Rollout Strategy
 1. **Development:** Feature branches merged behind flags with tests and telemetry.
@@ -45,7 +42,7 @@
 
 ## 6. Rollback Procedures
 - **Feature-level:** Toggle flag OFF, clear caches, notify stakeholders.
-- **Database-level:** Execute down migration scripts (`0017_create_feature_flags.down.sql`, `0018_expand_role_matrix.down.sql`); for irreversible data changes, restore from Supabase point-in-time recovery.
+- **Database-level:** Execute down migration scripts; for irreversible data changes, restore from Supabase point-in-time recovery.
 - **Payments:** Pause webhook processing via provider dashboard, ensure escrow funds safe.
 - **Events:** Notify attendees of postponement if event module impacted.
 

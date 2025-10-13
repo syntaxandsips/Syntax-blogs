@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
 import { mapUserList } from '@/lib/library/mappers'
 import { buildLibraryErrorResponse, getLibraryRequestContext } from '@/lib/library/server'
 import {
@@ -20,7 +21,10 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url)
   const queryParams = Object.fromEntries(url.searchParams.entries())
-  const parsedQuery = paginationQuerySchema.safeParse(queryParams)
+  const listsQuerySchema = paginationQuerySchema.extend({
+    postId: z.string().uuid().optional(),
+  })
+  const parsedQuery = listsQuerySchema.safeParse(queryParams)
 
   if (!parsedQuery.success) {
     return NextResponse.json(
@@ -29,7 +33,7 @@ export async function GET(request: Request) {
     )
   }
 
-  const { limit, cursor } = parsedQuery.data
+  const { limit, cursor, postId } = parsedQuery.data
 
   let builder = context.supabase
     .from('user_lists')
@@ -49,9 +53,43 @@ export async function GET(request: Request) {
   }
 
   const lists = (data ?? []).map(mapUserList)
+
+  let membershipMap: Map<string, { itemId: string }> | null = null
+
+  if (postId && lists.length > 0) {
+    const { data: membershipData, error: membershipError } = await context.supabase
+      .from('list_items')
+      .select('id, list_id')
+      .eq('post_id', postId)
+      .in(
+        'list_id',
+        lists.map((list) => list.id),
+      )
+
+    if (membershipError) {
+      return buildLibraryErrorResponse(membershipError, 'Unable to load lists.')
+    }
+
+    const membershipRecords = (membershipData ?? []).filter(
+      (record): record is { id: string; list_id: string } =>
+        typeof record?.id === 'string' && typeof record?.list_id === 'string',
+    )
+
+    membershipMap = new Map(
+      membershipRecords.map((record) => [record.list_id, { itemId: record.id }]),
+    )
+  }
+
   const nextCursor = lists.length === (limit ?? 20) ? lists[lists.length - 1]?.createdAt ?? null : null
 
-  return NextResponse.json({ items: lists, nextCursor })
+  const items = postId
+    ? lists.map((list) => ({
+        ...list,
+        membership: membershipMap?.get(list.id) ?? null,
+      }))
+    : lists
+
+  return NextResponse.json({ items, nextCursor })
 }
 
 export async function POST(request: Request) {

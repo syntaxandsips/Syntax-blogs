@@ -21,21 +21,9 @@
       ],
       "risk": "medium",
       "owner": "tbd",
-      "labels": [
-        "feature-flag",
-        "backend",
-        "frontend"
-      ],
-      "kpi": "Flag evaluation latency \u226450ms",
-      "estimate_hours": 40,
-      "subtasks": [
-        "Schema: create feature_flags and feature_flag_audit tables with RLS + triggers",
-        "API: admin CRUD endpoints with audit logging and secure read endpoints",
-        "SDK: typed server/client helpers with caching and telemetry instrumentation",
-        "UI: Admin dashboard feature flag manager with audit trail viewer",
-        "Tests: unit coverage for SDK and request guards; accessibility scan for manager",
-        "Docs: update data model, UX delta, observability, release plan, assumptions, progress log"
-      ]
+      "labels": ["feature-flag", "backend", "frontend"],
+      "kpi": "Flag evaluation latency ≤50ms",
+      "estimate_hours": 40
     },
     {
       "id": "SEC-001",
@@ -44,9 +32,7 @@
       "type": "feature",
       "priority": "P0",
       "size": "L",
-      "dependencies": [
-        "GOV-000"
-      ],
+      "dependencies": ["GOV-000"],
       "acceptance_criteria": [
         "Roles member/contributor/organizer/moderator/admin enforced via RLS",
         "Integration tests cover allow/deny matrix for critical tables",
@@ -60,19 +46,9 @@
       ],
       "risk": "high",
       "owner": "tbd",
-      "labels": [
-        "backend",
-        "security"
-      ],
+      "labels": ["backend", "security"],
       "kpi": "0 critical authz regressions post-launch",
-      "estimate_hours": 56,
-      "subtasks": [
-        "Schema: update roles hierarchy, migrate legacy slugs, refresh RLS policies for taxonomy/posts/community tables",
-        "API: enforce expanded role checks and audit authz denials with telemetry",
-        "UI: gate admin role manager behind rbac_hardening_v1 and surface role labels",
-        "Tests: unit coverage for role slug normalization, metrics, and RBAC policy harness",
-        "Docs: refresh security matrix, data model, release plan, assumptions, and risks"
-      ]
+      "estimate_hours": 56
     },
     {
       "id": "UX-010",
@@ -81,9 +57,7 @@
       "type": "feature",
       "priority": "P1",
       "size": "M",
-      "dependencies": [
-        "GOV-000"
-      ],
+      "dependencies": ["GOV-000"],
       "acceptance_criteria": [
         "Primary nav supports spaces, feeds, events, funding hubs",
         "Design tokens defined for color, spacing, typography, elevation",
@@ -97,11 +71,8 @@
       ],
       "risk": "medium",
       "owner": "tbd",
-      "labels": [
-        "frontend",
-        "design"
-      ],
-      "kpi": "Nav engagement (CTR) \u2265 baseline",
+      "labels": ["frontend", "design"],
+      "kpi": "Nav engagement (CTR) ≥ baseline",
       "estimate_hours": 48
     },
     {
@@ -111,10 +82,7 @@
       "type": "feature",
       "priority": "P0",
       "size": "L",
-      "dependencies": [
-        "SEC-001",
-        "UX-010"
-      ],
+      "dependencies": ["SEC-001", "UX-010"],
       "acceptance_criteria": [
         "Create/read/update/delete spaces with rules, tags, flairs",
         "Role matrix enforced at API and UI for member/contributor/organizer/mod/admin",
@@ -128,12 +96,8 @@
       ],
       "risk": "medium",
       "owner": "tbd",
-      "labels": [
-        "backend",
-        "frontend",
-        "feature-flag"
-      ],
-      "kpi": "Space creation success rate \u2265 99.5%",
+      "labels": ["backend", "frontend", "feature-flag"],
+      "kpi": "Space creation success rate ≥ 99.5%",
       "estimate_hours": 120
     },
     {
@@ -143,9 +107,7 @@
       "type": "feature",
       "priority": "P0",
       "size": "XL",
-      "dependencies": [
-        "MOD-001"
-      ],
+      "dependencies": ["MOD-001"],
       "acceptance_criteria": [
         "Article, Discussion, Q&A, Event, Workshop templates available per space",
         "Draft autosave and post_versions diff viewer implemented",
@@ -159,12 +121,8 @@
       ],
       "risk": "high",
       "owner": "tbd",
-      "labels": [
-        "frontend",
-        "backend",
-        "editor"
-      ],
-      "kpi": "Draft\u2192publish conversion \u226570%",
+      "labels": ["frontend", "backend", "editor"],
+      "kpi": "Draft→publish conversion ≥70%",
       "estimate_hours": 200
     },
     {
@@ -174,10 +132,7 @@
       "type": "feature",
       "priority": "P0",
       "size": "L",
-      "dependencies": [
-        "MOD-001",
-        "CNT-020"
-      ],
+      "dependencies": ["MOD-001", "CNT-020"],
       "acceptance_criteria": [
         "Tags CRUD with synonyms/merges and tag wikis",
         "Search service indexes posts, comments, events, profiles",
@@ -191,12 +146,8 @@
       ],
       "risk": "medium",
       "owner": "tbd",
-      "labels": [
-        "search",
-        "backend",
-        "frontend"
-      ],
-      "kpi": "Search P95 latency \u2264 500ms",
+      "labels": ["search", "backend", "frontend"],
+      "kpi": "Search P95 latency ≤ 500ms",
       "estimate_hours": 160
     },
     {
@@ -206,10 +157,7 @@
       "type": "feature",
       "priority": "P1",
       "size": "L",
-      "dependencies": [
-        "MOD-001",
-        "CNT-020"
-      ],
+      "dependencies": ["MOD-001", "CNT-020"],
       "acceptance_criteria": [
         "Reputation events recorded for answers, articles, reports, events, projects",
         "Privilege thresholds enforce access to edit/tag/mod actions",
@@ -223,11 +171,8 @@
       ],
       "risk": "medium",
       "owner": "tbd",
-      "labels": [
-        "backend",
-        "analytics"
-      ],
-      "kpi": "Leaderboard freshness index \u2265 0.8",
+      "labels": ["backend", "analytics"],
+      "kpi": "Leaderboard freshness index ≥ 0.8",
       "estimate_hours": 140
     },
     {
@@ -237,9 +182,7 @@
       "type": "feature",
       "priority": "P0",
       "size": "L",
-      "dependencies": [
-        "REP-040"
-      ],
+      "dependencies": ["REP-040"],
       "acceptance_criteria": [
         "Report flows with spam/quality/duplicate/off-topic queues",
         "Automod rules (rate limit, trust scores, banned domains) configurable per space",
@@ -253,11 +196,7 @@
       ],
       "risk": "high",
       "owner": "tbd",
-      "labels": [
-        "safety",
-        "backend",
-        "frontend"
-      ],
+      "labels": ["safety", "backend", "frontend"],
       "kpi": "Moderation queue oldest < 30 minutes",
       "estimate_hours": 180
     },
@@ -268,10 +207,7 @@
       "type": "feature",
       "priority": "P0",
       "size": "L",
-      "dependencies": [
-        "GOV-000",
-        "SEC-001"
-      ],
+      "dependencies": ["GOV-000", "SEC-001"],
       "acceptance_criteria": [
         "One-time tips and recurring pledges with fee transparency",
         "Donor covers fees toggle & anonymity options",
@@ -285,12 +221,8 @@
       ],
       "risk": "high",
       "owner": "tbd",
-      "labels": [
-        "payments",
-        "frontend",
-        "backend"
-      ],
-      "kpi": "Donation success rate \u226595%",
+      "labels": ["payments", "frontend", "backend"],
+      "kpi": "Donation success rate ≥95%",
       "estimate_hours": 180
     },
     {
@@ -300,9 +232,7 @@
       "type": "feature",
       "priority": "P0",
       "size": "L",
-      "dependencies": [
-        "COM-060"
-      ],
+      "dependencies": ["COM-060"],
       "acceptance_criteria": [
         "Creator onboarding captures KYC and payout preferences",
         "Payout queue with retries and error handling",
@@ -316,10 +246,7 @@
       ],
       "risk": "high",
       "owner": "tbd",
-      "labels": [
-        "payments",
-        "backend"
-      ],
+      "labels": ["payments", "backend"],
       "kpi": "Payout error rate <1%",
       "estimate_hours": 160
     },
@@ -330,10 +257,7 @@
       "type": "feature",
       "priority": "P0",
       "size": "XL",
-      "dependencies": [
-        "MOD-001",
-        "COM-060"
-      ],
+      "dependencies": ["MOD-001", "COM-060"],
       "acceptance_criteria": [
         "Online/offline events with ticketing, waitlists, coupon codes",
         "Reminders (T-24h/1h/10m) and post-event recording/materials upload",
@@ -342,17 +266,13 @@
       "definition_of_done": [
         "Green CI, tests added",
         "Docs updated (events playbook)",
-        "Telemetry shipped for RSVP\u2192attendance rate",
+        "Telemetry shipped for RSVP→attendance rate",
         "Feature flag default OFF"
       ],
       "risk": "high",
       "owner": "tbd",
-      "labels": [
-        "events",
-        "frontend",
-        "backend"
-      ],
-      "kpi": "Event RSVP\u2192attendance \u226560%",
+      "labels": ["events", "frontend", "backend"],
+      "kpi": "Event RSVP→attendance ≥60%",
       "estimate_hours": 220
     },
     {
@@ -362,10 +282,7 @@
       "type": "feature",
       "priority": "P1",
       "size": "L",
-      "dependencies": [
-        "MOD-001",
-        "REP-040"
-      ],
+      "dependencies": ["MOD-001", "REP-040"],
       "acceptance_criteria": [
         "Threaded comments with quote-reply, mentions, collapsible branches",
         "Direct messages with request/accept workflow and abuse protections",
@@ -379,12 +296,8 @@
       ],
       "risk": "medium",
       "owner": "tbd",
-      "labels": [
-        "frontend",
-        "backend",
-        "safety"
-      ],
-      "kpi": "Comment response rate \u2265 baseline",
+      "labels": ["frontend", "backend", "safety"],
+      "kpi": "Comment response rate ≥ baseline",
       "estimate_hours": 150
     },
     {
@@ -396,7 +309,7 @@
       "size": "M",
       "dependencies": [],
       "acceptance_criteria": [
-        "Metrics for KPIs (publish latency, search p95, donation success, payout error, RSVP\u2192attendance, moderation queue age, crash-free sessions)",
+        "Metrics for KPIs (publish latency, search p95, donation success, payout error, RSVP→attendance, moderation queue age, crash-free sessions)",
         "Distributed tracing instrumented for major services",
         "Dashboards and alerting policies documented"
       ],
@@ -408,10 +321,7 @@
       ],
       "risk": "medium",
       "owner": "tbd",
-      "labels": [
-        "observability",
-        "infrastructure"
-      ],
+      "labels": ["observability", "infrastructure"],
       "kpi": "Alert MTTA < 15m",
       "estimate_hours": 120
     }

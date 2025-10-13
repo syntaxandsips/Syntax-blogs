@@ -17,7 +17,7 @@
 | `event_rsvp_to_attendance_rate` | Attendance / RSVPs | Gauge | `event_type`, `space` |
 | `moderation_queue_oldest_min` | Age of oldest open report | Gauge | `queue_type`, `space` |
 | `crash_free_sessions` | % of sessions without fatal error | Gauge | `platform` |
-| `authz_denied_count` | Authorization failures | Counter | `context`, `resource`, `role`, `space`, `reason` |
+| `authz_denied_count` | Authorization failures | Counter | `resource`, `role`, `space` |
 | `flag_evaluation_latency_ms` | Feature flag evaluation | Histogram | `flag_key` |
 | `webhook_delivery_success_rate` | Webhook successes vs. attempts | Gauge | `event_type` |
 | `automod_trigger_count` | Automod actions per rule | Counter | `rule_type`, `space` |
@@ -65,7 +65,6 @@
 - Use Supabase Logflare integration for SQL audit, complement with custom metrics via functions.
 - Configure synthetic monitoring (Pingdom/Lighthouse CI) for home feed, space page, checkout flow.
 - Add Playwright synthetic tests for core user journeys with metrics logging.
-- Ship interim Node-side metrics adapter that records `flag_evaluation_latency_ms` for every feature flag lookup; upgrade to OTEL exporters during `OBS-100`.
 
 ## 9. Runbooks
 - Create `/docs/operations/runbooks/` with scenario-specific guides (publish latency, payment failures, search outage).

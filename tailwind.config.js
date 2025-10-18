@@ -56,11 +56,40 @@ module.exports = {
           prestige: '#FFAF00',
           neutral: '#F7F1FF',
         },
+        brand: {
+          ink: '#1F1F1F',
+          panel: '#FFF8F1',
+          focus: '#6C63FF',
+          surface: {
+            DEFAULT: '#FFFFFF',
+            info: '#F2F4FF',
+            success: '#E9FBEF',
+            warning: '#FFF8E1',
+            critical: '#FFEFF1',
+          },
+          border: {
+            DEFAULT: '#1F1F1F',
+            muted: '#D9D3F4',
+            info: '#646CFF',
+            success: '#34C759',
+            warning: '#FFB020',
+            critical: '#FF5A7A',
+          },
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        display: ['"Florisha"', 'var(--font-geist-sans)', 'sans-serif'],
+        sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+      },
+      boxShadow: {
+        'brand-sm': '4px 4px 0px rgba(34, 34, 34, 0.12)',
+        'brand-md': '6px 6px 0px rgba(34, 34, 34, 0.14)',
+        'brand-lg': '8px 8px 0px rgba(34, 34, 34, 0.18)',
       },
       keyframes: {
         "caret-blink": {

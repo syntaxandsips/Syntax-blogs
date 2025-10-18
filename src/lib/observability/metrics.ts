@@ -75,3 +75,7 @@ export const recordContentPublishLatency = (value: number, tags?: MetricTags) =>
 export const recordCrashFreeSession = (tags?: MetricTags) => {
   recordCounter('crash_free_sessions', 1, tags)
 }
+
+export const recordNavInteraction = (target: string, tags?: MetricTags) => {
+  recordCounter('nav_interaction_total', 1, { target, ...(tags ?? {}) })
+}

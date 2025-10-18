@@ -27,6 +27,7 @@
 ### Index & Policy Update — 2025-10-31
 
 - Indexes: `space_members(role_id, status)`, `space_members(space_id, role_id)`, `spaces(visibility)`, `posts(space_id, status)`, `posts(space_id, published_at DESC)`, `comments(thread_root_id, created_at DESC)`, `reports(space_id, status)`, `reports(subject_type, subject_id)`.
+- 2025-10-31 Follow-up (`0021_sec_001_constraints_indexes.sql`): Added unique index `profile_roles_profile_role_idx`, composite moderation index `space_members_role_status_v2_idx`, refined post timeline index `posts_space_status_published_idx`, and `comments_thread_status_created_idx` to stabilize queue queries. Enforced canonical slug constraint `roles_slug_canonical_ck` to guarantee `normalize_role_slug` invariants.
 - Constraints: canonical slug check on `roles.slug`; composite PK enforced on `space_members`.
 - RLS: deny-by-default policies now depend on helper functions to gate CRUD by canonical role ladder across `spaces`, `space_members`, `space_rules`, `posts`, `post_versions`, `comments`, `reports`, `feature_flags`, `audit_logs`, `profile_roles`.
 | `donations` | Monetary contributions | `id`, `profile_id`, `target_type`, `target_id`, `amount`, `currency`, `fee_amount`, `donor_covers_fees`, `is_recurring`, `status`, `receipt_url`, `created_at` | Index on (`target_type`, `target_id`) |

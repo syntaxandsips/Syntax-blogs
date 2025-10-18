@@ -27,11 +27,26 @@
 - **Elevation:** Create shadow tokens for interactive surfaces (cards, modals) aligned with neo-brutalism outlines.
 - **Radius:** Maintain bold outlines but add `radius-sm` (4px) for chip components and `radius-lg` (16px) for cards.
 
+### 3.1 Token Snapshot — 2025-10-31
+| Token | Value | Notes |
+| --- | --- | --- |
+| `brand.ink` | `#1F1F1F` | Primary copy color for Role Manager, nav links, and badges. |
+| `brand.panel` | `#FFF8F1` | Background for RBAC Role Manager container; meets 7:1 contrast against ink text. |
+| `brand.surface.info` | `#F2F4FF` | Applied to informational badges within nav IA flyouts. |
+| `brand.border.muted` | `#D9D3F4` | Outline for neutral stats in Role Manager roster. |
+| `brand.border.warning` | `#FFB020` | Moderator badge border; accessible against ink text. |
+| `brand.focus` | `#6C63FF` | Used for ring styles on search, skip-link, and nav buttons. |
+| `shadow-brand-sm` | `4px 4px 0px rgba(34, 34, 34, 0.12)` | Applied to summary cards and nav chips. |
+| `shadow-brand-lg` | `8px 8px 0px rgba(34, 34, 34, 0.18)` | Elevated Role Manager forms. |
+
+Tokens are declared in `tailwind.config.js` and consumed within `src/components/admin/RoleManager.tsx` and `src/components/ui/NewNavbar.tsx` to ensure a single source of truth.
+
 ## 4. Accessibility Notes
 - All new interactive components must support keyboard navigation, focus-visible styles, and ARIA attributes.
 - Provide descriptive labels for toggles (e.g., fee coverage slider) and ensure error messages include guidance.
 - For events, include accessibility notes (wheelchair access, ASL availability) and ensure color-coded statuses have text equivalents.
 - Implement reduced motion mode for animations in reputation celebrations and feed transitions.
+- RBAC Role Manager exposes live search and roster list with `aria-live="polite"` status updates and keyboard-visible focus rings tied to `brand.focus`.
 
 ## 5. Responsive Behavior
 - **Mobile:** Sticky quick actions (Join Space, New Post) at bottom; collapsible filters for search and moderation queues.
@@ -42,3 +57,4 @@
 - Maintain component specs in Storybook (to be configured) with accessibility checklists.
 - Update `neobrutalismthemecomp.MD` with new tokens and examples.
 - Capture screenshots/GIFs for each new flow when feature flags progress to pilot.
+- Telemetry: `recordNavInteraction` logs `nav_interaction_total{target,from,variant,role}` from `NewNavbar`, enabling engagement panels on `dash_ops_rbac_v1`.

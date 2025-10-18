@@ -1,3 +1,6 @@
+import type { FeatureFlagKey } from '@/lib/feature-flags/registry'
+import type { CanonicalRoleSlug } from '@/lib/rbac/permissions'
+
 export interface NavigationItem {
   label: string
   href: string
@@ -15,6 +18,11 @@ export interface NavigationCategory {
   sections: NavigationSection[]
 }
 
+export interface NavigationHub extends NavigationItem {
+  requiredFlags?: FeatureFlagKey[]
+  minimumRole?: CanonicalRoleSlug
+}
+
 export const topLevelNavigation: NavigationItem[] = [
   {
     label: 'Home',
@@ -22,6 +30,50 @@ export const topLevelNavigation: NavigationItem[] = [
     description: 'Return to the Syntax & Sips landing page.',
   },
 ]
+
+export const navIaTopLevel: NavigationHub[] = [
+  {
+    label: 'Home',
+    href: '/',
+    description: 'Return to the Syntax & Sips landing page.',
+  },
+  {
+    label: 'Spaces',
+    href: '/spaces',
+    description: 'Browse curated communities with dedicated moderators and programming.',
+    requiredFlags: ['spaces_v1'],
+  },
+  {
+    label: 'Feeds',
+    href: '/feeds',
+    description: 'Follow personalized activity streams across your subscribed spaces.',
+  },
+  {
+    label: 'Events',
+    href: '/events',
+    description: 'Register for live sessions, workshops, and watch on-demand replays.',
+    requiredFlags: ['events_v1'],
+  },
+  {
+    label: 'Funding',
+    href: '/funding',
+    description: 'Explore sponsorships, grants, and donation campaigns from the community.',
+    requiredFlags: ['donations_v1'],
+  },
+  {
+    label: 'Projects',
+    href: '/projects',
+    description: 'Track active builds, roadmap milestones, and contributor calls for help.',
+  },
+]
+
+export const navIaAdminHub: NavigationHub = {
+  label: 'Admin',
+  href: '/admin',
+  description: 'Access editorial tooling, role assignments, and platform operations.',
+  requiredFlags: ['rbac_hardening_v1'],
+  minimumRole: 'moderator',
+}
 
 export const navigationCategories: NavigationCategory[] = [
   {
@@ -142,7 +194,13 @@ export const navigationCategories: NavigationCategory[] = [
 
 export const siteNavigationItems: NavigationItem[] = Array.from(
   new Map(
-    [...topLevelNavigation, ...navigationCategories.flatMap((category) => category.sections.flatMap((section) => section.items))].map((item) => [
+    [
+      ...topLevelNavigation,
+      ...navIaTopLevel,
+      ...navigationCategories.flatMap((category) =>
+        category.sections.flatMap((section) => section.items),
+      ),
+    ].map((item) => [
       item.href,
       item,
     ]),

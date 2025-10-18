@@ -19,8 +19,11 @@
 | `crash_free_sessions` | % of sessions without fatal error | Gauge | `platform` |
 | `authz_denied_count` | Authorization failures | Counter | `resource`, `role`, `space` |
 | `flag_evaluation_latency_ms` | Feature flag evaluation | Histogram | `flag_key` |
+| `nav_interaction_total` | Nav hub clicks (flag cohorts) | Counter | `target`, `from`, `variant`, `role` |
 | `webhook_delivery_success_rate` | Webhook successes vs. attempts | Gauge | `event_type` |
 | `automod_trigger_count` | Automod actions per rule | Counter | `rule_type`, `space` |
+
+> 2025-10-31: Added `admin_publish_duration_ms` internal histogram for staff tooling responsiveness and began emitting `content_publish_latency_ms` from `/api/admin/posts`. Structured logs now include `user_id_hash`, `space_id`, and feature flag context for audit correlation. `nav_interaction_total` now captures navigation hub engagement per flag cohort.
 
 ## 3. Tracing Strategy
 - Instrument Next.js route handlers and server components with OpenTelemetry.
@@ -34,8 +37,9 @@
 - Centralize logs via Logflare or OpenTelemetry Collector; set retention 30 days (longer for audit logs stored in DB).
 
 ## 5. Dashboards
-- **Executive KPI Dashboard:** Aggregates content latency, search performance, donation success, RSVP-to-attendance, crash-free sessions.
-- **Operations Dashboard:** Displays moderation queue age, automod triggers, authz failures, feature flag adoption.
+- **Executive KPI Dashboard (`dash_exec_kpi_v1`):** Aggregates content latency (panels for `content_publish_latency_ms`, `admin_publish_duration_ms`), crash-free sessions, and donation funnel placeholders.
+- **Operations Dashboard (`dash_ops_rbac_v1`):** Displays `authz_denied_count` (tagged by `resource`, `role`, `space`), moderation backlog, feature flag toggles (joining `feature_flag_audit`), and Playwright synthetic status.
+- **Navigation Engagement Panel (`dash_ops_nav_v1`):** Breaks down `nav_interaction_total` by target hub, role, and variant (legacy vs `nav_ia_v1`).
 - **Commerce Dashboard:** Shows donation funnel, payout queue status, dispute rate.
 - **Events Dashboard:** Tracks registrations, attendance, revenue, NPS survey results.
 - **Reliability Dashboard:** SLO status, error budgets, incident history.
@@ -51,6 +55,8 @@
 | Crash-free drop | `crash_free_sessions` < 97% daily | Warning | Slack #frontend |
 | Webhook delivery failures | `webhook_delivery_success_rate` < 95% for 30m | Warning | Slack #integrations |
 
+> Alert wiring (2025-10-31): Added PagerDuty service `pd-sec-ops` for publish latency and RBAC denial spikes (`authz_denied_count` > 25/min tagged `resource=admin_users`), Slack webhook `ops-telemetry` for nav IA checks.
+
 ## 7. SLOs & Error Budgets
 | Service | SLO | Error Budget |
 | --- | --- | --- |
@@ -64,7 +70,7 @@
 - Adopt OpenTelemetry SDK for Next.js + Node workers; export to vendor (e.g., Grafana Cloud, Honeycomb).
 - Use Supabase Logflare integration for SQL audit, complement with custom metrics via functions.
 - Configure synthetic monitoring (Pingdom/Lighthouse CI) for home feed, space page, checkout flow.
-- Add Playwright synthetic tests for core user journeys with metrics logging.
+- Add Playwright synthetic tests for core user journeys with metrics logging. `tests/synthetic/observability.spec.ts` covers nav IA, admin flag guard, and publish route smoke flows (skipped when `PLAYWRIGHT_TEST_BASE_URL` undefined).
 
 ## 9. Runbooks
 - Create `/docs/operations/runbooks/` with scenario-specific guides (publish latency, payment failures, search outage).

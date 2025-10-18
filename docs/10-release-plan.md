@@ -3,6 +3,9 @@
 ## 1. Feature Flags
 | Flag Key | Purpose | Default | Owner | Notes |
 | --- | --- | --- | --- | --- |
+| `rbac_hardening_v1` | Locks down canonical role ladder, admin tooling | OFF | Security Lead | Staff-only until Phase-1 gate |
+| `nav_ia_v1` | Enables refreshed navigation IA + tokens | OFF | Design Lead | Staged rollout via staff cohort; nav telemetry recorded via `nav_interaction_total` |
+| `observability_v1` | Surfaces observability UI surfaces | OFF | SRE Lead | Infra toggle, dashboards verified first |
 | `spaces_v1` | Enables space creation, rules, membership | OFF | Product Lead | Phase 2 pilot with selected communities |
 | `content_templates_v1` | Activates new editors/templates | OFF | Content PM | Depends on `spaces_v1` |
 | `search_unified_v1` | Turns on new taxonomy/search service | OFF | Search PM | Requires index backfill |

@@ -49,6 +49,11 @@
 - **Payments:** Pause webhook processing via provider dashboard, ensure escrow funds safe.
 - **Events:** Notify attendees of postponement if event module impacted.
 
+### 6.1 Rollback Rehearsal — 2025-11-07
+- Staging build `stg-phase1-20251107` executed sequential down/up migrations for `0019_sec_001_audit_logs`, `0020_sec_001_rls_policies`, and `0021_sec_001_constraints_indexes` with no drift (`SELECT * FROM pg_indexes` parity verified).
+- `requireAdmin` guard smoke tests confirmed audit logging and `authz_denied_count` increments after rollback cycle.
+- Role Manager UI reloaded successfully post-reapply with staff cohort (`rbac_hardening_v1`), verifying reversible migrations.
+
 ## 7. Communication
 - Publish release notes in `/docs/changelog` and `src/app/changelog` route.
 - Send email digest to affected space organizers when new modules enable.

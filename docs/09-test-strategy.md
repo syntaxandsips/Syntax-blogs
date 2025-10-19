@@ -34,6 +34,7 @@
 - Tests must run with flags ON and OFF to ensure fallback behavior.
 - Provide helper to set flag context in tests (`withFeatureFlag('spaces_v1', true)`).
 - CI includes matrix builds for critical flags (Spaces, Commerce, Events).
+- Phase-1 gate suites: `tests/security/rbac-policies.test.ts`, `tests/e2e/admin-role-manager.spec.ts`, `tests/e2e/nav-ia.spec.ts`, `tests/e2e/publish-flow.spec.ts`, and `tests/synthetic/observability.spec.ts` must remain green before enabling Phase-2 flags.
 
 ## 7. Performance & Load
 - Baseline load test for publish, search, donations, and event checkout before GA.

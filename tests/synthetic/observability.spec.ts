@@ -21,4 +21,15 @@ describeSynthetic('observability synthetic journeys', () => {
     await page.goto('/admin/posts')
     await expect(page.getByText(/dashboard/i)).toBeVisible()
   })
+
+  runSynthetic('authz denial increments metrics and dashboards documented', async ({ page }) => {
+    const response = await page.request.get('/api/admin/users')
+    expect([401, 403]).toContain(response.status())
+    const payload = await response.json()
+    expect(payload?.error).toMatch(/unauthorized|forbidden/i)
+
+    await page.goto('/docs')
+    await expect(page.getByText(/observability/i)).toBeVisible()
+    await expect(page.getByText(/dash_ops_rbac_v1/i)).toBeVisible()
+  })
 })

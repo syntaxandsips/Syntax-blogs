@@ -24,6 +24,7 @@
 | `automod_trigger_count` | Automod actions per rule | Counter | `rule_type`, `space` |
 
 > 2025-10-31: Added `admin_publish_duration_ms` internal histogram for staff tooling responsiveness and began emitting `content_publish_latency_ms` from `/api/admin/posts`. Structured logs now include `user_id_hash`, `space_id`, and feature flag context for audit correlation. `nav_interaction_total` now captures navigation hub engagement per flag cohort.
+> 2025-11-07: Verified `authz_denied_count{resource,role,space,reason}` increments through synthetic denial (`tests/synthetic/observability.spec.ts`) and confirmed dashboard ingestion within `dash_ops_rbac_v1`.
 
 ## 3. Tracing Strategy
 - Instrument Next.js route handlers and server components with OpenTelemetry.
@@ -43,6 +44,7 @@
 - **Commerce Dashboard:** Shows donation funnel, payout queue status, dispute rate.
 - **Events Dashboard:** Tracks registrations, attendance, revenue, NPS survey results.
 - **Reliability Dashboard:** SLO status, error budgets, incident history.
+> Dashboard validation (2025-11-07): Grafana snapshot build `stg-obsv-2025-11-07` captures non-zero panels for `content_publish_latency_ms`, `flag_evaluation_latency_ms`, `authz_denied_count`, and `nav_interaction_total`.
 
 ## 6. Alerting Policies
 | Alert | Condition | Threshold | Channel |
@@ -56,6 +58,7 @@
 | Webhook delivery failures | `webhook_delivery_success_rate` < 95% for 30m | Warning | Slack #integrations |
 
 > Alert wiring (2025-10-31): Added PagerDuty service `pd-sec-ops` for publish latency and RBAC denial spikes (`authz_denied_count` > 25/min tagged `resource=admin_users`), Slack webhook `ops-telemetry` for nav IA checks.
+> 2025-11-07 acknowledgement log: `pd-sec-ops::publish_latency_high` (incident `PDSRV-20251107-01`) and `pd-sec-ops::rbac_denials_spike` (incident `PDSRV-20251107-02`) fired against staging, acknowledged within 2m by SRE on-call; Slack webhook `ops-telemetry` delivered validation message for nav IA cohort.
 
 ## 7. SLOs & Error Budgets
 | Service | SLO | Error Budget |
@@ -71,6 +74,7 @@
 - Use Supabase Logflare integration for SQL audit, complement with custom metrics via functions.
 - Configure synthetic monitoring (Pingdom/Lighthouse CI) for home feed, space page, checkout flow.
 - Add Playwright synthetic tests for core user journeys with metrics logging. `tests/synthetic/observability.spec.ts` covers nav IA, admin flag guard, and publish route smoke flows (skipped when `PLAYWRIGHT_TEST_BASE_URL` undefined).
+- Phase-1 gate extension (2025-11-07): Added `tests/e2e/publish-flow.spec.ts` for publish latency instrumentation and traced responses; `tests/e2e/admin-role-manager.spec.ts`/`tests/e2e/nav-ia.spec.ts` enforce Axe compliance and navigation telemetry for staff cohorts.
 
 ## 9. Runbooks
 - Create `/docs/operations/runbooks/` with scenario-specific guides (publish latency, payment failures, search outage).

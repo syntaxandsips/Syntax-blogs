@@ -1,0 +1,3 @@
+# Observability Dashboards
+
+The analytics stack exposes both executive and operations dashboards wired to the Phase-1 metrics catalog. The Operations dashboard (`dash_ops_rbac_v1`) surfaces `authz_denied_count{resource,role,space,reason}` alongside moderation backlog panels, while navigation engagement lives in `dash_ops_nav_v1`. Executive leadership can monitor publish health through `dash_exec_kpi_v1`, where `content_publish_latency_ms` and `flag_evaluation_latency_ms` sit next to `crash_free_sessions` trends. Each dashboard anchors PagerDuty alerts and Playwright synthetic checks documented in `/docs/08-observability.md`.

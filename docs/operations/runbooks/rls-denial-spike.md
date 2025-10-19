@@ -1,6 +1,6 @@
 # Runbook: RLS Denial Spike
 
-**Last updated:** 2025-10-31
+**Last updated:** 2025-11-07
 
 ## 1. Detection
 - Alert `pd-sec-ops::rbac_denials_spike` triggers when `authz_denied_count` > 25/min tagged `resource=admin_users` or `resource=spaces`.
@@ -22,6 +22,7 @@
    select highest_role_slug('<profile-id>'::uuid);
    ```
 4. Check feature flag history for `rbac_hardening_v1` and related nav flags in `/admin/feature-flags` (audit entries are stored in `feature_flag_audit`).
+5. Run keyboard-only walkthrough (Appendix A) to confirm staff can still navigate Role Manager without pointer input; log any focus trap regressions.
 
 ## 3. Mitigation
 - If regression tied to new policies, toggle `rbac_hardening_v1` OFF for all but security staff.
@@ -38,9 +39,15 @@
 - After mitigation, re-enable `rbac_hardening_v1` for staff cohort and monitor `authz_denied_count` for 30 minutes.
 - Ensure Playwright synthetic journeys pass in CI (`tests/synthetic/observability.spec.ts`).
 - Capture metrics snapshot and attach to incident record.
+- Verify Axe compliance remains green by rerunning `tests/e2e/admin-role-manager.spec.ts` (requires staff credentials).
 
 ## 6. Postmortem Checklist
 - Identify root cause (policy regression, role sync failure, guard bug).
 - Add automated test coverage if gap discovered.
 - Update documentation and backlog items if new work required.
 - Close incident with summary and action items in weekly progress log.
+
+### Appendix A — Keyboard Walkthrough
+1. From `/admin`, use `Tab` to reach the “Platform role manager” section and activate search via `Enter` to confirm focus ring styles.
+2. Navigate roster entries with arrow keys (list items announce via `aria-live`) and open the User Management form using `Space` on the edit button.
+3. Submit a role change with `Space`/`Enter`, confirm toast, and ensure focus returns to the roster. Record results in the incident doc.

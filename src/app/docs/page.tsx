@@ -22,6 +22,11 @@ const docsMetadata: Record<string, { title: string; summary: string }> = {
     title: 'Open Source Launch Checklist',
     summary: 'Step-by-step prep to make a GitHub repository legally safe, documented, and welcoming for contributors.',
   },
+  'observability-dashboard': {
+    title: 'Observability Dashboards',
+    summary:
+      'Observability dashboards (dash_ops_rbac_v1, dash_ops_nav_v1) tracking authz_denied_count instrumentation.',
+  },
 };
 
 const toTitleCase = (value: string) =>

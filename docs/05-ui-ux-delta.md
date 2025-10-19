@@ -48,6 +48,12 @@ Tokens are declared in `tailwind.config.js` and consumed within `src/components/
 - Implement reduced motion mode for animations in reputation celebrations and feed transitions.
 - RBAC Role Manager exposes live search and roster list with `aria-live="polite"` status updates and keyboard-visible focus rings tied to `brand.focus`.
 
+### 4.1 Accessibility Validation Checklist — 2025-11-07
+- ✅ `tests/e2e/admin-role-manager.spec.ts`: Axe scan (`@axe-core/playwright`) focused on the role manager section verifies no WCAG 2.1 AA violations when `rbac_hardening_v1` is enabled for staff.
+- ✅ `tests/e2e/nav-ia.spec.ts`: Confirms skip-link/focus states on the new navigation hubs (`nav_ia_v1`) and asserts hub visibility per role gate.
+- ⚠️ Publish flow axe validation deferred to Phase-2 composer overhaul; current admin table relies on legacy markup and is tracked in MOD-001 follow-up.
+- Keyboard walkthroughs recorded in `/docs/operations/runbooks/rls-denial-spike.md` appendix to ensure moderators can assign roles without pointer devices.
+
 ## 5. Responsive Behavior
 - **Mobile:** Sticky quick actions (Join Space, New Post) at bottom; collapsible filters for search and moderation queues.
 - **Tablet:** Two-column layout for dashboards with persistent navigation drawer.

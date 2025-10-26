@@ -12,6 +12,8 @@ export const FEATURE_FLAG_KEYS = [
   'messaging_v1',
   'notifications_v1',
   'rbac_hardening_v1',
+  'nav_ia_v1',
+  'observability_v1',
 ] as const
 
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
@@ -112,6 +114,15 @@ export const FEATURE_FLAG_DEFAULTS: Record<FeatureFlagKey, FeatureFlagDefinition
     createdAt: epoch,
     updatedAt: epoch,
   },
+  nav_ia_v1: {
+    flagKey: 'nav_ia_v1',
+    description: 'Activates refreshed navigation IA and associated design tokens.',
+    enabled: false,
+    owner: 'Design Lead',
+    metadata: {},
+    createdAt: epoch,
+    updatedAt: epoch,
+  },
   rbac_hardening_v1: {
     flagKey: 'rbac_hardening_v1',
     description: 'Locks down the expanded RBAC policies and exposes role governance tooling.',
@@ -126,6 +137,15 @@ export const FEATURE_FLAG_DEFAULTS: Record<FeatureFlagKey, FeatureFlagDefinition
     description: 'Activates the notification center and outbound webhooks.',
     enabled: false,
     owner: 'Platform PM',
+    metadata: {},
+    createdAt: epoch,
+    updatedAt: epoch,
+  },
+  observability_v1: {
+    flagKey: 'observability_v1',
+    description: 'Surfaces observability baseline UI affordances and dashboards.',
+    enabled: false,
+    owner: 'SRE Lead',
     metadata: {},
     createdAt: epoch,
     updatedAt: epoch,

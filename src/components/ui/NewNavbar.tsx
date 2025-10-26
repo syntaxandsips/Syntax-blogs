@@ -11,12 +11,18 @@ import { useAuthenticatedProfile } from '@/hooks/useAuthenticatedProfile';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@/lib/supabase/client';
 import type { AuthenticatedProfileSummary } from '@/utils/types';
+import { useFeatureFlags } from '@/lib/feature-flags/client';
 import {
   navigationCategories,
+  navIaAdminHub,
+  navIaTopLevel,
   topLevelNavigation,
   type NavigationCategory,
+  type NavigationHub,
   type NavigationItem,
 } from '@/lib/navigation';
+import { getHighestRoleSlug, hasRoleAtLeast } from '@/lib/rbac/permissions';
+import { recordNavInteraction } from '@/lib/observability/metrics';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -41,6 +47,58 @@ export const NewNavbar = () => {
   const pathname = useClientPathname();
   const { profile, refresh: refreshAuthenticatedProfile } = useAuthenticatedProfile();
   const needsOnboarding = Boolean(profile && profile.onboarding?.status !== 'completed');
+  const featureFlags = useFeatureFlags();
+  const navIaEnabled = Boolean(featureFlags.nav_ia_v1);
+  const highestRoleSlug = useMemo(
+    () => (profile ? getHighestRoleSlug(profile.roles) : 'guest'),
+    [profile],
+  );
+
+  const isFlagGroupEnabled = useCallback(
+    (requiredFlags: NavigationHub['requiredFlags']) =>
+      !requiredFlags || requiredFlags.every((flagKey) => Boolean(featureFlags?.[flagKey])),
+    [featureFlags],
+  );
+
+  const resolvedTopNavigation = useMemo<NavigationItem[]>(() => {
+    if (!navIaEnabled) {
+      return topLevelNavigation;
+    }
+
+    const baseHubs = navIaTopLevel.filter((hub) => isFlagGroupEnabled(hub.requiredFlags));
+    const items: NavigationItem[] = baseHubs.map(({ label, href, description }) => ({
+      label,
+      href,
+      description,
+    }));
+
+    const allowAdmin =
+      profile !== null &&
+      isFlagGroupEnabled(navIaAdminHub.requiredFlags) &&
+      hasRoleAtLeast(profile.roles, navIaAdminHub.minimumRole ?? 'admin');
+
+    if (allowAdmin) {
+      items.push({
+        label: navIaAdminHub.label,
+        href: navIaAdminHub.href,
+        description: navIaAdminHub.description,
+      });
+    }
+
+    return items;
+  }, [isFlagGroupEnabled, navIaEnabled, profile]);
+
+  const trackNavigation = useCallback(
+    (label: string, href: string) => {
+      recordNavInteraction(label.toLowerCase(), {
+        href,
+        from: pathname,
+        variant: navIaEnabled ? 'nav_ia_v1' : 'legacy',
+        role: highestRoleSlug,
+      });
+    },
+    [highestRoleSlug, navIaEnabled, pathname],
+  );
 
   const isPathActive = (path: string) => {
     if (path === '/') {
@@ -79,8 +137,13 @@ export const NewNavbar = () => {
           <NavbarLogo />
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-4 xl:gap-6">
-            {topLevelNavigation.map((item) => (
-              <NavLink key={item.href} href={item.href} isActive={isPathActive(item.href)}>
+            {resolvedTopNavigation.map((item) => (
+              <NavLink
+                key={item.href}
+                href={item.href}
+                isActive={isPathActive(item.href)}
+                onSelect={() => trackNavigation(item.label, item.href)}
+              >
                 {item.label}
               </NavLink>
             ))}
@@ -139,18 +202,19 @@ export const NewNavbar = () => {
         </div>
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden mt-4 pb-4">
-            <div className="flex flex-col space-y-4">
-              {topLevelNavigation.map((item) => (
-                <MobileNavLink
-                  key={item.href}
-                  href={item.href}
-                  isActive={isPathActive(item.href)}
-                  description={item.description}
-                >
-                  {item.label}
-                </MobileNavLink>
-              ))}
+            <div className="md:hidden mt-4 pb-4">
+              <div className="flex flex-col space-y-4">
+                {resolvedTopNavigation.map((item) => (
+                  <MobileNavLink
+                    key={item.href}
+                    href={item.href}
+                    isActive={isPathActive(item.href)}
+                    description={item.description}
+                    onSelect={() => trackNavigation(item.label, item.href)}
+                  >
+                    {item.label}
+                  </MobileNavLink>
+                ))}
               {navigationCategories.map((category) => (
                 <MobileNavSection
                   key={category.label}
@@ -428,11 +492,13 @@ interface NavLinkProps {
   href: string;
   children: React.ReactNode;
   isActive?: boolean;
+  onSelect?: () => void;
 }
 
-const NavLink = ({ href, children, isActive }: NavLinkProps) => (
+const NavLink = ({ href, children, isActive, onSelect }: NavLinkProps) => (
   <Link
     href={href}
+    onClick={() => onSelect?.()}
     className={`relative rounded-full px-4 py-2 text-lg font-extrabold transition-colors hover:text-[#6C63FF] ${
       isActive ? 'text-[#6C63FF]' : 'text-black'
     }`}
@@ -448,9 +514,10 @@ interface MobileNavLinkProps extends NavLinkProps {
   description?: string;
 }
 
-const MobileNavLink = ({ href, children, isActive, description }: MobileNavLinkProps) => (
+const MobileNavLink = ({ href, children, isActive, description, onSelect }: MobileNavLinkProps) => (
   <Link
     href={href}
+    onClick={() => onSelect?.()}
     className={`block rounded-2xl border-2 border-black px-4 py-3 text-left shadow-[4px_4px_0px_0px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px] ${
       isActive
         ? 'bg-[#6C63FF] text-white shadow-[5px_5px_0px_0px_rgba(0,0,0,0.2)]'

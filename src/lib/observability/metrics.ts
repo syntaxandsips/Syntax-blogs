@@ -61,9 +61,45 @@ export const recordCounter = (metric: string, value = 1, tags?: MetricTags) => {
   })
 }
 
-export const recordAuthzDeny = (context: string, tags?: MetricTags) => {
+export const recordAuthzDeny = (resource: string, tags?: MetricTags) => {
   recordCounter('authz_denied_count', 1, {
-    context,
+    resource,
     ...(tags ?? {}),
   })
+}
+
+export const recordContentPublishLatency = (value: number, tags?: MetricTags) => {
+  recordHistogram('content_publish_latency_ms', value, tags)
+}
+
+export const recordCrashFreeSession = (tags?: MetricTags) => {
+  recordCounter('crash_free_sessions', 1, tags)
+}
+
+export const recordNavInteraction = (target: string, tags?: MetricTags) => {
+  recordCounter('nav_interaction_total', 1, { target, ...(tags ?? {}) })
+}
+
+export const recordSpaceCreationSuccess = (tags?: MetricTags) => {
+  recordHistogram('space_creation_success_rate', 1, tags)
+}
+
+export const recordSpaceJoinApprovalLatency = (value: number, tags?: MetricTags) => {
+  recordHistogram('space_join_approval_latency_ms', value, tags)
+}
+
+export const recordDraftAutosaveLatency = (value: number, tags?: MetricTags) => {
+  recordHistogram('draft_autosave_latency_ms', value, tags)
+}
+
+export const recordDraftToPublishConversion = (value: number, tags?: MetricTags) => {
+  recordHistogram('draft_to_publish_conversion_rate', value, tags)
+}
+
+export const recordSearchLatency = (value: number, tags?: MetricTags) => {
+  recordHistogram('search_latency_ms', value, tags)
+}
+
+export const recordSearchZeroResultRate = (value: number, tags?: MetricTags) => {
+  recordHistogram('search_zero_result_rate', value, tags)
 }

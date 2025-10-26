@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server'
+import { performance } from 'node:perf_hooks'
+import { createServiceRoleClient } from '@/lib/supabase/server-client'
+import { requireAdmin } from '@/lib/auth/require-admin'
+import { writeAuditLog } from '@/lib/audit/log'
 import {
-  createServerComponentClient,
-  createServiceRoleClient,
-} from '@/lib/supabase/server-client'
+  recordContentPublishLatency,
+  recordHistogram,
+} from '@/lib/observability/metrics'
+import { logStructuredEvent } from '@/lib/observability/logger'
+import { withSpan } from '@/lib/observability/tracing'
 import { PostStatus, type AdminPost } from '@/utils/types'
 
 const POST_SELECT = `
@@ -23,14 +29,10 @@ const POST_SELECT = `
   scheduled_for,
   author_id,
   category_id,
+  space_id,
   categories:categories(id, name, slug),
   post_tags:post_tags(tags(id, name, slug))
 `
-
-interface ProfileRecord {
-  id: string
-  is_admin: boolean
-}
 
 interface PostRecord {
   id: string
@@ -50,6 +52,7 @@ interface PostRecord {
   scheduled_for: string | null
   author_id: string | null
   category_id: string | null
+  space_id: string | null
   categories: { id: string | null; name: string | null; slug: string | null } | null
   post_tags: { tags: { id: string | null; name: string | null; slug: string | null } | null }[] | null
 }
@@ -74,6 +77,7 @@ const mapPostRecord = (record: PostRecord): AdminPost => ({
   categoryId: record.category_id ?? null,
   categoryName: record.categories?.name ?? null,
   categorySlug: record.categories?.slug ?? null,
+  spaceId: record.space_id ?? null,
   tags:
     (record.post_tags ?? [])
       .map((tag) => tag.tags)
@@ -99,52 +103,10 @@ const normalizeStatus = (value: string | null | undefined): PostStatus => {
   return allowedStatuses.has(value) ? (value as PostStatus) : PostStatus.DRAFT
 }
 
-const getAdminProfile = async (): Promise<
-  | { profile: ProfileRecord }
-  | { response: NextResponse }
-> => {
-  const supabase = createServerComponentClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return {
-      response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
-    }
-  }
-
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('id, is_admin')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  if (error) {
-    return {
-      response: NextResponse.json(
-        { error: `Unable to load profile: ${error.message}` },
-        { status: 500 },
-      ),
-    }
-  }
-
-  if (!profile || !profile.is_admin) {
-    return {
-      response: NextResponse.json(
-        { error: 'Forbidden: admin access required.' },
-        { status: 403 },
-      ),
-    }
-  }
-
-  return { profile }
-}
-
 export async function GET() {
-  const result = await getAdminProfile()
-  if ('response' in result) {
-    return result.response
+  const guard = await requireAdmin({ resource: 'admin_posts', action: 'list' })
+  if (!guard.ok) {
+    return guard.response
   }
 
   const serviceClient = createServiceRoleClient()
@@ -168,9 +130,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const result = await getAdminProfile()
-  if ('response' in result) {
-    return result.response
+  const guard = await requireAdmin({ resource: 'admin_posts', action: 'create' })
+  if (!guard.ok) {
+    return guard.response
   }
 
   const body = (await request.json()) as Record<string, unknown>
@@ -211,11 +173,15 @@ export async function POST(request: Request) {
         .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
         .map((value) => value.trim())
     : []
+  const spaceId =
+    typeof body.spaceId === 'string' && body.spaceId.trim().length > 0
+      ? body.spaceId.trim()
+      : null
   const requestedStatus = normalizeStatus(body.status as string | null | undefined)
   const authorId =
     typeof body.authorId === 'string' && body.authorId.trim().length > 0
       ? body.authorId
-      : result.profile.id
+      : guard.profile.id
 
   if (!title || !slug || !content) {
     return NextResponse.json(
@@ -272,57 +238,120 @@ export async function POST(request: Request) {
     publishedAt = null
   }
 
-  const { data, error } = await serviceClient
-    .from('posts')
-    .insert({
-      title,
-      slug,
-      content,
-      excerpt,
-      accent_color: accentColor,
-      seo_title: seoTitle,
-      seo_description: seoDescription,
-      featured_image_url: featuredImageUrl,
-      social_image_url: socialImageUrl,
-      status: requestedStatus,
-      published_at: publishedAt,
-      scheduled_for: scheduledFor,
-      category_id: categoryId,
-      author_id: authorId,
-    })
-    .select(POST_SELECT)
-    .single()
-
-  if (error) {
-    if (typeof error === 'object' && error && 'code' in error && error.code === '23505') {
-      return NextResponse.json({ error: duplicateSlugMessage }, { status: 409 })
-    }
-    return NextResponse.json(
-      { error: `Unable to create post: ${error.message}` },
-      { status: 400 },
-    )
+  const spanAttributes = {
+    'post.slug': slug,
+    'post.status': requestedStatus,
+    'space.id': spaceId ?? 'global',
   }
 
-  const record = data as unknown as PostRecord
+  const publishStart = performance.now()
 
-  if (tagIds.length > 0) {
-    const insertPayload = tagIds.map((tagId) => ({
-      post_id: record.id,
-      tag_id: tagId,
-    }))
+  let record: PostRecord
+  try {
+    record = await withSpan('admin.posts.create', spanAttributes, async () => {
+      const { data, error } = await serviceClient
+        .from('posts')
+        .insert({
+          title,
+          slug,
+          content,
+          excerpt,
+          accent_color: accentColor,
+          seo_title: seoTitle,
+          seo_description: seoDescription,
+          featured_image_url: featuredImageUrl,
+          social_image_url: socialImageUrl,
+          status: requestedStatus,
+          published_at: publishedAt,
+          scheduled_for: scheduledFor,
+          category_id: categoryId,
+          author_id: authorId,
+          space_id: spaceId,
+        })
+        .select(POST_SELECT)
+        .single()
 
-    const { error: tagError } = await serviceClient
-      .from('post_tags')
-      .insert(insertPayload)
+      if (error) {
+        if (typeof error === 'object' && error && 'code' in error && error.code === '23505') {
+          const conflictError = Object.assign(new Error(duplicateSlugMessage), { status: 409 })
+          throw conflictError
+        }
 
-    if (tagError) {
-      return NextResponse.json(
-        { error: `Post created but tags failed to save: ${tagError.message}` },
-        { status: 400 },
-      )
-    }
+        throw Object.assign(new Error(`Unable to create post: ${error.message}`), { status: 400 })
+      }
+
+      const postRecord = data as unknown as PostRecord
+
+      if (tagIds.length > 0) {
+        const insertPayload = tagIds.map((tagId) => ({
+          post_id: postRecord.id,
+          tag_id: tagId,
+        }))
+
+        const { error: tagError } = await serviceClient.from('post_tags').insert(insertPayload)
+
+        if (tagError) {
+          throw Object.assign(
+            new Error(`Post created but tags failed to save: ${tagError.message}`),
+            { status: 400 },
+          )
+        }
+      }
+
+      return postRecord
+    })
+  } catch (unknownError) {
+    const status =
+      typeof (unknownError as { status?: number })?.status === 'number'
+        ? ((unknownError as { status: number }).status ?? 500)
+        : 500
+    const message =
+      unknownError instanceof Error && unknownError.message
+        ? unknownError.message
+        : 'Unable to create post.'
+
+    return NextResponse.json({ error: message }, { status })
   }
 
   const post = mapPostRecord(record)
+
+  if (requestedStatus === PostStatus.PUBLISHED) {
+    const latency = performance.now() - publishStart
+    recordContentPublishLatency(latency, {
+      space: spaceId ?? 'global',
+      status: requestedStatus,
+    })
+    recordHistogram('admin_publish_duration_ms', latency, {
+      resource: 'admin_posts',
+    })
+  }
+
+  logStructuredEvent({
+    message: 'admin.post.created',
+    userId: guard.profile.userId,
+    spaceId,
+    metadata: {
+      post_id: post.id,
+      slug,
+      status: requestedStatus,
+      tag_count: tagIds.length,
+    },
+  })
+
+  await writeAuditLog({
+    actorId: guard.profile.id,
+    actorRole: guard.profile.roleSlug,
+    resource: 'admin_posts',
+    action: 'post_created',
+    entityId: post.id,
+    spaceId,
+    metadata: {
+      status: requestedStatus,
+      slug,
+      category_id: categoryId,
+      tags: tagIds,
+    },
+  })
+
   return NextResponse.json({ post }, { status: 201 })
 }

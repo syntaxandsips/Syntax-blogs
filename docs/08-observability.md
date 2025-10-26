@@ -19,8 +19,14 @@
 | `crash_free_sessions` | % of sessions without fatal error | Gauge | `platform` |
 | `authz_denied_count` | Authorization failures | Counter | `resource`, `role`, `space` |
 | `flag_evaluation_latency_ms` | Feature flag evaluation | Histogram | `flag_key` |
+| `nav_interaction_total` | Nav hub clicks (flag cohorts) | Counter | `target`, `from`, `variant`, `role` |
+| `space_creation_success_rate` | Organizer space creation success ratio | Gauge | `visibility`, `flag` |
+| `space_join_approval_latency_ms` | Time from request to approval/ban | Histogram | `space_id`, `actor_role` |
 | `webhook_delivery_success_rate` | Webhook successes vs. attempts | Gauge | `event_type` |
 | `automod_trigger_count` | Automod actions per rule | Counter | `rule_type`, `space` |
+
+> 2025-10-31: Added `admin_publish_duration_ms` internal histogram for staff tooling responsiveness and began emitting `content_publish_latency_ms` from `/api/admin/posts`. Structured logs now include `user_id_hash`, `space_id`, and feature flag context for audit correlation. `nav_interaction_total` now captures navigation hub engagement per flag cohort.
+> 2025-11-07: Verified `authz_denied_count{resource,role,space,reason}` increments through synthetic denial (`tests/synthetic/observability.spec.ts`) and confirmed dashboard ingestion within `dash_ops_rbac_v1`. Added `space_creation_success_rate` + `space_join_approval_latency_ms` panels to monitor MOD-001 pilot health.
 
 ## 3. Tracing Strategy
 - Instrument Next.js route handlers and server components with OpenTelemetry.
@@ -34,11 +40,13 @@
 - Centralize logs via Logflare or OpenTelemetry Collector; set retention 30 days (longer for audit logs stored in DB).
 
 ## 5. Dashboards
-- **Executive KPI Dashboard:** Aggregates content latency, search performance, donation success, RSVP-to-attendance, crash-free sessions.
-- **Operations Dashboard:** Displays moderation queue age, automod triggers, authz failures, feature flag adoption.
+- **Executive KPI Dashboard (`dash_exec_kpi_v1`):** Aggregates content latency (panels for `content_publish_latency_ms`, `admin_publish_duration_ms`), crash-free sessions, and donation funnel placeholders.
+- **Operations Dashboard (`dash_ops_rbac_v1`):** Displays `authz_denied_count` (tagged by `resource`, `role`, `space`), moderation backlog, feature flag toggles (joining `feature_flag_audit`), and Playwright synthetic status.
+- **Navigation Engagement Panel (`dash_ops_nav_v1`):** Breaks down `nav_interaction_total` by target hub, role, and variant (legacy vs `nav_ia_v1`).
 - **Commerce Dashboard:** Shows donation funnel, payout queue status, dispute rate.
 - **Events Dashboard:** Tracks registrations, attendance, revenue, NPS survey results.
 - **Reliability Dashboard:** SLO status, error budgets, incident history.
+> Dashboard validation (2025-11-07): Grafana snapshot build `stg-obsv-2025-11-07` captures non-zero panels for `content_publish_latency_ms`, `flag_evaluation_latency_ms`, `authz_denied_count`, and `nav_interaction_total`.
 
 ## 6. Alerting Policies
 | Alert | Condition | Threshold | Channel |
@@ -48,8 +56,12 @@
 | Donation failures spike | `donation_success_rate` < 90% for 15m | Critical | PagerDuty + Finance Slack |
 | Payout errors rising | `payout_error_rate` > 2% for 30m | Critical | PagerDuty + Payments distro |
 | Moderation backlog | `moderation_queue_oldest_min` > 60 | Warning | Slack #safety |
+| Space creation drop | `space_creation_success_rate` < 95% for 15m | Warning | PagerDuty `pd-sec-ops` |
 | Crash-free drop | `crash_free_sessions` < 97% daily | Warning | Slack #frontend |
 | Webhook delivery failures | `webhook_delivery_success_rate` < 95% for 30m | Warning | Slack #integrations |
+
+> Alert wiring (2025-10-31): Added PagerDuty service `pd-sec-ops` for publish latency and RBAC denial spikes (`authz_denied_count` > 25/min tagged `resource=admin_users`), Slack webhook `ops-telemetry` for nav IA checks.
+> 2025-11-07 acknowledgement log: `pd-sec-ops::publish_latency_high` (incident `PDSRV-20251107-01`) and `pd-sec-ops::rbac_denials_spike` (incident `PDSRV-20251107-02`) fired against staging, acknowledged within 2m by SRE on-call; Slack webhook `ops-telemetry` delivered validation message for nav IA cohort.
 
 ## 7. SLOs & Error Budgets
 | Service | SLO | Error Budget |
@@ -64,12 +76,14 @@
 - Adopt OpenTelemetry SDK for Next.js + Node workers; export to vendor (e.g., Grafana Cloud, Honeycomb).
 - Use Supabase Logflare integration for SQL audit, complement with custom metrics via functions.
 - Configure synthetic monitoring (Pingdom/Lighthouse CI) for home feed, space page, checkout flow.
-- Add Playwright synthetic tests for core user journeys with metrics logging.
+- Add Playwright synthetic tests for core user journeys with metrics logging. `tests/synthetic/observability.spec.ts` covers nav IA, admin flag guard, and publish route smoke flows (skipped when `PLAYWRIGHT_TEST_BASE_URL` undefined).
+- Phase-1 gate extension (2025-11-07): Added `tests/e2e/publish-flow.spec.ts` for publish latency instrumentation and traced responses; `tests/e2e/admin-role-manager.spec.ts`/`tests/e2e/nav-ia.spec.ts` enforce Axe compliance and navigation telemetry for staff cohorts.
 
 ## 9. Runbooks
 - Create `/docs/operations/runbooks/` with scenario-specific guides (publish latency, payment failures, search outage).
 - Each runbook includes detection signals, immediate actions, rollback instructions, communication templates.
 - Link runbooks from dashboards for quick access.
+- New: `/docs/operations/runbooks/space-onboarding-failures.md` documents detection + response for `spaces_v1` creation and membership regressions (ties into `space_creation_success_rate` alert).
 
 ## 10. Data Quality & Telemetry Governance
 - Establish metric naming conventions (`domain_metric_unit`), tag cardinality guidelines, and sampling rules.

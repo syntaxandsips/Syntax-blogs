@@ -4,9 +4,9 @@
 | Table | Purpose | Key Columns | Notes |
 | --- | --- | --- | --- |
 | `spaces` | Defines communities with branding and governance metadata | `id`, `slug`, `name`, `description`, `visibility`, `rules`, `created_by`, `feature_flags`, `created_at`, `updated_at` | `slug` unique; `feature_flags` JSONB for space-level toggles |
-| `space_members` | Maps users to spaces with roles and status | `space_id`, `profile_id`, `role`, `status`, `invited_by`, `joined_at`, `last_active_at` | Composite PK (`space_id`, `profile_id`); status enum (pending, active, banned) |
-| `space_rules` | Structured rules/flairs/templates | `id`, `space_id`, `type`, `value`, `position` | `type` enum (rule, flair, template, automod) |
-| `post_templates` | Stores reusable template metadata | `id`, `space_id`, `content_type`, `title`, `body`, `config` | `config` JSONB for form fields, required sections |
+| `space_members` | Maps users to spaces with roles and status | `space_id`, `profile_id`, `role_id`, `role_slug`, `status`, `requested_at`, `decision_at`, `joined_at`, `last_active_at` | Composite PK (`space_id`, `profile_id`); `status` enum (`pending`, `active`, `banned`); `role_slug` maintained via trigger |
+| `space_rules` | Structured rules/flairs/templates | `id`, `space_id`, `title`, `body`, `kind`, `value`, `position` | `kind` enum (`rule`, `flair`, `template`, `automod`); JSONB `value` stores config |
+| `post_templates` | Stores reusable template metadata | `id`, `space_id`, `content_type`, `title`, `body`, `config` | `content_type` enum (`article`, `discussion`, `qa`, `event`, `workshop`); `config` JSONB for form fields |
 | `post_versions` | Version history for posts | `id`, `post_id`, `version_number`, `content`, `metadata`, `created_by`, `created_at` | Add `content` as JSONB to support editor structure |
 | `questions` | Extends posts for Q&A | `post_id`, `accepted_answer_id`, `bounty_amount`, `bounty_currency`, `bounty_expires_at` | `post_id` FK to `posts`; `accepted_answer_id` references `answers` table |
 | `answers` | Stores answers for Q&A posts | `id`, `question_id`, `body`, `author_id`, `is_accepted`, `created_at`, `updated_at` | Add index on (`question_id`, `is_accepted`) |
@@ -20,6 +20,17 @@
 | `automod_rules` | Per-space automation | `id`, `space_id`, `rule_type`, `config`, `enabled`, `created_at` | `rule_type` enum (rate_limit, first_post, banned_domain, trust_score) |
 | `sanctions` | Records enforcement | `id`, `space_id`, `profile_id`, `type`, `reason`, `status`, `expires_at`, `created_by` | `type` enum (removal, quarantine, shadow_ban, space_ban, site_ban) |
 | `audit_logs` | Immutable log for staff actions | `id`, `actor_id`, `actor_role`, `entity_type`, `entity_id`, `action`, `metadata`, `created_at` | Store hashed chain for immutability |
+
+> 2025-10-24: Created baseline `audit_logs` table with service-role write policy and admin read access to support SEC-001 guard telemetry.
+> 2025-10-31: Hardened SEC-001 scope with community scaffolding. Added `spaces` (slug, name, visibility, created_by, timestamps), `space_members` (space_id, profile_id, role_id, status, joined_at, last_seen_at), `space_rules` (space_id, title, body, created_by, timestamps), `post_versions` (post_id, version_number, content JSONB, metadata JSONB, created_by, created_at), and `reports` (reporter_profile_id, subject_type/id, reason, status, space_id, timestamps). Added helper functions `normalize_role_slug`, `highest_role_slug`, `user_space_role_at_least` to back policies.
+> 2025-11-07: MOD-001 expansion introduced `feature_flags` JSONB + optional banner imagery on `spaces`, normalized `space_membership_status` to `pending|active|banned`, added `role_slug`/`requested_at`/`decision_at` columns with sync trigger on `space_members`, extended `space_rules` with `kind` enum + JSONB `value`, created `content_template_type` enum + `post_templates` table, and added `space_members_pending_idx` / `audit_logs_space_*` indexes. Policy `Members request access` now allows self-service join requests gated to `status='pending'`.
+
+### Index & Policy Update — 2025-10-31
+
+- Indexes: `space_members(role_id, status)`, `space_members(space_id, role_id)`, `spaces(visibility)`, `posts(space_id, status)`, `posts(space_id, published_at DESC)`, `comments(thread_root_id, created_at DESC)`, `reports(space_id, status)`, `reports(subject_type, subject_id)`.
+- 2025-10-31 Follow-up (`0021_sec_001_constraints_indexes.sql`): Added unique index `profile_roles_profile_role_idx`, composite moderation index `space_members_role_status_v2_idx`, refined post timeline index `posts_space_status_published_idx`, and `comments_thread_status_created_idx` to stabilize queue queries. Enforced canonical slug constraint `roles_slug_canonical_ck` to guarantee `normalize_role_slug` invariants.
+- Constraints: canonical slug check on `roles.slug`; composite PK enforced on `space_members`.
+- RLS: deny-by-default policies now depend on helper functions to gate CRUD by canonical role ladder across `spaces`, `space_members`, `space_rules`, `posts`, `post_versions`, `comments`, `reports`, `feature_flags`, `audit_logs`, `profile_roles`.
 | `donations` | Monetary contributions | `id`, `profile_id`, `target_type`, `target_id`, `amount`, `currency`, `fee_amount`, `donor_covers_fees`, `is_recurring`, `status`, `receipt_url`, `created_at` | Index on (`target_type`, `target_id`) |
 | `pledges` | Recurring commitments | `id`, `profile_id`, `target_type`, `target_id`, `interval`, `amount`, `currency`, `status`, `next_charge_at`, `cancelled_at` | |
 | `payment_methods` | Tokenized payment references | `id`, `profile_id`, `provider`, `external_id`, `status`, `last4`, `expires_at` | PII encrypted at rest |

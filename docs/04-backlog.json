@@ -38,6 +38,19 @@
         "Integration tests cover allow/deny matrix for critical tables",
         "Admin console exposes role assignment behind flag"
       ],
+      "subtasks": [
+        "Schema hardening: add foreign keys, composite keys, and indexes for roles/profile_roles/spaces tables",
+        "Space model: create spaces, space_members, and space_rules with canonical role slugs",
+        "Content model: ensure posts, post_versions, comments reference spaces and enforce NOT NULL slugs",
+        "RLS deny-by-default: implement policies for identity, community, content, safety, platform tables",
+        "Helper SQL: highest_role(profile_id) + legacy slug mapping function with unit tests",
+        "App guards: reuse requireAdmin across admin routes, emit telemetry + audit logs",
+        "Admin UI: role manager behind rbac_hardening_v1 with audit trail",
+        "Telemetry: authz_denied_count dashboard panel + tagged increments",
+        "Tests: integration matrix role×action×table + admin route unit tests",
+        "Accessibility: axe scan for role manager surface",
+        "Docs: security matrix update, RLS denial spike runbook, data model deltas"
+      ],
       "definition_of_done": [
         "Green CI, tests added",
         "Docs updated (auth matrix in /docs/07-security-privacy.md)",
@@ -62,6 +75,14 @@
         "Primary nav supports spaces, feeds, events, funding hubs",
         "Design tokens defined for color, spacing, typography, elevation",
         "Dark/light mode parity maintained"
+      ],
+      "subtasks": [
+        "Tokens: extend Tailwind theme for color, spacing, typography, elevation, radius with dark parity",
+        "Global nav: expose Spaces, Feeds, Events, Funding, Projects, Admin via nav_ia_v1 + RBAC checks",
+        "Content page application: apply tokens to at least one content layout",
+        "Accessibility: skip link, focus-visible styles, keyboard trap tests, axe scans",
+        "Storybook: SpaceHeader, TemplatePickerModal, DonationWidget, EventCard token usage",
+        "Docs: update /docs/05-ui-ux-delta.md with token tables, IA screenshots, a11y notes"
       ],
       "definition_of_done": [
         "Green CI, tests added",
@@ -88,6 +109,15 @@
         "Role matrix enforced at API and UI for member/contributor/organizer/mod/admin",
         "Audit log entries for all moderative actions"
       ],
+      "subtasks": [
+        "Schema/migrations: create or finalize spaces, space_members, space_rules, post_templates with indexes (slug uniqueness, membership status partial) and reversible down scripts",
+        "RLS: deny-by-default policies for spaces, space_members, space_rules leveraging highest_role(profile_id) and user_space_role_at_least helper",
+        "APIs: /api/spaces CRUD and /api/spaces/[id]/members join/approve/ban endpoints with audit logging",
+        "UI: SpaceShell + SpaceHeader + SpaceRolePill flows (create, join, approve) behind spaces_v1 with loading/error states",
+        "Telemetry: emit space_creation_success_rate and space_join_approval_latency_ms with dashboard panels",
+        "Tests: integration RLS matrix for new tables and e2e create→join→approve journey with axe scan on SpaceShell",
+        "Docs: update security matrix, data-model delta, UX screenshots, plus space creation failure runbook"
+      ],
       "definition_of_done": [
         "Green CI, tests added",
         "Docs updated and screenshots recorded",
@@ -113,6 +143,14 @@
         "Draft autosave and post_versions diff viewer implemented",
         "Scheduling and canonical URL workflows validated"
       ],
+      "subtasks": [
+        "Schema: add post_versions JSONB history and post_templates scoped per space with indexes on (post_id, version_number)",
+        "Composer: modular ContentComposer with TemplatePickerModal, diff viewer, scheduling validation behind content_templates_v1",
+        "RLS: ensure authors manage drafts, contributor+ publish/revert per space rules, moderators revert",
+        "Telemetry: capture draft_autosave_latency_ms and draft_to_publish_conversion_rate with dashboards",
+        "Tests: integration coverage for version history/revert plus e2e autosave→diff→schedule→publish with axe checks",
+        "Docs: update data-model delta, UX flows, and test strategy for autosave/versioning"
+      ],
       "definition_of_done": [
         "Green CI, tests added",
         "Docs updated (product spec & UX states)",
@@ -137,6 +175,13 @@
         "Tags CRUD with synonyms/merges and tag wikis",
         "Search service indexes posts, comments, events, profiles",
         "Topic pages render curated feeds with filters"
+      ],
+      "subtasks": [
+        "Schema: tag_synonyms, topic_pages, and search index materialization with refresh job",
+        "APIs/UI: tags CRUD with merge flows, topic page templates, unified search typeahead integrated into NewNavbar",
+        "Telemetry: emit search_latency_ms histogram and search_zero_result_rate counters with alerts",
+        "Tests: integration for synonym merge + background refresh plus e2e search flows with typo tolerance",
+        "Docs: taxonomy guide, observability targets, accessibility of filter controls"
       ],
       "definition_of_done": [
         "Green CI, tests added",
@@ -312,6 +357,15 @@
         "Metrics for KPIs (publish latency, search p95, donation success, payout error, RSVP→attendance, moderation queue age, crash-free sessions)",
         "Distributed tracing instrumented for major services",
         "Dashboards and alerting policies documented"
+      ],
+      "subtasks": [
+        "Metrics: emit content_publish_latency_ms, flag_evaluation_latency_ms, authz_denied_count, crash_free_sessions",
+        "Tracing: OpenTelemetry spans for publish + admin routes annotated with space_id/post_id/flag_keys",
+        "Logging: structured JSON with request_id, hashed user_id, feature flag context",
+        "Dashboards: Executive + Operations panels covering new metrics",
+        "Alerts: configure thresholds per /docs/08-observability.md routed to on-call",
+        "Synthetic: Playwright journeys for home/admin/publish with artifact retention",
+        "Docs: update observability runbook with identifiers and rollout notes"
       ],
       "definition_of_done": [
         "Green CI, tests added",

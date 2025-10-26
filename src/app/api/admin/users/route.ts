@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
-import {
-  createServerComponentClient,
-  createServiceRoleClient,
-} from '@/lib/supabase/server-client'
-import { recordAuthzDeny } from '@/lib/observability/metrics'
+import { createServiceRoleClient } from '@/lib/supabase/server-client'
+import { requireAdmin } from '@/lib/auth/require-admin'
+import { writeAuditLog } from '@/lib/audit/log'
+import { withSpan } from '@/lib/observability/tracing'
+import { logStructuredEvent } from '@/lib/observability/logger'
 import type { AdminRole, CreateAdminUserPayload } from '@/utils/types'
 import {
   fetchRoles,
@@ -15,50 +15,6 @@ import {
 } from './shared'
 
 export { sanitizeRoleSlugs } from './shared'
-
-const getAdminProfile = async (): Promise<
-  | { response: NextResponse }
-  | { profile: { id: string } }
-> => {
-  const supabase = createServerComponentClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    recordAuthzDeny('admin_users', { stage: 'auth_check' })
-    return {
-      response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
-    }
-  }
-
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('id, is_admin')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  if (error) {
-    return {
-      response: NextResponse.json(
-        { error: `Unable to load profile: ${error.message}` },
-        { status: 500 },
-      ),
-    }
-  }
-
-  if (!profile || !profile.is_admin) {
-    recordAuthzDeny('admin_users', { stage: 'role_check' })
-    return {
-      response: NextResponse.json(
-        { error: 'Forbidden: admin access required.' },
-        { status: 403 },
-      ),
-    }
-  }
-
-  return { profile: { id: profile.id } }
-}
 
 const sanitizeEmail = (value: unknown): string => {
   if (typeof value !== 'string') return ''
@@ -77,37 +33,67 @@ const sanitizePassword = (value: unknown): string => {
 }
 
 export async function GET() {
-  const result = await getAdminProfile()
-  if ('response' in result) {
-    return result.response
+  const guard = await requireAdmin({ resource: 'admin_users', action: 'list' })
+  if (!guard.ok) {
+    return guard.response
   }
 
-  try {
-    const serviceClient = createServiceRoleClient()
-    const [roles, users] = await Promise.all([
-      fetchRoles(serviceClient),
-      loadAllUserSummaries(serviceClient),
-    ])
+  return withSpan(
+    'admin.users.list',
+    {
+      resource: 'admin_users',
+      actor_id: guard.profile.id,
+      actor_role: guard.profile.roleSlug,
+    },
+    async () => {
+      try {
+        const serviceClient = createServiceRoleClient()
+        const [roles, users] = await Promise.all([
+          fetchRoles(serviceClient),
+          loadAllUserSummaries(serviceClient),
+        ])
 
-    const formattedRoles: AdminRole[] = roles.map((role) => ({
-      id: role.id,
-      slug: role.slug,
-      name: role.name,
-      description: role.description,
-      priority: role.priority,
-    }))
+        const formattedRoles: AdminRole[] = roles.map((role) => ({
+          id: role.id,
+          slug: role.slug,
+          name: role.name,
+          description: role.description,
+          priority: role.priority,
+        }))
 
-    return NextResponse.json({ users, roles: formattedRoles })
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unable to load users.'
-    return NextResponse.json({ error: message }, { status: 500 })
-  }
+        logStructuredEvent({
+          message: 'admin_users:list_succeeded',
+          level: 'info',
+          userId: guard.profile.userId,
+          metadata: {
+            actor_profile_id: guard.profile.id,
+            role_count: formattedRoles.length,
+            user_count: users.length,
+          },
+        })
+
+        return NextResponse.json({ users, roles: formattedRoles })
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to load users.'
+        logStructuredEvent({
+          message: 'admin_users:list_failed',
+          level: 'error',
+          userId: guard.profile.userId,
+          metadata: {
+            actor_profile_id: guard.profile.id,
+            reason: message,
+          },
+        })
+        return NextResponse.json({ error: message }, { status: 500 })
+      }
+    },
+  )
 }
 
 export async function POST(request: Request) {
-  const result = await getAdminProfile()
-  if ('response' in result) {
-    return result.response
+  const guard = await requireAdmin({ resource: 'admin_users', action: 'create' })
+  if (!guard.ok) {
+    return guard.response
   }
 
   const body = (await request.json()) as Partial<CreateAdminUserPayload>
@@ -135,62 +121,107 @@ export async function POST(request: Request) {
 
   const serviceClient = createServiceRoleClient()
 
-  try {
-    const roles = await fetchRoles(serviceClient)
+  return withSpan(
+    'admin.users.create',
+    {
+      resource: 'admin_users',
+      actor_id: guard.profile.id,
+      actor_role: guard.profile.roleSlug,
+    },
+    async () => {
+      try {
+        const roles = await fetchRoles(serviceClient)
 
-    const { data: authResult, error: authError } = await serviceClient.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-    })
+        const { data: authResult, error: authError } = await serviceClient.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+        })
 
-    if (authError) {
-      throw new Error(`Unable to create user: ${authError.message}`)
-    }
+        if (authError) {
+          throw new Error(`Unable to create user: ${authError.message}`)
+        }
 
-    const authUser = authResult.user
-    if (!authUser) {
-      throw new Error('Unable to create user: missing auth record.')
-    }
+        const authUser = authResult.user
+        if (!authUser) {
+          throw new Error('Unable to create user: missing auth record.')
+        }
 
-    const { data: profileData, error: profileError } = await serviceClient
-      .from('profiles')
-      .upsert(
-        {
-          user_id: authUser.id,
-          display_name: displayName,
-          is_admin: isAdmin,
-        },
-        { onConflict: 'user_id' },
-      )
-      .select(
-        `id, user_id, display_name, is_admin, created_at, primary_role_id,
+        const { data: profileData, error: profileError } = await serviceClient
+          .from('profiles')
+          .upsert(
+            {
+              user_id: authUser.id,
+              display_name: displayName,
+              is_admin: isAdmin,
+            },
+            { onConflict: 'user_id' },
+          )
+          .select(
+            `id, user_id, display_name, is_admin, created_at, primary_role_id,
          profile_roles(role:roles(id, slug, name, description, priority))`,
-      )
-      .single()
+          )
+          .single()
 
-    if (profileError || !profileData) {
-      throw new Error(
-        `Unable to provision profile: ${profileError?.message ?? 'missing record.'}`,
-      )
-    }
+        if (profileError || !profileData) {
+          throw new Error(
+            `Unable to provision profile: ${profileError?.message ?? 'missing record.'}`,
+          )
+        }
 
-    await ensureRoleAssignments(
-      serviceClient,
-      profileData.id,
-      roles,
-      requestedRoles,
-      isAdmin,
-    )
+        await ensureRoleAssignments(
+          serviceClient,
+          profileData.id,
+          roles,
+          requestedRoles,
+          isAdmin,
+        )
 
-    const refreshedProfile = await fetchProfileById(serviceClient, profileData.id)
-    const summary = await buildUserSummary(serviceClient, refreshedProfile)
+        const refreshedProfile = await fetchProfileById(serviceClient, profileData.id)
+        const summary = await buildUserSummary(serviceClient, refreshedProfile)
 
-    return NextResponse.json({ user: summary })
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unable to create user.'
-    const status =
-      error instanceof Error && message.startsWith('Unknown role slug') ? 400 : 500
-    return NextResponse.json({ error: message }, { status })
-  }
+        await writeAuditLog({
+          actorId: guard.profile.id,
+          actorRole: guard.profile.roleSlug,
+          resource: 'admin_users',
+          action: 'user_created',
+          entityId: summary.profileId,
+          metadata: {
+            email,
+            is_admin: isAdmin,
+            role_slugs: requestedRoles,
+          },
+        })
+
+        logStructuredEvent({
+          message: 'admin_users:create_succeeded',
+          level: 'info',
+          userId: guard.profile.userId,
+          metadata: {
+            created_profile_id: summary.profileId,
+            actor_profile_id: guard.profile.id,
+            role_count: requestedRoles.length,
+          },
+        })
+
+        return NextResponse.json({ user: summary })
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to create user.'
+        const status =
+          error instanceof Error && message.startsWith('Unknown role slug') ? 400 : 500
+
+        logStructuredEvent({
+          message: 'admin_users:create_failed',
+          level: 'error',
+          userId: guard.profile.userId,
+          metadata: {
+            actor_profile_id: guard.profile.id,
+            reason: message,
+          },
+        })
+
+        return NextResponse.json({ error: message }, { status })
+      }
+    },
+  )
 }

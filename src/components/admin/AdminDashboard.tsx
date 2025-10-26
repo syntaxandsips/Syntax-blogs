@@ -11,7 +11,7 @@ import { Sidebar } from './Sidebar'
 import { PostsTable } from './PostsTable'
 import { useFeatureFlag } from '@/lib/feature-flags/client'
 import { PostForm } from './PostForm'
-import { UserManagement } from './UserManagement'
+import { RoleManager } from './RoleManager'
 import { CommentsModeration } from './CommentsModeration'
 import { TaxonomyManager } from './TaxonomyManager'
 import { DashboardOverview } from './DashboardOverview'
@@ -111,6 +111,7 @@ const DashboardContent = ({
       scheduledFor: post.scheduledFor ?? null,
       authorId: post.authorId ?? null,
       views: post.views ?? 0,
+      spaceId: post.spaceId ?? null,
     }))
   }, [])
 
@@ -1568,7 +1569,7 @@ const DashboardContent = ({
         }
 
         return (
-          <UserManagement
+          <RoleManager
             users={users}
             roles={roles}
             isLoading={isLoadingUsers}

@@ -11,15 +11,10 @@ import {
   invalidateFeatureFlagCache,
   upsertFeatureFlagCache,
 } from '@/lib/feature-flags/server'
-import { recordAuthzDeny } from '@/lib/observability/metrics'
-import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server-client'
+import { requireAdmin } from '@/lib/auth/require-admin'
+import { createServiceRoleClient } from '@/lib/supabase/server-client'
 import type { Database } from '@/lib/supabase/types'
 import type { AdminFeatureFlagAuditEntry, AdminFeatureFlagRecord } from '@/utils/types'
-
-interface ProfileRecord {
-  id: string
-  is_admin: boolean
-}
 
 const createFlagSchema = z.object({
   flagKey: z.enum(FEATURE_FLAG_KEYS),
@@ -73,55 +68,6 @@ const mapAuditRow = (row: Database['public']['Tables']['feature_flag_audit']['Ro
   createdAt: row.created_at,
 })
 
-export const requireAdminProfile = async (): Promise<{ profile: ProfileRecord } | { response: NextResponse }> => {
-  const supabase = createServerClient()
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError) {
-    return {
-      response: NextResponse.json({ error: `Unable to load session: ${authError.message}` }, { status: 500 }),
-    }
-  }
-
-  if (!user) {
-    recordAuthzDeny('feature_flag_admin', { reason: 'no_session' })
-    return { response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
-  }
-
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('id, is_admin')
-    .eq('user_id', user.id)
-    .maybeSingle<ProfileRecord>()
-
-  if (error) {
-    return {
-      response: NextResponse.json(
-        { error: `Unable to load profile: ${error.message}` },
-        { status: 500 },
-      ),
-    }
-  }
-
-  if (!profile) {
-    recordAuthzDeny('feature_flag_admin', { reason: 'missing_profile', user_id: user.id })
-    return { response: NextResponse.json({ error: 'Forbidden: admin access required.' }, { status: 403 }) }
-  }
-
-  if (!profile.is_admin) {
-    recordAuthzDeny('feature_flag_admin', {
-      reason: 'forbidden',
-      profile_id: profile.id,
-    })
-    return { response: NextResponse.json({ error: 'Forbidden: admin access required.' }, { status: 403 }) }
-  }
-
-  return { profile }
-}
-
 const buildAdminFlagSet = async (
   rows: Database['public']['Tables']['feature_flags']['Row'][] | null,
 ): Promise<AdminFeatureFlagRecord[]> => {
@@ -158,10 +104,10 @@ const buildAdminFlagSet = async (
 }
 
 export async function GET() {
-  const result = await requireAdminProfile()
+  const guard = await requireAdmin({ resource: 'feature_flag_admin', action: 'list' })
 
-  if ('response' in result) {
-    return result.response
+  if (!guard.ok) {
+    return guard.response
   }
 
   const serviceClient = createServiceRoleClient<Database>()
@@ -199,10 +145,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const result = await requireAdminProfile()
+  const guard = await requireAdmin({ resource: 'feature_flag_admin', action: 'create' })
 
-  if ('response' in result) {
-    return result.response
+  if (!guard.ok) {
+    return guard.response
   }
 
   const payload = await request.json().catch(() => ({}))
@@ -212,7 +158,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid payload', details: parseResult.error.flatten() }, { status: 422 })
   }
 
-  const { profile } = result
+  const { profile } = guard
   const { flagKey, description, owner, enabled, metadata, reason } = parseResult.data
   const defaults = FEATURE_FLAG_DEFAULTS[flagKey]
 
@@ -270,7 +216,7 @@ export async function POST(request: Request) {
     previous_enabled: null,
     new_enabled: definition.enabled,
     changed_by: profile.id,
-    changed_by_role: 'admin',
+    changed_by_role: profile.roleSlug,
     reason: reason ?? 'created',
     metadata: {
       reason: reason ?? 'created',
@@ -295,10 +241,10 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const result = await requireAdminProfile()
+  const guard = await requireAdmin({ resource: 'feature_flag_admin', action: 'update' })
 
-  if ('response' in result) {
-    return result.response
+  if (!guard.ok) {
+    return guard.response
   }
 
   const payload = await request.json().catch(() => ({}))
@@ -308,7 +254,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Invalid payload', details: parseResult.error.flatten() }, { status: 422 })
   }
 
-  const { profile } = result
+  const { profile } = guard
   const { flagKey, description, owner, enabled, metadata, reason } = parseResult.data
 
   const serviceClient = createServiceRoleClient<Database>()
@@ -371,7 +317,7 @@ export async function PATCH(request: Request) {
     previous_enabled: existing.enabled ?? false,
     new_enabled: definition.enabled,
     changed_by: profile.id,
-    changed_by_role: 'admin',
+    changed_by_role: profile.roleSlug,
     reason: reason ?? 'updated',
     metadata: {
       reason: reason ?? 'updated',
@@ -396,10 +342,10 @@ export async function PATCH(request: Request) {
 }
 
 export async function PURGE() {
-  const result = await requireAdminProfile()
+  const guard = await requireAdmin({ resource: 'feature_flag_admin', action: 'purge' })
 
-  if ('response' in result) {
-    return result.response
+  if (!guard.ok) {
+    return guard.response
   }
 
   invalidateFeatureFlagCache()

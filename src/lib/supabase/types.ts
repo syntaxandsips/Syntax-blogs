@@ -78,6 +78,189 @@ export interface Database {
         }
         Update: Partial<Database['public']['Tables']['feature_flag_audit']['Insert']>
       }
+      audit_logs: {
+        Row: {
+          id: string
+          actor_id: string | null
+          actor_role: string
+          resource: string
+          action: string
+          entity_id: string | null
+          space_id: string | null
+          metadata: Record<string, unknown>
+          reason: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          actor_id?: string | null
+          actor_role: string
+          resource: string
+          action: string
+          entity_id?: string | null
+          space_id?: string | null
+          metadata?: Record<string, unknown>
+          reason?: string | null
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['audit_logs']['Insert']>
+      }
+      spaces: {
+        Row: {
+          id: string
+          slug: string
+          name: string
+          description: string | null
+          visibility: Database['public']['Enums']['space_visibility']
+          created_by: string | null
+          created_at: string
+          updated_at: string
+          is_archived: boolean
+          feature_flags: Record<string, unknown>
+          banner_image_url: string | null
+        }
+        Insert: {
+          id?: string
+          slug: string
+          name: string
+          description?: string | null
+          visibility?: Database['public']['Enums']['space_visibility']
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          is_archived?: boolean
+          feature_flags?: Record<string, unknown>
+          banner_image_url?: string | null
+        }
+        Update: Partial<Database['public']['Tables']['spaces']['Insert']>
+      }
+      space_members: {
+        Row: {
+          space_id: string
+          profile_id: string
+          role_id: string
+          status: Database['public']['Enums']['space_membership_status']
+          joined_at: string
+          last_seen_at: string | null
+          role_slug: string
+          requested_at: string | null
+          decision_at: string | null
+        }
+        Insert: {
+          space_id: string
+          profile_id: string
+          role_id: string
+          status?: Database['public']['Enums']['space_membership_status']
+          joined_at?: string
+          last_seen_at?: string | null
+          role_slug?: string
+          requested_at?: string | null
+          decision_at?: string | null
+        }
+        Update: Partial<Database['public']['Tables']['space_members']['Insert']>
+      }
+      space_rules: {
+        Row: {
+          id: string
+          space_id: string
+          title: string
+          body: string
+          created_by: string | null
+          created_at: string
+          updated_at: string
+          kind: Database['public']['Enums']['space_rule_kind']
+          value: Record<string, unknown>
+          position: number
+        }
+        Insert: {
+          id?: string
+          space_id: string
+          title: string
+          body: string
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          kind?: Database['public']['Enums']['space_rule_kind']
+          value?: Record<string, unknown>
+          position?: number
+        }
+        Update: Partial<Database['public']['Tables']['space_rules']['Insert']>
+      }
+      post_templates: {
+        Row: {
+          id: string
+          space_id: string
+          content_type: Database['public']['Enums']['content_template_type']
+          title: string
+          body: string | null
+          config: Record<string, unknown>
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          space_id: string
+          content_type: Database['public']['Enums']['content_template_type']
+          title: string
+          body?: string | null
+          config?: Record<string, unknown>
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['post_templates']['Insert']>
+      }
+      post_versions: {
+        Row: {
+          id: string
+          post_id: string
+          version_number: number
+          content: Record<string, unknown>
+          metadata: Record<string, unknown>
+          created_by: string | null
+          created_at: string
+          scheduled_for: string | null
+        }
+        Insert: {
+          id?: string
+          post_id: string
+          version_number: number
+          content?: Record<string, unknown>
+          metadata?: Record<string, unknown>
+          created_by?: string | null
+          created_at?: string
+          scheduled_for?: string | null
+        }
+        Update: Partial<Database['public']['Tables']['post_versions']['Insert']>
+      }
+      reports: {
+        Row: {
+          id: string
+          reporter_profile_id: string | null
+          subject_type: string
+          subject_id: string
+          reason: string
+          notes: string | null
+          status: string
+          space_id: string | null
+          created_at: string
+          resolved_at: string | null
+        }
+        Insert: {
+          id?: string
+          reporter_profile_id?: string | null
+          subject_type: string
+          subject_id: string
+          reason: string
+          notes?: string | null
+          status?: string
+          space_id?: string | null
+          created_at?: string
+          resolved_at?: string | null
+        }
+        Update: Partial<Database['public']['Tables']['reports']['Insert']>
+      }
       gamification_profiles: {
         Row: {
           profile_id: string
@@ -876,6 +1059,12 @@ export interface Database {
         | 'messaging_v1'
         | 'notifications_v1'
         | 'rbac_hardening_v1'
+        | 'nav_ia_v1'
+        | 'observability_v1'
+      space_visibility: 'public' | 'private' | 'unlisted'
+      space_membership_status: 'pending' | 'active' | 'banned'
+      space_rule_kind: 'rule' | 'flair' | 'template' | 'automod'
+      content_template_type: 'article' | 'discussion' | 'qa' | 'event' | 'workshop'
       prompt_media_type: 'image' | 'video' | 'text' | 'audio' | '3d' | 'workflow'
       prompt_difficulty_level: 'beginner' | 'intermediate' | 'advanced'
       prompt_visibility: 'public' | 'unlisted' | 'draft'

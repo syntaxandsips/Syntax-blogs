@@ -4,9 +4,9 @@
 | Table | Purpose | Key Columns | Notes |
 | --- | --- | --- | --- |
 | `spaces` | Defines communities with branding and governance metadata | `id`, `slug`, `name`, `description`, `visibility`, `rules`, `created_by`, `feature_flags`, `created_at`, `updated_at` | `slug` unique; `feature_flags` JSONB for space-level toggles |
-| `space_members` | Maps users to spaces with roles and status | `space_id`, `profile_id`, `role`, `status`, `invited_by`, `joined_at`, `last_active_at` | Composite PK (`space_id`, `profile_id`); status enum (pending, active, banned) |
-| `space_rules` | Structured rules/flairs/templates | `id`, `space_id`, `type`, `value`, `position` | `type` enum (rule, flair, template, automod) |
-| `post_templates` | Stores reusable template metadata | `id`, `space_id`, `content_type`, `title`, `body`, `config` | `config` JSONB for form fields, required sections |
+| `space_members` | Maps users to spaces with roles and status | `space_id`, `profile_id`, `role_id`, `role_slug`, `status`, `requested_at`, `decision_at`, `joined_at`, `last_active_at` | Composite PK (`space_id`, `profile_id`); `status` enum (`pending`, `active`, `banned`); `role_slug` maintained via trigger |
+| `space_rules` | Structured rules/flairs/templates | `id`, `space_id`, `title`, `body`, `kind`, `value`, `position` | `kind` enum (`rule`, `flair`, `template`, `automod`); JSONB `value` stores config |
+| `post_templates` | Stores reusable template metadata | `id`, `space_id`, `content_type`, `title`, `body`, `config` | `content_type` enum (`article`, `discussion`, `qa`, `event`, `workshop`); `config` JSONB for form fields |
 | `post_versions` | Version history for posts | `id`, `post_id`, `version_number`, `content`, `metadata`, `created_by`, `created_at` | Add `content` as JSONB to support editor structure |
 | `questions` | Extends posts for Q&A | `post_id`, `accepted_answer_id`, `bounty_amount`, `bounty_currency`, `bounty_expires_at` | `post_id` FK to `posts`; `accepted_answer_id` references `answers` table |
 | `answers` | Stores answers for Q&A posts | `id`, `question_id`, `body`, `author_id`, `is_accepted`, `created_at`, `updated_at` | Add index on (`question_id`, `is_accepted`) |
@@ -23,6 +23,7 @@
 
 > 2025-10-24: Created baseline `audit_logs` table with service-role write policy and admin read access to support SEC-001 guard telemetry.
 > 2025-10-31: Hardened SEC-001 scope with community scaffolding. Added `spaces` (slug, name, visibility, created_by, timestamps), `space_members` (space_id, profile_id, role_id, status, joined_at, last_seen_at), `space_rules` (space_id, title, body, created_by, timestamps), `post_versions` (post_id, version_number, content JSONB, metadata JSONB, created_by, created_at), and `reports` (reporter_profile_id, subject_type/id, reason, status, space_id, timestamps). Added helper functions `normalize_role_slug`, `highest_role_slug`, `user_space_role_at_least` to back policies.
+> 2025-11-07: MOD-001 expansion introduced `feature_flags` JSONB + optional banner imagery on `spaces`, normalized `space_membership_status` to `pending|active|banned`, added `role_slug`/`requested_at`/`decision_at` columns with sync trigger on `space_members`, extended `space_rules` with `kind` enum + JSONB `value`, created `content_template_type` enum + `post_templates` table, and added `space_members_pending_idx` / `audit_logs_space_*` indexes. Policy `Members request access` now allows self-service join requests gated to `status='pending'`.
 
 ### Index & Policy Update — 2025-10-31
 

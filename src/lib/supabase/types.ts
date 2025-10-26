@@ -116,6 +116,8 @@ export interface Database {
           created_at: string
           updated_at: string
           is_archived: boolean
+          feature_flags: Record<string, unknown>
+          banner_image_url: string | null
         }
         Insert: {
           id?: string
@@ -127,6 +129,8 @@ export interface Database {
           created_at?: string
           updated_at?: string
           is_archived?: boolean
+          feature_flags?: Record<string, unknown>
+          banner_image_url?: string | null
         }
         Update: Partial<Database['public']['Tables']['spaces']['Insert']>
       }
@@ -138,6 +142,9 @@ export interface Database {
           status: Database['public']['Enums']['space_membership_status']
           joined_at: string
           last_seen_at: string | null
+          role_slug: string
+          requested_at: string | null
+          decision_at: string | null
         }
         Insert: {
           space_id: string
@@ -146,6 +153,9 @@ export interface Database {
           status?: Database['public']['Enums']['space_membership_status']
           joined_at?: string
           last_seen_at?: string | null
+          role_slug?: string
+          requested_at?: string | null
+          decision_at?: string | null
         }
         Update: Partial<Database['public']['Tables']['space_members']['Insert']>
       }
@@ -158,6 +168,9 @@ export interface Database {
           created_by: string | null
           created_at: string
           updated_at: string
+          kind: Database['public']['Enums']['space_rule_kind']
+          value: Record<string, unknown>
+          position: number
         }
         Insert: {
           id?: string
@@ -167,8 +180,36 @@ export interface Database {
           created_by?: string | null
           created_at?: string
           updated_at?: string
+          kind?: Database['public']['Enums']['space_rule_kind']
+          value?: Record<string, unknown>
+          position?: number
         }
         Update: Partial<Database['public']['Tables']['space_rules']['Insert']>
+      }
+      post_templates: {
+        Row: {
+          id: string
+          space_id: string
+          content_type: Database['public']['Enums']['content_template_type']
+          title: string
+          body: string | null
+          config: Record<string, unknown>
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          space_id: string
+          content_type: Database['public']['Enums']['content_template_type']
+          title: string
+          body?: string | null
+          config?: Record<string, unknown>
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['post_templates']['Insert']>
       }
       post_versions: {
         Row: {
@@ -179,6 +220,7 @@ export interface Database {
           metadata: Record<string, unknown>
           created_by: string | null
           created_at: string
+          scheduled_for: string | null
         }
         Insert: {
           id?: string
@@ -188,6 +230,7 @@ export interface Database {
           metadata?: Record<string, unknown>
           created_by?: string | null
           created_at?: string
+          scheduled_for?: string | null
         }
         Update: Partial<Database['public']['Tables']['post_versions']['Insert']>
       }
@@ -1019,7 +1062,9 @@ export interface Database {
         | 'nav_ia_v1'
         | 'observability_v1'
       space_visibility: 'public' | 'private' | 'unlisted'
-      space_membership_status: 'active' | 'invited' | 'suspended'
+      space_membership_status: 'pending' | 'active' | 'banned'
+      space_rule_kind: 'rule' | 'flair' | 'template' | 'automod'
+      content_template_type: 'article' | 'discussion' | 'qa' | 'event' | 'workshop'
       prompt_media_type: 'image' | 'video' | 'text' | 'audio' | '3d' | 'workflow'
       prompt_difficulty_level: 'beginner' | 'intermediate' | 'advanced'
       prompt_visibility: 'public' | 'unlisted' | 'draft'

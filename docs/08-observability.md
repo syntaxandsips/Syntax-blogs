@@ -20,11 +20,13 @@
 | `authz_denied_count` | Authorization failures | Counter | `resource`, `role`, `space` |
 | `flag_evaluation_latency_ms` | Feature flag evaluation | Histogram | `flag_key` |
 | `nav_interaction_total` | Nav hub clicks (flag cohorts) | Counter | `target`, `from`, `variant`, `role` |
+| `space_creation_success_rate` | Organizer space creation success ratio | Gauge | `visibility`, `flag` |
+| `space_join_approval_latency_ms` | Time from request to approval/ban | Histogram | `space_id`, `actor_role` |
 | `webhook_delivery_success_rate` | Webhook successes vs. attempts | Gauge | `event_type` |
 | `automod_trigger_count` | Automod actions per rule | Counter | `rule_type`, `space` |
 
 > 2025-10-31: Added `admin_publish_duration_ms` internal histogram for staff tooling responsiveness and began emitting `content_publish_latency_ms` from `/api/admin/posts`. Structured logs now include `user_id_hash`, `space_id`, and feature flag context for audit correlation. `nav_interaction_total` now captures navigation hub engagement per flag cohort.
-> 2025-11-07: Verified `authz_denied_count{resource,role,space,reason}` increments through synthetic denial (`tests/synthetic/observability.spec.ts`) and confirmed dashboard ingestion within `dash_ops_rbac_v1`.
+> 2025-11-07: Verified `authz_denied_count{resource,role,space,reason}` increments through synthetic denial (`tests/synthetic/observability.spec.ts`) and confirmed dashboard ingestion within `dash_ops_rbac_v1`. Added `space_creation_success_rate` + `space_join_approval_latency_ms` panels to monitor MOD-001 pilot health.
 
 ## 3. Tracing Strategy
 - Instrument Next.js route handlers and server components with OpenTelemetry.
@@ -54,6 +56,7 @@
 | Donation failures spike | `donation_success_rate` < 90% for 15m | Critical | PagerDuty + Finance Slack |
 | Payout errors rising | `payout_error_rate` > 2% for 30m | Critical | PagerDuty + Payments distro |
 | Moderation backlog | `moderation_queue_oldest_min` > 60 | Warning | Slack #safety |
+| Space creation drop | `space_creation_success_rate` < 95% for 15m | Warning | PagerDuty `pd-sec-ops` |
 | Crash-free drop | `crash_free_sessions` < 97% daily | Warning | Slack #frontend |
 | Webhook delivery failures | `webhook_delivery_success_rate` < 95% for 30m | Warning | Slack #integrations |
 
@@ -80,6 +83,7 @@
 - Create `/docs/operations/runbooks/` with scenario-specific guides (publish latency, payment failures, search outage).
 - Each runbook includes detection signals, immediate actions, rollback instructions, communication templates.
 - Link runbooks from dashboards for quick access.
+- New: `/docs/operations/runbooks/space-onboarding-failures.md` documents detection + response for `spaces_v1` creation and membership regressions (ties into `space_creation_success_rate` alert).
 
 ## 10. Data Quality & Telemetry Governance
 - Establish metric naming conventions (`domain_metric_unit`), tag cardinality guidelines, and sampling rules.

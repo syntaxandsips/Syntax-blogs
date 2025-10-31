@@ -1,0 +1,26 @@
+name: pocketllm
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_hooks: ^0.20.5
+  hooks_riverpod: ^2.5.1
+  go_router: ^13.2.0
+  shared_preferences: ^2.2.2
+  flutter_animate: ^4.5.0
+  google_fonts: ^6.2.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/illustration/ob1.png
+    - assets/illustration/ob2.png
+    - assets/illustration/ob3.gif
+    - assets/illustration/ob4.gif
+    - assets/illustration/ob5.gif
+    - assets/illustration/ob6.gif
